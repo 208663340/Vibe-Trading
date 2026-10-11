@@ -1049,7 +1049,7 @@
       "noMarkets": "No market data sources are registered.",
       "howItWorksTitle": "How it works",
       "howItWorks": "For auto-detected symbols, sources are tried top to bottom; a source that fails falls through to the next one. Saving applies immediately — no restart needed.",
-      "caliberCaveat": "Caliber caveat: sources differ in adjustment basis — e.g. Yahoo serves raw (unadjusted) OHLC while Tencent/Eastmoney/Tushare/BaoStock serve adjusted prices — so a reordered chain can change backtest numbers.",
+      "caliberCaveat": "Sources can use different price adjustments. Check the returned adjustment/provenance and run-card warnings; changing source order can change backtest results.",
       "markets": {
         "a_share": "A-Shares (China)",
         "us_equity": "US Equities",
@@ -1059,6 +1059,7 @@
         "ca_equity": "Canada Equities",
         "vietnam_equity": "Vietnam Equities",
         "ar_equity": "Argentina Equities",
+        "br_equity": "Brazil Equities",
         "uk_equity": "UK Equities",
         "index": "Indices",
         "crypto": "Crypto",
@@ -1389,6 +1390,7 @@
         "futures": "Futures",
         "forex": "Forex",
         "ar_equity": "Argentina equity",
+        "br_equity": "Brazil equity",
         "uk_equity": "UK equity",
         "vietnam_equity": "Vietnam equity",
         "other": "Other"

@@ -1044,7 +1044,7 @@
       "noMarkets": "登録された市場データソースがありません。",
       "howItWorksTitle": "動作のしくみ",
       "howItWorks": "自動検出されたシンボルでは、上から順にソースが試行され、失敗したソースは次へフォールスルーします。保存すると再起動なしで即時反映されます。",
-      "caliberCaveat": "留意点:データソースごとに調整基準が異なります — 例えば Yahoo は未調整の OHLC を、Tencent/Eastmoney/Tushare は調整後価格を返します — 順序を変えるとバックテスト結果が変わる可能性があります。",
+      "caliberCaveat": "データソースによって価格調整が異なる場合があります。返却された調整・出典情報と実行カードの警告を確認してください。順序の変更でバックテスト結果が変わる可能性があります。",
       "markets": {
         "a_share": "中国A株",
         "us_equity": "米国株",
@@ -1054,6 +1054,7 @@
         "ca_equity": "カナダ株",
         "vietnam_equity": "ベトナム株",
         "ar_equity": "アルゼンチン株",
+        "br_equity": "ブラジル株",
         "uk_equity": "英国株",
         "index": "指数",
         "crypto": "暗号資産",
@@ -1384,6 +1385,7 @@
         "futures": "先物",
         "forex": "外国為替",
         "ar_equity": "アルゼンチン株",
+        "br_equity": "ブラジル株",
         "uk_equity": "英国株",
         "vietnam_equity": "ベトナム株",
         "other": "その他"

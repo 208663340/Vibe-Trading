@@ -1044,7 +1044,7 @@
       "noMarkets": "등록된 시장 데이터 소스가 없습니다.",
       "howItWorksTitle": "작동 방식",
       "howItWorks": "자동 감지된 심볼은 위에서 아래로 소스를 시도하며, 실패한 소스는 다음으로 넘어갑니다. 저장하면 재시작 없이 즉시 적용됩니다.",
-      "caliberCaveat": "주의: 데이터 소스마다 수정 기준이 다릅니다 — 예를 들어 Yahoo는 미수정 OHLC를, Tencent/Eastmoney/Tushare는 수정 주가를 반환합니다 — 순서를 바꾸면 백테스트 수치가 달라질 수 있습니다.",
+      "caliberCaveat": "데이터 소스마다 가격 조정 방식이 다를 수 있습니다. 반환된 조정·출처 정보와 실행 카드 경고를 확인하세요. 소스 순서에 따라 백테스트 결과가 달라질 수 있습니다.",
       "markets": {
         "a_share": "중국 A주",
         "us_equity": "미국 주식",
@@ -1054,6 +1054,7 @@
         "ca_equity": "캐나다 주식",
         "vietnam_equity": "베트남 주식",
         "ar_equity": "아르헨티나 주식",
+        "br_equity": "브라질 주식",
         "uk_equity": "영국 주식",
         "index": "지수",
         "crypto": "암호화폐",
@@ -1384,6 +1385,7 @@
         "futures": "선물",
         "forex": "외환",
         "ar_equity": "아르헨티나 주식",
+        "br_equity": "브라질 주식",
         "uk_equity": "영국 주식",
         "vietnam_equity": "베트남 주식",
         "other": "기타"

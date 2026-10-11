@@ -39,6 +39,7 @@ _UK_EQUITY_PATTERN = re.compile(r"^[A-Z0-9&.\-]+\.L$", re.I)
 # these markets' chains is Yahoo or yfinance, so the declared currency decides.
 _SINGLE_CURRENCY_VENUES: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"^[A-Z0-9&.\-]+\.BA$", re.I), "ARS"),
+    (re.compile(r"^[A-Z0-9]+\.SA$", re.I), "BRL"),
     (re.compile(r"^[A-Z0-9&.\-]+\.(?:TO|V)$", re.I), "CAD"),
 )
 
@@ -477,7 +478,9 @@ _LOADER_CACHE_TRUE_VALUES = {"1", "true", "yes", "on"}
 # forward walk hold tail-truncated multi-year series and must never be served.
 # v8: FMP/Tiingo keep one adjusted/raw basis and cached frames retain their
 # actual adjustment stamp. Older entries may contain artificial return jumps.
-_LOADER_CACHE_VERSION = 8
+# v9: SEC successor/predecessor facts extend historical coverage. Old cached
+# panels may omit the predecessor's filings and must be rebuilt.
+_LOADER_CACHE_VERSION = 9
 _LOADER_FRAME_METADATA_ATTRS = ("quote_currency", "currency_conversion", "adjustment")
 
 
