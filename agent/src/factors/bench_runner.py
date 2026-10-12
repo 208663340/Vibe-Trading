@@ -37,7 +37,7 @@ from src.factors.registry import (
     SkipAlpha,
     get_default_registry,
 )
-from src.tools.alpha_bench_tool import _compute_forward_returns, _load_universe_panel, _prepare_bench_panel, _validate_bench_data_requirements
+from src.tools.alpha_bench_tool import _MAX_HORIZON, _compute_forward_returns, _load_universe_panel, _prepare_bench_panel, _split_alphas_by_universe_support, _validate_bench_data_requirements
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,12 @@ def t_stat(ic_mean: float, ic_std: float, n: int) -> float:
 
 
 def categorise(row: dict[str, Any]) -> str:
-    """Bucket a per-alpha row into alive / reversed / dead."""
+    """Bucket a per-alpha row into alive / reversed / dead.
+
+    Thresholds are calibrated on daily next-bar ICs; at horizon h > 1 the
+    |IC| > 0.02 floor is a looser bar (h-bar ICs are naturally larger in
+    magnitude). The run envelope states its own horizon.
+    """
     ic_mean = row["ic_mean"]
     pos = row["ic_positive_ratio"]
     t = t_stat(ic_mean, row["ic_std"], row["ic_count"])
@@ -143,6 +148,7 @@ def run_bench(
     registry: Registry | None = None,
     only: Iterable[str] | None = None,
     on_stage: Callable[[str], None] | None = None,
+    horizon: int = 1,
 ) -> dict[str, Any]:
     """Run a bench end-to-end and return the API-shaped summary.
 
@@ -161,11 +167,17 @@ def run_bench(
             alpha list is restricted to this set — used by ``alpha compare`` to
             bench just a handful of named alphas instead of the whole zoo. Ids
             not registered under ``zoo`` are silently dropped from the subset.
+        horizon: Forward-return horizon in bars (default 1 = next-bar,
+            unchanged behaviour). ``h > 1`` computes h-bar forward returns
+            sampled non-overlapping (end-anchored) so the naive-iid t-stat
+            stays honest; 21 ≈ monthly, the conventional horizon for
+            fundamental factors.
 
     Returns:
         Dict with keys: ``status``, ``zoo``, ``universe``, ``period``,
-        ``n_alphas_tested``, ``n_skipped``, ``alive``, ``reversed``, ``dead``,
-        ``by_theme``, ``top5_by_ir``, ``dead_examples``, ``wall_seconds`` —
+        ``horizon``, ``forward_return_sampling``, ``n_alphas_tested``,
+        ``n_skipped``, ``alive``, ``reversed``, ``dead``, ``by_theme``,
+        ``top5_by_ir``, ``dead_examples``, ``wall_seconds`` —
         and on failure: ``status="error"``, ``error``.
     """
     start = time.monotonic()
@@ -174,7 +186,23 @@ def run_bench(
         "zoo": zoo,
         "universe": universe,
         "period": period,
+        "horizon": horizon,
+        "forward_return_sampling": (
+            "non_overlapping"
+            if isinstance(horizon, int) and not isinstance(horizon, bool) and horizon > 1
+            else "daily"
+        ),
     }
+
+    # Fail fast before any panel load (network): same 1.._MAX_HORIZON contract
+    # the tool and MCP wrapper enforce.
+    if isinstance(horizon, bool) or not isinstance(horizon, int) or not 1 <= horizon <= _MAX_HORIZON:
+        entry["status"] = "error"
+        entry["error"] = (
+            f"horizon must be an integer between 1 and {_MAX_HORIZON}, got {horizon!r}"
+        )
+        entry["wall_seconds"] = round(time.monotonic() - start, 2)
+        return entry
 
     reg = registry if registry is not None else get_default_registry()
     alpha_ids = reg.list(zoo=zoo)
@@ -193,6 +221,25 @@ def run_bench(
             entry["wall_seconds"] = round(time.monotonic() - start, 2)
             return entry
 
+    alpha_ids, universe_excluded = _split_alphas_by_universe_support(reg, alpha_ids, universe)
+    if universe_excluded:
+        entry["universe_excluded"] = universe_excluded
+        logger.info(
+            "bench: %d alpha(s) excluded on %s — fund:* inputs need SEC US filings (sp500): %s",
+            len(universe_excluded),
+            universe,
+            ", ".join(universe_excluded[:10]),
+        )
+    if not alpha_ids:
+        entry["status"] = "error"
+        entry["error"] = (
+            f"all {len(universe_excluded)} selected alphas require SEC US filings "
+            f"(fund:* inputs); the {universe!r} universe cannot serve them. "
+            "Choose the S&P 500 universe."
+        )
+        entry["wall_seconds"] = round(time.monotonic() - start, 2)
+        return entry
+
     try:
         _validate_bench_data_requirements(reg, alpha_ids, universe)
         if on_stage:
@@ -208,7 +255,7 @@ def run_bench(
         panel = _prepare_bench_panel(reg, alpha_ids, panel, universe, period)
         if on_stage:
             on_stage("preparing_returns")
-        return_df = _compute_forward_returns(panel)
+        return_df = _compute_forward_returns(panel, horizon=horizon)
     except Exception as exc:  # noqa: BLE001
         entry["status"] = "error"
         entry["error"] = f"forward returns failed: {exc}"

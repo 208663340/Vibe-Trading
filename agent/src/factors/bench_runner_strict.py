@@ -63,7 +63,7 @@ from src.factors.registry import (
     SkipAlpha,
     get_default_registry,
 )
-from src.tools.alpha_bench_tool import _compute_forward_returns, _load_universe_panel
+from src.tools.alpha_bench_tool import _MAX_HORIZON, _compute_forward_returns, _load_universe_panel
 
 logger = logging.getLogger(__name__)
 
@@ -325,6 +325,7 @@ def run_bench_strict(
     training_cutoff: str | None = None,
     thresholds: StrictThresholds | None = None,
     top: int = 20,
+    horizon: int = 1,
     on_progress: ProgressCb | None = None,
     registry: Registry | None = None,
 ) -> dict[str, Any]:
@@ -352,6 +353,11 @@ def run_bench_strict(
             Harvey-Liu-Zhu (2016) multiple-testing correction when bench
             covers a large zoo.
         top: How many top-IR alphas to keep in summary lists.
+        horizon: Forward-return horizon in bars (default 1 = next-bar,
+            unchanged behaviour). ``h > 1`` computes h-bar forward returns
+            sampled non-overlapping (end-anchored) so the naive-iid t-stats
+            stay honest; 21 ≈ monthly, the conventional horizon for
+            fundamental factors.
         on_progress: Optional ``(n_done, n_total, alpha_id)`` callback.
         registry: Optional pre-built registry for tests.
 
@@ -395,6 +401,12 @@ def run_bench_strict(
         "zoo": zoo,
         "universe": universe,
         "period": period,
+        "horizon": horizon,
+        "forward_return_sampling": (
+            "non_overlapping"
+            if isinstance(horizon, int) and not isinstance(horizon, bool) and horizon > 1
+            else "daily"
+        ),
         "random_control": random_control,
         "n_random_seeds": effective_seeds,
         "oos_split": effective_oos_split,
@@ -430,6 +442,13 @@ def run_bench_strict(
     if training_cutoff is not None and oos_split is not None:
         return _finish_error("pass either training_cutoff or oos_split, not both")
 
+    # Fail fast before any panel load (network): same 1.._MAX_HORIZON contract
+    # the tool and MCP wrapper enforce.
+    if isinstance(horizon, bool) or not isinstance(horizon, int) or not 1 <= horizon <= _MAX_HORIZON:
+        return _finish_error(
+            f"horizon must be an integer between 1 and {_MAX_HORIZON}, got {horizon!r}"
+        )
+
     reg = registry if registry is not None else get_default_registry()
     alpha_ids = reg.list(zoo=zoo)
     if not alpha_ids:
@@ -441,7 +460,7 @@ def run_bench_strict(
         return _finish_error(f"universe load failed: {exc}")
 
     try:
-        return_df = _compute_forward_returns(panel)
+        return_df = _compute_forward_returns(panel, horizon=horizon)
     except Exception as exc:  # noqa: BLE001
         return _finish_error(f"forward returns failed: {exc}")
 
