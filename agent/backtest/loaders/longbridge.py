@@ -40,6 +40,7 @@ from src.trading.connectors.longbridge.credentials import (
     LongbridgeCredentialError,
     resolve_longbridge_credentials,
 )
+from src.trading.connectors.longbridge.sdk import build_sdk_config
 
 logger = logging.getLogger(__name__)
 
@@ -334,17 +335,20 @@ class LongbridgeLoader:
         openapi = _require_longbridge()
         _init_error: str | None = None
         try:
-            cfg = openapi.Config(
-                self._app_key, self._app_secret, self._access_token,
+            cfg = build_sdk_config(
+                openapi, self._app_key, self._app_secret, self._access_token
             )
             ctx = openapi.QuoteContext(cfg)
         except LongbridgeDependencyError:
             raise
-        except Exception:
-            # Capture only stable text; do NOT raise inside the handler so
-            # the original exception (which may contain secrets) cannot
-            # leak into __context__.
-            _init_error = "Longbridge SDK initialization failed."
+        except Exception as exc:
+            # Keep only the exception type: its message may carry credentials,
+            # but the type alone tells an SDK API change from a bad token. Do
+            # NOT raise inside the handler, or the original exception leaks
+            # into __context__.
+            _init_error = (
+                f"Longbridge SDK initialization failed ({type(exc).__name__})."
+            )
 
         if _init_error is not None:
             raise NoAvailableSourceError(_init_error)
