@@ -136,11 +136,15 @@ evidence exactly once; absent evidence retains the existing interrupted-attempt 
 Guarantees cover process interruption and atomic file integrity, not a new multi-file
 transaction or an unproven power-loss guarantee.
 
-SSE overflow uses additive `session.resync` control carrying a reason and the latest
-buffered cursor. A full queue drops/coalesces old data only to guarantee this control,
-terminal and close delivery. Clients reload authoritative session/messages state on
-resync without replaying a user POST; old stream cursor does not imply complete delta
-delivery. Task 2 reports the exact payload to Task 3 before implementation.
+SSE overflow uses additive `session.resync` control without an SSE id. Its data is
+`{reason: "queue_overflow" | "cursor_expired", latest_event_id: string | null}`.
+The cursor coalesces to the latest buffered publication before control delivery;
+it does not acknowledge a continuous ordinary-delta sequence. A full queue retains
+this control, the latest terminal and close independently of ordinary data slots.
+Clients reload authoritative session/messages/attempt state and replace the connection
+at latest_event_id without replaying a user POST. A session deletion still sends
+`session_cleared`; bus-wide shutdown drains the bounded queue then ends transport
+without a deletion frame. Task 2's report defines exact control priority for Task 3.
 
 Gap controls are per-subscriber and do not rely on free data queue slots. After overflow
 or an expired replay cursor, the damaged stream signals resync and stops forwarding
