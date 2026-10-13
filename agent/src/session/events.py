@@ -9,6 +9,7 @@ import threading
 import time
 import uuid
 
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
@@ -69,9 +70,91 @@ class _Subscriber:
     closing: SSEEvent | None = None
     gapped: bool = False
     detached: bool = False
+    ingress: deque = field(default_factory=deque)
+    _ingress_gate: threading.Lock = field(default_factory=threading.Lock)
+    _scheduled: bool = False
+    _ingress_gapped: bool = False
+    _ingress_gap: tuple[str, str | None] | None = None
+    _ingress_terminal: SSEEvent | None = None
+    _ingress_close: SSEEvent | None = None
+    _latest_cursor: str | None = None
+
+    def _pending_locked(self) -> bool:
+        return bool(self.ingress or self._ingress_gap or self._ingress_terminal or self._ingress_close)
+
+    def offer(self, event: SSEEvent, cursor: str | None) -> bool:
+        """Bound publisher ingress; return whether one owner-loop drain is needed."""
+        with self._ingress_gate:
+            if self.detached or self._ingress_close is not None:
+                return False
+            if event.event_type in {"session_cleared", "_stream_closed"}:
+                self._ingress_close = event
+            else:
+                self._latest_cursor = cursor
+                if self._ingress_gapped:
+                    if event.event_type in _TERMINAL_EVENTS:
+                        if self._ingress_terminal is not None:
+                            self._ingress_gap = ("queue_overflow", cursor)
+                        self._ingress_terminal = event
+                elif len(self.ingress) < self.queue.maxsize:
+                    self.ingress.append((event, cursor))
+                else:
+                    self._ingress_gapped = True
+                    self._ingress_gap = ("queue_overflow", cursor)
+                    for queued, _ in self.ingress:
+                        if queued.event_type in _TERMINAL_EVENTS:
+                            self._ingress_terminal = queued
+                    self.ingress.clear()
+                    if event.event_type in _TERMINAL_EVENTS:
+                        self._ingress_terminal = event
+            if self._scheduled or not self._pending_locked():
+                return False
+            self._scheduled = True
+            return True
+
+    def drain(self) -> None:
+        """Transfer one bounded ingress batch on the actual subscriber loop."""
+        with self._ingress_gate:
+            if self.detached:
+                self._scheduled = False
+                return
+            events = list(self.ingress)
+            self.ingress.clear()
+            gap, terminal, close = self._ingress_gap, self._ingress_terminal, self._ingress_close
+            self._ingress_gap = self._ingress_terminal = self._ingress_close = None
+        try:
+            if gap is not None:
+                self.gap(*gap)
+            for event, cursor in events:
+                self.deliver(event, cursor)
+            if terminal is not None:
+                self.deliver(terminal, terminal.event_id)
+            if close is not None:
+                self.deliver(close, None)
+        finally:
+            self._finish_drain()
+
+    def _finish_drain(self) -> None:
+        # Reset/schedule and publisher admission share a lock. A publisher
+        # racing this handoff either joins the next drain or schedules it itself.
+        with self._ingress_gate:
+            if self._pending_locked() and not self.detached:
+                self.loop.call_soon(self.drain)
+            else:
+                self._scheduled = False
+
+    def detach(self) -> None:
+        with self._ingress_gate:
+            self.detached = True
+            self.ingress.clear()
+            self._ingress_gap = self._ingress_terminal = self._ingress_close = None
 
     def gap(self, reason: str, cursor: str | None) -> None:
         self.gapped = True
+        with self._ingress_gate:
+            self._ingress_gapped = True
+            if reason == "cursor_expired":
+                self._latest_cursor = cursor
         while not self.queue.empty():
             queued = self.queue.get_nowait()
             if queued.event_type in _TERMINAL_EVENTS:
@@ -113,6 +196,9 @@ class _Subscriber:
         self.wake.set()
 
     def take(self) -> SSEEvent | None:
+        if self.resync is not None:
+            with self._ingress_gate:
+                self.resync.data["latest_event_id"] = self._latest_cursor
         for slot in ("resync", "terminal", "closing"):
             event = getattr(self, slot)
             if (
@@ -151,11 +237,14 @@ class EventBus:
         self._loop = loop
 
     def _schedule_locked(self, sub: _Subscriber, event: SSEEvent, cursor: str | None) -> None:
-        # Scheduling under the replay/publish gate preserves publisher order.
+        # The bus gate orders ingress with replay registration. The mailbox
+        # gate coalesces wakeups; callback handles never hold each event payload.
+        if not sub.offer(event, cursor):
+            return
         try:
-            sub.loop.call_soon_threadsafe(sub.deliver, event, cursor)
+            sub.loop.call_soon_threadsafe(sub.drain)
         except RuntimeError:
-            sub.detached = True  # Closed loop: no surviving transport.
+            sub.detach()  # Closed loop: no surviving transport.
             subscribers = self._subscribers.get(sub.session_id, [])
             if sub in subscribers:
                 subscribers.remove(sub)
@@ -247,7 +336,7 @@ class EventBus:
                 if event.event_type == "session_cleared":
                     break
         finally:
-            sub.detached = True
+            sub.detach()
             with self._lock:
                 subscribers = self._subscribers.get(session_id, [])
                 if sub in subscribers:

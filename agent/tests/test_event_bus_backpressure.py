@@ -149,3 +149,109 @@ def test_runtime_stream_close_drains_queued_terminal_without_deletion_signal():
         assert all(event.event_type != "session_cleared" for event in received)
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("publisher", ["same_loop", "worker_thread"])
+def test_flood_has_bounded_ingress_and_one_scheduled_drain(monkeypatch, publisher):
+    async def scenario():
+        bus = EventBus()
+        stream = await subscribed(bus)
+        loop = asyncio.get_running_loop()
+        scheduled = []
+        real_schedule = loop.call_soon_threadsafe
+
+        def count_schedule(callback, *args, **kwargs):
+            scheduled.append(callback)
+            return real_schedule(callback, *args, **kwargs)
+
+        monkeypatch.setattr(loop, "call_soon_threadsafe", count_schedule)
+
+        def flood():
+            for n in range(2000):
+                bus.emit("s", "text_delta", {"n": n})
+            terminal = bus.emit("s", "attempt.completed", {"attempt_id": "a"})
+            bus.clear("s")
+            return terminal
+
+        if publisher == "same_loop":
+            terminal = flood()
+        else:
+            holder = []
+            thread = threading.Thread(target=lambda: holder.append(flood()))
+            thread.start()
+            thread.join(2)  # Intentionally block owner delivery throughout burst.
+            assert not thread.is_alive()
+            terminal = holder[0]
+        assert len(scheduled) <= 1
+        sub = scheduled[0].__self__
+        assert len(sub.ingress) <= 200
+        assert sub.queue.qsize() == 0
+        assert (await asyncio.wait_for(anext(stream), 0.2)).event_type == "session.resync"
+        assert await asyncio.wait_for(anext(stream), 0.2) is terminal
+        assert (await asyncio.wait_for(anext(stream), 0.2)).event_type == "session_cleared"
+        with pytest.raises(StopAsyncIteration):
+            await anext(stream)
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("handoff", ["before_reset", "after_reset"])
+def test_concurrent_enqueue_at_drain_handoff_has_no_lost_terminal_or_close(monkeypatch, handoff):
+    async def scenario():
+        bus = EventBus()
+        stream = await subscribed(bus)
+        sub = bus._subscribers["s"][0]
+        entered, published = threading.Event(), threading.Event()
+        finish = type(sub)._finish_drain
+        first_finish = True
+
+        def paused_finish(current):
+            nonlocal first_finish
+            if current is not sub or not first_finish:
+                return finish(current)
+            first_finish = False
+            if handoff == "after_reset":
+                finish(current)
+            entered.set()
+            assert published.wait(1)
+            if handoff == "before_reset":
+                finish(current)
+
+        monkeypatch.setattr(type(sub), "_finish_drain", paused_finish)
+        for _ in range(2000):
+            bus.emit("s", "text_delta", {})
+        bus.emit("s", "attempt.completed", {"attempt_id": "old"})
+        holder = []
+
+        def publish_at_handoff():
+            assert entered.wait(1)
+            try:
+                for _ in range(2000):
+                    bus.emit("s", "text_delta", {"suppressed": True})
+                bus.emit("s", "attempt.failed", {"attempt_id": "middle"})
+                holder.append(bus.emit("s", "attempt.cancelled", {"attempt_id": "latest"}))
+                bus.clear("s")
+            finally:
+                published.set()
+
+        thread = threading.Thread(target=publish_at_handoff)
+        thread.start()
+        try:
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            thread.join(1)
+            assert not thread.is_alive()
+            assert len(sub.ingress) == 0
+            gap = await asyncio.wait_for(anext(stream), 0.2)
+            assert gap.event_type == "session.resync"
+            assert gap.data["latest_event_id"] == holder[0].event_id
+            assert await asyncio.wait_for(anext(stream), 0.2) is holder[0]
+            assert (await asyncio.wait_for(anext(stream), 0.2)).event_type == "session_cleared"
+            with pytest.raises(StopAsyncIteration):
+                await anext(stream)
+        finally:
+            published.set()
+            thread.join(1)
+            await stream.aclose()
+
+    asyncio.run(scenario())

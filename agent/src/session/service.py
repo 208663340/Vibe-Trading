@@ -319,6 +319,10 @@ class SessionService:
                 handle.task.cancel()
             return True
 
+    def execution_loops(self) -> frozenset[asyncio.AbstractEventLoop | None]:
+        """Thread-safe task-loop evidence; construction timing is not ownership."""
+        return self._supervisor.execution_loops()
+
     async def aclose(self, timeout_s: float = 5.0) -> CloseSummary:
         """Stop admission; a timeout retains actual writer ownership."""
         for handle in self._supervisor.begin_close():

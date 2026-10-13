@@ -169,6 +169,17 @@ class ExecutionSupervisor:
                 self.state = ExecutionState.CLOSED
             return tuple(self.handles.values())
 
+    def execution_loops(self) -> frozenset[asyncio.AbstractEventLoop | None]:
+        """Read ownership of every unreleased handle; None means unproven loop."""
+        with self.gate:
+            loops = set()
+            for handle in self.handles.values():
+                tasks = [task for task in (handle.task, handle.execution, handle.finalizer) if task is not None]
+                loops.update(task.get_loop() for task in tasks)
+                if not tasks:
+                    loops.add(None)
+            return frozenset(loops)
+
     def close_summary(self) -> CloseSummary:
         with self.gate:
             runs, finalizers = [], []

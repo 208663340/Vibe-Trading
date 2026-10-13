@@ -296,3 +296,128 @@ def test_legacy_host_none_reset_rebuilds_idle_service_with_owned_executor(tmp_pa
     finally:
         asyncio.run(state._close_runtime_services(1))
         index.close()
+
+
+@pytest.mark.parametrize("construction", ["synchronous", "idle_other_loop"])
+def test_close_uses_actual_execution_loop_after_lazy_construction(tmp_path, monkeypatch, construction):
+    import threading
+    from src.api.runtime import RuntimeServices
+    from src.session.execution import SessionServiceClosingError
+    from src.session.search import SessionSearchIndex
+
+    index = SessionSearchIndex(tmp_path / "index.db")
+    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    runtime = RuntimeServices(tmp_path / "sessions", tmp_path / "runs")
+    if construction == "synchronous":
+        service = runtime.get_session_service()
+    else:
+
+        async def idle_creation():
+            return runtime.get_session_service()
+
+        service = asyncio.run(idle_creation())
+    loop = asyncio.new_event_loop()
+    loop.set_debug(True)
+    ready, release = threading.Event(), threading.Event()
+    holder = {}
+
+    async def run(attempt, **kwargs):
+        def worker():
+            ready.set()
+            assert release.wait(3)
+            return {"status": "success", "content": "done"}
+
+        handle = service._supervisor.handles[attempt.session_id]
+        return await asyncio.shield(asyncio.wrap_future(service._supervisor.submit(handle, worker, main=True)))
+
+    monkeypatch.setattr(service, "_run_with_agent", run)
+    real_close = service.aclose
+
+    async def verified_close(timeout_s=5):
+        # Assert before the real cancellation to avoid stranding test cleanup
+        # on the baseline's non-thread-safe Future.cancel() reproduction.
+        assert asyncio.get_running_loop() is loop, "foreign loop touched real execution close"
+        return await real_close(timeout_s)
+
+    monkeypatch.setattr(service, "aclose", verified_close)
+
+    async def begin():
+        session = service.create_session()
+        holder["session"] = session
+        holder["sent"] = await service.send_message(session.session_id, "go")
+
+    def owner():
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(begin())
+        loop.run_forever()
+
+    thread = threading.Thread(target=owner)
+    thread.start()
+    try:
+        assert ready.wait(1)
+        summary = asyncio.run(runtime.aclose(0))
+        assert not summary.complete
+        assert holder["sent"]["attempt_id"] in summary.pending_run_writers
+        assert not runtime.executor._shutdown
+
+        async def close_on_owner():
+            result = await runtime.aclose(0)
+            assert service._supervisor.handles[holder["session"].session_id].interrupted
+            return result
+
+        assert not asyncio.run_coroutine_threadsafe(close_on_owner(), loop).result(1).complete
+        competitor = RuntimeServices(runtime.sessions_dir, runtime.runs_dir)
+        try:
+            with pytest.raises(SessionServiceClosingError):
+                competitor.get_session_service()
+        finally:
+            asyncio.run(competitor.aclose(0))
+        release.set()
+        assert asyncio.run_coroutine_threadsafe(runtime.aclose(1), loop).result(2).complete
+        successor = RuntimeServices(runtime.sessions_dir, runtime.runs_dir)
+        try:
+            assert successor.get_session_service() is not service
+        finally:
+            asyncio.run(successor.aclose(1))
+    finally:
+        release.set()
+        assert asyncio.run_coroutine_threadsafe(real_close(1), loop).result(2).complete
+        asyncio.run(runtime.aclose(0))
+        loop.call_soon_threadsafe(loop.stop)
+        thread.join(2)
+        loop.close()
+        index.close()
+
+
+def test_unproven_execution_loop_keeps_reserved_owner_and_resources(tmp_path, monkeypatch):
+    from src.api.runtime import RuntimeServices
+    from src.session.search import SessionSearchIndex
+
+    index = SessionSearchIndex(tmp_path / "index.db")
+    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    runtime = RuntimeServices(tmp_path / "sessions", tmp_path / "runs")
+    service = runtime.get_session_service()
+
+    async def scenario():
+        session = service.create_session()
+        unknown = service._supervisor.reserve(session.session_id, "reserved")
+
+        async def forbidden_close(timeout_s=5):
+            raise AssertionError("unproven task ownership was treated as caller-owned")
+
+        monkeypatch.setattr(service, "aclose", forbidden_close)
+        try:
+            summary = await runtime.aclose(0)
+            assert not summary.complete
+            assert summary.pending_run_writers == ("reserved",)
+            assert not runtime.executor._shutdown
+            assert not service.event_bus._closed
+        finally:
+            unknown.finalization_done = True  # Confirm never submitted in this fixture.
+            assert service._supervisor.release(unknown)
+            assert (await runtime.aclose(0)).complete
+
+    try:
+        asyncio.run(scenario())
+    finally:
+        index.close()

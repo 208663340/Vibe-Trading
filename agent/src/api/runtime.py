@@ -29,7 +29,6 @@ class RuntimeServices:
         self.closed = False
         self.close_summary = CloseSummary(True)
         self._gate = threading.RLock()
-        self._owner_loop: asyncio.AbstractEventLoop | None = None
 
     def get_session_service(self) -> SessionService:
         with self._gate:
@@ -47,10 +46,6 @@ class RuntimeServices:
                 except BaseException:
                     bus.close()
                     raise
-                try:
-                    self._owner_loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    pass  # Lazy synchronous construction; first close binds its loop.
             return self.session_service
 
     def retire_idle(self) -> bool:
@@ -82,18 +77,22 @@ class RuntimeServices:
             self.closing = True
             if self.closed:
                 return self.close_summary
-            if self._owner_loop is None:
-                self._owner_loop = loop
             service = self.session_service
-            if service is not None and self._owner_loop is not loop:
-                # Actual writer/finalizer evidence is thread-safe; asyncio tasks
-                # still belonging to another (possibly closed) loop are untouched.
+            if service is not None and hasattr(service, "execution_loops"):
                 supervisor = service._supervisor
-                supervisor.begin_close()
-                self.close_summary = supervisor.close_summary()
+                with supervisor.gate:
+                    # Close admission before taking ownership evidence so no
+                    # new loop can appear between this check and async close.
+                    supervisor.begin_close()
+                    loops = service.execution_loops()
+                    self.close_summary = supervisor.close_summary()
                 if self.close_summary.complete:
                     self._release_resources()
-                return self.close_summary
+                    return self.close_summary
+                if loops != frozenset({loop}):
+                    # Foreign, mixed, or unproven task ownership: only observe
+                    # actual completion, never await/cancel another loop's work.
+                    return self.close_summary
         if service is not None:
             summary = await service.aclose(timeout_s)
             with self._gate:
