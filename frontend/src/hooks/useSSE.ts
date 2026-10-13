@@ -103,10 +103,13 @@ export function useSSE(config?: SSEConfig) {
       }
       if (eventType === "session.resync") damagedRef.current = true;
       else if (damagedRef.current && !["attempt.completed", "attempt.failed", "attempt.cancelled", "heartbeat", "session_cleared"].includes(eventType)) return;
-      if (raw.lastEventId) {
+      // ID-less controls inherit the browser's previous Last-Event-ID buffer.
+      // They describe recovery/clear, not an indexed observation of continuity.
+      const isControl = eventType === "session.resync" || eventType === "session_cleared";
+      if (!isControl && raw.lastEventId) {
         lastEventIdRef.current = raw.lastEventId;
+        if (trackEventId(raw.lastEventId)) return;
       }
-      if (raw.lastEventId && trackEventId(raw.lastEventId)) return;
 
       let parsed: Record<string, unknown>;
       try {

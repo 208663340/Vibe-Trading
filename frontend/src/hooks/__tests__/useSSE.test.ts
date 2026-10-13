@@ -10,6 +10,7 @@ class MockEventSource {
   onopen: (() => void) | null = null;
   onerror: (() => void) | null = null;
   private listeners = new Map<string, ESHandler[]>();
+  private lastEventId = "";
 
   constructor(url: string) {
     this.url = url;
@@ -23,8 +24,9 @@ class MockEventSource {
 
   /** Test helper: simulate an event from the server */
   emit(type: string, data: unknown, lastEventId?: string) {
+    if (lastEventId !== undefined) this.lastEventId = lastEventId;
     const event = new MessageEvent(type, { data: JSON.stringify(data) });
-    Object.defineProperty(event, "lastEventId", { value: lastEventId || "" });
+    Object.defineProperty(event, "lastEventId", { value: this.lastEventId });
     const handlers = this.listeners.get(type) || [];
     handlers.forEach((h) => h(event));
   }
@@ -49,6 +51,105 @@ beforeEach(() => {
   MockEventSource.reset();
   vi.stubGlobal("EventSource", MockEventSource);
   vi.useFakeTimers();
+});
+
+describe("useSSE — inherited IDs on recovery controls", () => {
+  it("delivers resync after indexed data, retains terminal, and waits for hydration before replacement", async () => {
+    let hydrate!: () => void;
+    const hydration = new Promise<void>(resolve => { hydrate = resolve; });
+    const delta = vi.fn();
+    const terminal = vi.fn();
+    const { result, unmount } = renderHook(() => useSSE());
+    const resync = vi.fn(async (data: Record<string, unknown>) => {
+      await hydration;
+      result.current.connect('/events', { text_delta: delta }, String(data.latest_event_id));
+    });
+    try {
+      act(() => result.current.connect('/events', { text_delta: delta, 'session.resync': resync, 'attempt.completed': terminal }));
+      const source = MockEventSource.latest;
+      act(() => {
+        source.emit('text_delta', { delta: 'accepted' }, 'event-1');
+        source.emit('text_delta', { delta: 'replay' }, 'event-1');
+        source.emit('session.resync', { reason: 'queue_overflow', latest_event_id: 'event-9' });
+        source.emit('text_delta', { delta: 'damaged' }, 'event-10');
+        source.emit('attempt.completed', { attempt_id: 'one' }, 'event-11');
+        source.onerror?.();
+        vi.advanceTimersByTime(30000);
+      });
+      expect(delta).toHaveBeenCalledExactlyOnceWith({ delta: 'accepted' });
+      expect(resync).toHaveBeenCalledExactlyOnceWith({ reason: 'queue_overflow', latest_event_id: 'event-9' });
+      expect(terminal).toHaveBeenCalledExactlyOnceWith({ attempt_id: 'one' });
+      expect(result.current.getStatus()).toBe('reconnecting');
+      expect(MockEventSource.instances).toHaveLength(1);
+      expect(vi.getTimerCount()).toBe(0);
+      await act(async () => { hydrate(); await hydration; });
+      expect(MockEventSource.instances).toHaveLength(2);
+      expect(MockEventSource.latest.url).toBe('/events?Last-Event-ID=event-9');
+      act(() => {
+        MockEventSource.latest.emit('text_delta', { delta: 'recovered' }, 'event-10');
+        MockEventSource.latest.emit('text_delta', { delta: 'recovered replay' }, 'event-10');
+        MockEventSource.latest.onerror?.();
+        vi.advanceTimersByTime(1000);
+      });
+      expect(delta.mock.calls.map(([data]) => data.delta)).toEqual(['accepted', 'recovered']);
+      expect(MockEventSource.latest.url).toBe('/events?Last-Event-ID=event-10');
+    } finally {
+      await act(async () => { hydrate(); await hydration; });
+      unmount();
+    }
+  });
+
+  it("delivers session clear carrying the preceding indexed ID", () => {
+    const clear = vi.fn();
+    const { result } = renderHook(() => useSSE());
+    act(() => result.current.connect('/events', { text_delta: () => {}, session_cleared: clear }));
+    act(() => {
+      MockEventSource.latest.emit('text_delta', { delta: 'accepted' }, 'event-1');
+      MockEventSource.latest.emit('session_cleared', { session_id: 'A' });
+    });
+    expect(clear).toHaveBeenCalledExactlyOnceWith({ session_id: 'A' });
+  });
+
+  it("does not treat an ID-less clear as an ordinary dedup or resume observation", () => {
+    const delta = vi.fn();
+    const clear = vi.fn();
+    const { result } = renderHook(() => useSSE());
+    act(() => result.current.connect('/events', { text_delta: delta, session_cleared: clear }));
+    act(() => {
+      MockEventSource.latest.emit('text_delta', { delta: 'first data' }, 'event-1');
+      // EventSource also updates its wire buffer for event types without a listener.
+      MockEventSource.latest.emit('unsubscribed-event', {}, 'event-9');
+      MockEventSource.latest.emit('session_cleared', { session_id: 'A' });
+      MockEventSource.latest.onerror?.();
+      vi.advanceTimersByTime(1000);
+      MockEventSource.latest.emit('text_delta', { delta: 'later data' }, 'event-9');
+      MockEventSource.latest.emit('text_delta', { delta: 'replay' }, 'event-9');
+    });
+    expect(clear).toHaveBeenCalledOnce();
+    expect(MockEventSource.latest.url).toBe('/events?Last-Event-ID=event-1');
+    expect(delta.mock.calls.map(([data]) => data.delta)).toEqual(['first data', 'later data']);
+  });
+
+  it("fences queued control callbacks from a replaced source generation", () => {
+    const resync = vi.fn();
+    const clear = vi.fn();
+    const { result } = renderHook(() => useSSE());
+    act(() => result.current.connect('/events', { 'session.resync': resync, session_cleared: clear }));
+    const source = MockEventSource.latest;
+    const callbacks = [...(source as unknown as { listeners: Map<string, ESHandler[]> }).listeners.entries()]
+      .filter(([type]) => type === 'session.resync' || type === 'session_cleared');
+    act(() => result.current.connect('/replacement', { 'session.resync': resync, session_cleared: clear }));
+    act(() => callbacks.forEach(([type, handlers]) => handlers.forEach(handler => handler(new MessageEvent(type, {
+      data: JSON.stringify({ latest_event_id: 'stale' }), lastEventId: 'event-1',
+    })))));
+    expect(resync).not.toHaveBeenCalled();
+    expect(clear).not.toHaveBeenCalled();
+    act(() => {
+      MockEventSource.latest.onerror?.();
+      vi.advanceTimersByTime(1000);
+    });
+    expect(MockEventSource.latest.url).toBe('/replacement');
+  });
 });
 
 afterEach(() => {

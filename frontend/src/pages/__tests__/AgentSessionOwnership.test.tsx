@@ -9,10 +9,14 @@ const json = (body: unknown) => new Response(JSON.stringify(body), { headers: { 
 class Events {
  static instances: Events[] = [];
  listeners = new Map<string, EventListener>(); onopen = null; onerror = null;
+ private lastEventId = '';
  constructor(public url: string) { Events.instances.push(this); }
  addEventListener(name: string, handler: EventListener) { this.listeners.set(name, handler); }
  close() { this.listeners.clear(); }
- emit(name: string, data: unknown) { this.listeners.get(name)?.(new MessageEvent(name, { data: JSON.stringify(data) })); }
+ emit(name: string, data: unknown, id?: string) {
+  if (id !== undefined) this.lastEventId = id;
+  this.listeners.get(name)?.(new MessageEvent(name, { data: JSON.stringify(data), lastEventId: this.lastEventId }));
+ }
 }
 let fetcher: ReturnType<typeof vi.fn>;
 beforeEach(() => {
@@ -112,7 +116,10 @@ it('recovers a gap with authoritative reads and reconnects at the replacement cu
    if(url==='/sessions/A/attempts/gap-attempt') return json({attempt_id:'gap-attempt',status:'cancelled',started_at:1,terminal_metadata:{}});
    return empty(url);
  });
- await page(); recovering=true;act(()=>Events.instances[0].emit('session.resync',{reason:'queue_overflow',latest_event_id:'cursor-9'}));
+ await page(); recovering=true;act(()=> {
+  Events.instances[0].emit('attempt.started',{attempt_id:'gap-attempt'},'cursor-1');
+  Events.instances[0].emit('session.resync',{reason:'queue_overflow',latest_event_id:'cursor-9'});
+ });
  expect(Events.instances).toHaveLength(1);
  await act(async()=>hydrate.resolve(json([])));
  await waitFor(()=>expect(Events.instances).toHaveLength(2));
@@ -333,5 +340,94 @@ it('still applies fresh initial history report enrichment', async () => {
   } finally {
     report.resolve(json({}));
     view.unmount();
+  }
+});
+
+it.each(['stale', 'failure'])('preserves newer history enrichment when an older SSE report read returns %s', async (outcome) => {
+  const history = deferred<Response>();
+  const oldReport = deferred<Response>();
+  let runReads = 0;
+  fetcher.mockImplementation(async (url: string) => {
+    if (url === '/sessions/A/messages') return history.promise;
+    if (url === '/runs/run-overlap') {
+      runReads += 1;
+      return runReads === 1 ? oldReport.promise : json({ metrics: { total_return: 0.5 }, equity_curve: [{ time: '2026-10-13', equity: 150 }] });
+    }
+    return empty(url);
+  });
+  const view = await page();
+  try {
+    act(() => Events.instances[0].emit('attempt.completed', { attempt_id: 'report-attempt', summary: 'terminal answer', run_dir: 'run-overlap' }));
+    await waitFor(() => expect(runReads).toBe(1));
+    await act(async () => history.resolve(json([{
+      message_id: 'reply', role: 'assistant', linked_attempt_id: 'report-attempt', content: 'terminal answer',
+      created_at: '2026-10-13T00:00:00Z', metadata: { run_id: 'run-overlap' },
+    }])));
+    await waitFor(() => expect(useAgentStore.getState().messages.find(message => message.type === 'run_complete')?.metrics).toEqual({ total_return: 0.5 }));
+    expect(runReads).toBe(2);
+    // Optional report fields can be committed after that enrichment through the store boundary.
+    // The obsolete GET must preserve the entire newer entity, including these fields.
+    act(() => useAgentStore.setState(state => ({
+      transcriptRevision: state.transcriptRevision + 1,
+      messages: state.messages.map(message => message.type === 'run_complete' ? {
+        ...message, shadowId: 'shadow_fresh', meta: { ...message.meta, revision: state.transcriptRevision + 1 },
+      } : message),
+    })));
+    const freshReport = useAgentStore.getState().messages.find(message => message.type === 'run_complete');
+    expect(freshReport?.id).toBe('report:A:report-attempt:run-overlap');
+    expect(freshReport?.equityCurve).toEqual([{ time: '2026-10-13', equity: 150 }]);
+    expect(freshReport?.shadowId).toBe('shadow_fresh');
+    await act(async () => {
+      if (outcome === 'failure') oldReport.reject(new TypeError('old SSE report unavailable'));
+      else oldReport.resolve(json({ metrics: { total_return: 0.1 }, equity_curve: [{ time: '2026-10-13', equity: 110 }] }));
+    });
+    expect(useAgentStore.getState().messages.filter(message => message.type === 'run_complete')).toEqual([freshReport]);
+    expect(useAgentStore.getState().messages.filter(message => message.type === 'answer').map(message => message.content)).toEqual(['terminal answer']);
+  } finally {
+    history.resolve(json([]));
+    oldReport.resolve(json({}));
+    view.unmount();
+  }
+});
+
+it.each(['success', 'failure'])('still commits a fresh SSE report read on %s', async (outcome) => {
+  const report = deferred<Response>();
+  fetcher.mockImplementation(async (url: string) => url === '/runs/fresh-sse-run' ? report.promise : empty(url));
+  const view = await page();
+  try {
+    await waitFor(() => expect(useAgentStore.getState().sessionLoading).toBe(false));
+    act(() => Events.instances[0].emit('attempt.completed', { attempt_id: 'fresh-sse-attempt', summary: 'fresh SSE answer', run_dir: 'fresh-sse-run' }));
+    await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url === '/runs/fresh-sse-run')).toBe(true));
+    expect(useAgentStore.getState().messages.filter(message => message.type === 'run_complete')).toHaveLength(0);
+    await act(async () => {
+      if (outcome === 'failure') report.reject(new TypeError('report unavailable'));
+      else report.resolve(json({ metrics: { total_return: 0.3 }, equity_curve: [{ time: '2026-10-13', equity: 130 }] }));
+    });
+    const reports = useAgentStore.getState().messages.filter(message => message.type === 'run_complete');
+    expect(reports).toHaveLength(1);
+    expect(reports[0].id).toBe('report:A:fresh-sse-attempt:fresh-sse-run');
+    expect(reports[0].runId).toBe('fresh-sse-run');
+    expect(reports[0].metrics).toEqual(outcome === 'success' ? { total_return: 0.3 } : undefined);
+    expect(reports[0].equityCurve).toEqual(outcome === 'success' ? [{ time: '2026-10-13', equity: 130 }] : undefined);
+    expect(useAgentStore.getState().status).toBe('idle');
+  } finally {
+    report.resolve(json({}));
+    view.unmount();
+  }
+});
+
+it('clears the real session after an ID-less clear inherits an indexed event ID', async () => {
+  const { router, unmount } = await page();
+  try {
+    act(() => {
+      Events.instances[0].emit('attempt.completed', { attempt_id: 'cleared-attempt', summary: 'removed answer' }, 'event-1');
+      Events.instances[0].emit('session_cleared', { session_id: 'A' });
+    });
+    await waitFor(() => expect(useAgentStore.getState().sessionId).toBeNull());
+    expect(useAgentStore.getState().messages).toEqual([]);
+    expect(useAgentStore.getState().getCachedSession('A')).toBeUndefined();
+    expect(router.state.location.search).toBe('');
+  } finally {
+    unmount();
   }
 });

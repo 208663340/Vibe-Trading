@@ -949,6 +949,7 @@ export function Agent() {
         const reportSignal=runtime.read("report");
         // Show RunCompleteCard when the turn produced backtest metrics or a shadow report
         if (runId) {
+          const reportRevision = act().transcriptRevision;
           let runMetrics: Record<string, number> | undefined;
           let runCurve: Array<{ time: string; equity: number }> | undefined;
           let showCard = false;
@@ -964,14 +965,19 @@ export function Agent() {
           }
           if (!runtime.current(reportToken) || reportSignal.aborted) return;
           if (showCard || shadowId) {
-            runtime.commit(reportToken,state=>({transcriptRevision:state.transcriptRevision+1,messages:reconcileHistory([...state.messages,{
-              id: `report:${sid}:${attemptId}:${runId}`, type: "run_complete", content: "", runId,
-              meta:{revision:state.transcriptRevision+1},
-              metrics: showCard ? runMetrics : undefined,
-              equityCurve: showCard ? runCurve : undefined,
-              shadowId,
-              timestamp: Date.now(),
-            }],[],state.transcriptRevision)}));
+            runtime.commit(reportToken, state => {
+              const committedRevision = state.transcriptRevision + 1;
+              return {
+                transcriptRevision: committedRevision,
+                messages: mergeEnrichment(state.messages, [{
+                  id: `report:${sid}:${attemptId}:${runId}`, type: "run_complete", content: "", runId,
+                  metrics: showCard ? runMetrics : undefined,
+                  equityCurve: showCard ? runCurve : undefined,
+                  shadowId,
+                  timestamp: Date.now(),
+                }], reportRevision, committedRevision),
+              };
+            });
           }
         } else if (shadowId) {
           s.addMessage({ id: "", type: "run_complete", content: "", shadowId, timestamp: Date.now() });
