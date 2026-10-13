@@ -1,7 +1,4 @@
-"""SSE event bus with support for last_event_id recovery and buffering.
-
-V5: Fixes the thread-safety issue caused by calling queue.put_nowait() on asyncio.Queue from a background thread.
-"""
+"""Loop-owned SSE subscriptions with bounded replay and gap/close controls."""
 
 from __future__ import annotations
 
@@ -12,7 +9,6 @@ import threading
 import time
 import uuid
 
-logger = logging.getLogger(__name__)
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
@@ -45,278 +41,237 @@ class SSEEvent:
         lines = []
         if self.event_id:
             lines.append(f"id: {self.event_id}")
-        lines.extend([
-            f"event: {self.event_type}",
-            f"data: {payload}",
-            "",
-            "",
-        ])
+        lines.extend(
+            [
+                f"event: {self.event_type}",
+                f"data: {payload}",
+                "",
+                "",
+            ]
+        )
         return "\n".join(lines)
 
 
+logger = logging.getLogger(__name__)
+_TERMINAL_EVENTS = frozenset({"attempt.completed", "attempt.failed", "attempt.cancelled"})
+
+
+@dataclass(eq=False)
+class _Subscriber:
+    """Mutable transport state belongs to this subscriber's running loop."""
+
+    loop: asyncio.AbstractEventLoop
+    session_id: str
+    queue: asyncio.Queue = field(default_factory=lambda: asyncio.Queue(maxsize=200))
+    wake: asyncio.Event = field(default_factory=asyncio.Event)
+    resync: SSEEvent | None = None
+    terminal: SSEEvent | None = None
+    closing: SSEEvent | None = None
+    gapped: bool = False
+    detached: bool = False
+
+    def gap(self, reason: str, cursor: str | None) -> None:
+        self.gapped = True
+        while not self.queue.empty():
+            queued = self.queue.get_nowait()
+            if queued.event_type in _TERMINAL_EVENTS:
+                self.terminal = queued
+        if self.resync is None:
+            self.resync = SSEEvent(
+                event_id=None,
+                event_type="session.resync",
+                data={"reason": reason, "latest_event_id": cursor},
+                session_id=self.session_id,
+            )
+        else:
+            self.resync.data["latest_event_id"] = cursor
+        self.wake.set()
+
+    def deliver(self, event: SSEEvent, cursor: str | None) -> None:
+        if self.detached or self.closing is not None:
+            return
+        if event.event_type in {"session_cleared", "_stream_closed"}:
+            self.closing = event
+            self.wake.set()
+            return
+        if self.gapped:
+            if self.resync is not None:
+                self.resync.data["latest_event_id"] = cursor
+            if event.event_type in _TERMINAL_EVENTS:
+                if self.terminal is not None:
+                    # Bounded coalescing requires REST recovery of replaced terminals.
+                    self.gap("queue_overflow", cursor)
+                self.terminal = event
+                self.wake.set()
+            return
+        try:
+            self.queue.put_nowait(event)
+        except asyncio.QueueFull:
+            self.gap("queue_overflow", cursor)
+            if event.event_type in _TERMINAL_EVENTS:
+                self.terminal = event
+        self.wake.set()
+
+    def take(self) -> SSEEvent | None:
+        for slot in ("resync", "terminal", "closing"):
+            event = getattr(self, slot)
+            if (
+                slot == "closing"
+                and event is not None
+                and event.event_type == "_stream_closed"
+                and not self.queue.empty()
+            ):
+                # Runtime shutdown drains its bounded queue so a queued durable
+                # terminal is delivered before transport EOF. Session deletion
+                # remains an immediate session_cleared control.
+                return self.queue.get_nowait()
+            if event is not None:
+                setattr(self, slot, None)
+                return event
+        if not self.queue.empty():
+            return self.queue.get_nowait()
+        return None
+
+
 class EventBus:
-    """Session-scoped event bus with subscribers and buffered events.
-
-    V5: Inject the asyncio event loop with ``set_loop()``, and use
-    ``call_soon_threadsafe`` in ``publish()`` to preserve thread safety.
-
-    Attributes:
-        max_buffer_size: Maximum number of buffered events per session.
-    """
+    """Bounded session replay with per-subscriber loop and gap controls."""
 
     def __init__(self, max_buffer_size: int = 500, heartbeat_interval_s: float = 30.0) -> None:
-        """Initialize the event bus.
-
-        Args:
-            max_buffer_size: Maximum number of buffered events per session.
-            heartbeat_interval_s: Idle seconds before a subscriber is sent a
-                ``heartbeat`` frame. Also bounds how long a subscriber waiting
-                on an idle queue takes to notice a cross-thread publish when no
-                loop was injected via :meth:`set_loop`.
-        """
         self.max_buffer_size = max_buffer_size
         self.heartbeat_interval_s = heartbeat_interval_s
         self._buffers: Dict[str, List[SSEEvent]] = {}
-        self._subscribers: Dict[str, List[asyncio.Queue]] = {}
+        self._subscribers: Dict[str, List[_Subscriber]] = {}
         self._listeners: List[Callable[[SSEEvent], None]] = []
         self._lock = threading.Lock()
         self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._closed = False
 
     def set_loop(self, loop: asyncio.AbstractEventLoop) -> None:
-        """Set the asyncio event loop, usually during api_server startup.
-
-        Args:
-            loop: asyncio event loop.
-        """
+        """Legacy seam; subscriptions always capture their own running loop."""
         self._loop = loop
 
+    def _schedule_locked(self, sub: _Subscriber, event: SSEEvent, cursor: str | None) -> None:
+        # Scheduling under the replay/publish gate preserves publisher order.
+        try:
+            sub.loop.call_soon_threadsafe(sub.deliver, event, cursor)
+        except RuntimeError:
+            sub.detached = True  # Closed loop: no surviving transport.
+            subscribers = self._subscribers.get(sub.session_id, [])
+            if sub in subscribers:
+                subscribers.remove(sub)
+
     def publish(self, event: SSEEvent) -> None:
-        """Publish an event to a session channel in a thread-safe way.
-
-        Args:
-            event: Event to publish.
-        """
-        session_id = event.session_id
         with self._lock:
-            if session_id not in self._buffers:
-                self._buffers[session_id] = []
-            buffer = self._buffers[session_id]
+            if self._closed:
+                return
+            buffer = self._buffers.setdefault(event.session_id, [])
             buffer.append(event)
-            if len(buffer) > self.max_buffer_size:
-                self._buffers[session_id] = buffer[-self.max_buffer_size:]
-
-            queues = list(self._subscribers.get(session_id, []))
+            self._buffers[event.session_id] = buffer[-self.max_buffer_size :]
+            for sub in list(self._subscribers.get(event.session_id, [])):
+                self._schedule_locked(sub, event, event.event_id)
             listeners = list(self._listeners)
-
-        # Listeners run before the queues so a slow subscriber cannot delay
-        # them, and each is isolated: this is the SSE hot path, and a listener
-        # that raises must not cost the UI its event stream. A listener is
-        # expected to record or schedule, never to do I/O inline.
         for listener in listeners:
             try:
                 listener(event)
             except Exception:
                 logger.exception("EventBus listener failed for %s", event.event_type)
 
-        # Safely enqueue onto the queue from inside the asyncio loop.
-        for queue in queues:
-            if self._loop and self._loop.is_running():
-                self._loop.call_soon_threadsafe(self._safe_put, queue, event)
-            else:
-                try:
-                    queue.put_nowait(event)
-                except asyncio.QueueFull:
-                    pass
-
     def add_listener(self, listener: Callable[[SSEEvent], None]) -> None:
-        """Register a callback invoked for every published event.
-
-        Unlike :meth:`subscribe`, which is per session and per SSE connection,
-        a listener sees every session — which is what a component that reacts
-        to runs it did not open needs.
-
-        Args:
-            listener: Synchronous callback. It runs on the publishing thread,
-                so it must be cheap and must not raise; schedule any real work
-                elsewhere.
-        """
         with self._lock:
-            if listener not in self._listeners:
+            if not self._closed and listener not in self._listeners:
                 self._listeners.append(listener)
 
     def remove_listener(self, listener: Callable[[SSEEvent], None]) -> None:
-        """Unregister a callback added by :meth:`add_listener`.
-
-        Args:
-            listener: The previously registered callback. Unknown callbacks
-                are ignored so teardown never has to check first.
-        """
         with self._lock:
             if listener in self._listeners:
                 self._listeners.remove(listener)
 
-    @staticmethod
-    def _safe_put(queue: asyncio.Queue, event: SSEEvent) -> None:
-        """Safely put an event onto a queue.
-
-        Args:
-            queue: asyncio queue.
-            event: SSE event.
-        """
-        try:
-            queue.put_nowait(event)
-        except asyncio.QueueFull:
-            logger.warning("EventBus queue full, dropping %s event for session %s", event.event_type, event.session_id)
-
-    def emit(
-        self,
-        session_id: str,
-        event_type: str,
-        data: Optional[Dict[str, Any]] = None,
-    ) -> SSEEvent:
-        """Build and publish an event in one step.
-
-        Args:
-            session_id: Session ID.
-            event_type: Event type.
-            data: Event payload.
-
-        Returns:
-            The published SSEEvent.
-        """
-        event = SSEEvent(
-            event_type=event_type,
-            data=data or {},
-            session_id=session_id,
-        )
+    def emit(self, session_id: str, event_type: str, data: Optional[Dict[str, Any]] = None) -> SSEEvent:
+        event = SSEEvent(event_type=event_type, data=data or {}, session_id=session_id)
         self.publish(event)
         return event
 
     def replay(
-        self,
-        session_id: str,
-        last_event_id: Optional[str] = None,
-        *,
-        replay_all: bool = False,
+        self, session_id: str, last_event_id: Optional[str] = None, *, replay_all: bool = False
     ) -> List[SSEEvent]:
-        """Replay buffered session events for reconnect recovery.
-
-        Args:
-            session_id: Session ID.
-            last_event_id: Last event ID received by the client.
-            replay_all: Return the buffered stream from the beginning when
-                ``last_event_id`` is absent. Used only for active run recovery;
-                completed history is loaded through REST.
-
-        Returns:
-            List of events that should be replayed.
-        """
         with self._lock:
             return self._replay_locked(session_id, last_event_id, replay_all=replay_all)
 
     def _replay_locked(
-        self,
-        session_id: str,
-        last_event_id: Optional[str] = None,
-        *,
-        replay_all: bool = False,
+        self, session_id: str, last_event_id: Optional[str] = None, *, replay_all: bool = False
     ) -> List[SSEEvent]:
-        """Compute the replay list. Caller must already hold ``self._lock``."""
         buffer = self._buffers.get(session_id, [])
         if not last_event_id:
-            return list(buffer) if replay_all else []  # First connect: history loaded via REST by default.
-        found = False
-        result: List[SSEEvent] = []
-        for event in buffer:
-            if found:
-                result.append(event)
-            elif event.event_id == last_event_id:
-                found = True
-        if not found and replay_all:
-            return list(buffer)
-        return result
+            return list(buffer) if replay_all else []
+        for index, event in enumerate(buffer):
+            if event.event_id == last_event_id:
+                return list(buffer[index + 1 :])
+        # Legacy snapshot helper; subscriptions explicitly signal missing cursors.
+        return list(buffer) if replay_all else []
 
     async def subscribe(
-        self,
-        session_id: str,
-        last_event_id: Optional[str] = None,
-        *,
-        replay_all: bool = False,
+        self, session_id: str, last_event_id: Optional[str] = None, *, replay_all: bool = False
     ) -> AsyncIterator[SSEEvent]:
-        """Subscribe to a session event stream asynchronously.
-
-        Args:
-            session_id: Session ID.
-            last_event_id: Last event ID received by the client for reconnect recovery.
-            replay_all: Replay all buffered events when no last event ID is
-                available. This is opt-in for active run hydration.
-
-        Yields:
-            SSEEvent objects.
-        """
-        queue: asyncio.Queue[SSEEvent] = asyncio.Queue(maxsize=200)
-
-        # The replay snapshot and queue registration must happen under the
-        # same lock acquisition: otherwise a publish() landing between them
-        # would land in both the replay buffer and the live queue, and the
-        # subscriber would see that event delivered twice.
+        sub = _Subscriber(asyncio.get_running_loop(), session_id)
         with self._lock:
+            buffer = self._buffers.get(session_id, [])
             replay_events = self._replay_locked(session_id, last_event_id, replay_all=replay_all)
-            if session_id not in self._subscribers:
-                self._subscribers[session_id] = []
-            self._subscribers[session_id].append(queue)
-
+            expired = last_event_id and not any(event.event_id == last_event_id for event in buffer)
+            if self._closed:
+                sub.closing = SSEEvent(event_id=None, event_type="_stream_closed", session_id=session_id)
+                replay_events = []
+            else:
+                self._subscribers.setdefault(session_id, []).append(sub)
+                if expired:
+                    sub.gap("cursor_expired", buffer[-1].event_id if buffer else None)
+                    replay_events = []
         try:
             for event in replay_events:
-                yield event
-
-            while True:
-                try:
-                    event = await asyncio.wait_for(queue.get(), timeout=self.heartbeat_interval_s)
-                except asyncio.TimeoutError:
-                    yield SSEEvent(
-                        event_id=None,
-                        event_type="heartbeat",
-                        data={"ts": time.time()},
-                        session_id=session_id,
-                    )
-                    continue
-                if event.event_type == "session_cleared":
-                    yield event
+                if sub.gapped or sub.closing is not None:
                     break
                 yield event
+            while True:
+                event = sub.take()
+                if event is None:
+                    sub.wake.clear()
+                    try:
+                        await asyncio.wait_for(sub.wake.wait(), self.heartbeat_interval_s)
+                    except asyncio.TimeoutError:
+                        yield SSEEvent(
+                            event_id=None, event_type="heartbeat", data={"ts": time.time()}, session_id=session_id
+                        )
+                    continue
+                if event.event_type == "_stream_closed":
+                    break  # App shutdown is transport closure, never session deletion.
+                yield event
+                if event.event_type == "session_cleared":
+                    break
         finally:
+            sub.detached = True
             with self._lock:
-                subs = self._subscribers.get(session_id, [])
-                if queue in subs:
-                    subs.remove(queue)
+                subscribers = self._subscribers.get(session_id, [])
+                if sub in subscribers:
+                    subscribers.remove(sub)
+                if not subscribers:
+                    self._subscribers.pop(session_id, None)
 
     def clear(self, session_id: str) -> None:
-        """Clear the buffered events and notify subscribers for a session.
-
-        Subscriber queues receive a ``session_cleared`` sentinel event so
-        they can break out of their ``while True`` loop instead of waiting
-        indefinitely on a cleared session. The subscriber list is then
-        dropped so future ``publish`` calls do not enqueue to dead queues.
-
-        Args:
-            session_id: Session ID.
-        """
         with self._lock:
             self._buffers.pop(session_id, None)
-            subs = self._subscribers.pop(session_id, [])
+            sentinel = SSEEvent(event_id=None, event_type="session_cleared", session_id=session_id)
+            for sub in self._subscribers.pop(session_id, []):
+                self._schedule_locked(sub, sentinel, None)
 
-        sentinel = SSEEvent(
-            event_id=None,
-            event_type="session_cleared",
-            data={},
-            session_id=session_id,
-        )
-        for queue in subs:
-            if self._loop and self._loop.is_running():
-                self._loop.call_soon_threadsafe(self._safe_put, queue, sentinel)
-            else:
-                try:
-                    queue.put_nowait(sentinel)
-                except asyncio.QueueFull:
-                    pass
+    def close(self) -> None:
+        """Stop admission and wake transports even when their data queues are full."""
+        with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+            self._buffers.clear()
+            self._listeners.clear()
+            subscribers = [sub for group in self._subscribers.values() for sub in group]
+            self._subscribers.clear()
+            for sub in subscribers:
+                sentinel = SSEEvent(event_id=None, event_type="_stream_closed", session_id=sub.session_id)
+                self._schedule_locked(sub, sentinel, None)

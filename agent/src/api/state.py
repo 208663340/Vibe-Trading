@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-import os
+import logging
+from pathlib import Path
 
 from fastapi import HTTPException
 
@@ -15,6 +16,7 @@ from src.config.accessor import get_env_config
 # Global singletons
 # ============================================================================
 
+_runtime_services = None
 _session_service = None
 _channel_runtime = None
 _channel_bus = None
@@ -42,33 +44,83 @@ def _get_session_service():
     if not get_env_config().api.enable_session_runtime:
         return None
 
-    import asyncio
-
-    from src.session.events import EventBus
-    from src.session.service import SessionService
-    from src.session.store import SessionStore
-
-    # Honor monkeypatched SESSIONS_DIR / RUNS_DIR on api_server.
-    sessions_dir = _host_attr("SESSIONS_DIR", SESSIONS_DIR)
-    runs_dir = _host_attr("RUNS_DIR", RUNS_DIR)
-
-    store = SessionStore(base_dir=sessions_dir)
-    event_bus = EventBus()
-
-    try:
-        loop = asyncio.get_event_loop()
-        event_bus.set_loop(loop)
-    except RuntimeError:
-        pass
-
-    _session_service = SessionService(
-        store=store,
-        event_bus=event_bus,
-        runs_dir=runs_dir,
-    )
+    runtime = _get_runtime_services()
+    if _host is not None and getattr(_host, "_session_service", None) is None and runtime.session_service is not None:
+        # Clearing the legacy host singleton is an explicit reset seam. Preserve
+        # its behavior for idle services without evading a live storage owner.
+        if not runtime.retire_idle():
+            from src.session.execution import SessionServiceClosingError
+            raise SessionServiceClosingError("Application session runtime still owns active writes")
+        runtime = _get_runtime_services()
+    _session_service = runtime.get_session_service()
     _set_host_attr("_session_service", _session_service)
-    _attach_delivery_listener(event_bus)
+    _attach_delivery_listener(_session_service.event_bus)
     return _session_service
+
+
+def _get_runtime_services():
+    """Lazy application container; closing owners cannot be replaced by getters."""
+    global _runtime_services
+    from src.api.runtime import RuntimeServices
+    from src.session.execution import SessionServiceClosingError
+
+    sessions_dir = Path(_host_attr("SESSIONS_DIR", SESSIONS_DIR)).resolve()
+    runs_dir = Path(_host_attr("RUNS_DIR", RUNS_DIR))
+    if _runtime_services is not None and _runtime_services.closing and not _runtime_services.closed:
+        raise SessionServiceClosingError("Application session runtime is still closing")
+    if _runtime_services is not None and _runtime_services.sessions_dir != sessions_dir:
+        if not _runtime_services.retire_idle():
+            raise SessionServiceClosingError("Application session runtime still owns active writes")
+    if _runtime_services is None or _runtime_services.closed:
+        _runtime_services = RuntimeServices(sessions_dir, runs_dir)
+    return _runtime_services
+
+
+async def _prepare_runtime_services():
+    """A later lifespan may rebuild only after the old close is truly complete."""
+    global _runtime_services
+    from src.session.execution import SessionServiceClosingError
+
+    if _runtime_services is not None and _runtime_services.closing:
+        summary = await _runtime_services.aclose(0)
+        if not summary.complete:
+            raise SessionServiceClosingError("Previous application runtime still owns unfinished writes")
+        _reset_closed_runtime()
+    return _get_runtime_services()
+
+
+def _reset_closed_runtime() -> None:
+    global _runtime_services, _session_service
+    _runtime_services = None
+    _session_service = None
+    _set_host_attr("_session_service", None)
+    reset_channel_runtime()
+    # The stopped scheduler closure contains its old dispatch dependencies.
+    from src.api import scheduled_routes
+    scheduled_routes._scheduled_research_executor = None
+
+
+async def _close_runtime_services(timeout_s: float = 5.0):
+    """Close the cached service after inbound sources, retaining incomplete owners."""
+    global _runtime_services
+    from src.api.runtime import RuntimeServices
+
+    service = _host_attr("_session_service", _session_service)
+    if _runtime_services is None and service is not None:
+        _runtime_services = RuntimeServices(_host_attr("SESSIONS_DIR", SESSIONS_DIR),
+                                            _host_attr("RUNS_DIR", RUNS_DIR))
+    if _runtime_services is None:
+        reset_channel_runtime()
+        return None
+    if service is not None and _runtime_services.session_service is None:
+        # Legacy/test-injected services stay an API-boundary composition seam.
+        _runtime_services.session_service = service
+    summary = await _runtime_services.aclose(timeout_s)
+    if summary.complete:
+        _reset_closed_runtime()
+    else:
+        logging.getLogger(__name__).warning("Session runtime close incomplete: %s", summary)
+    return summary
 
 
 #: Terminal attempt events a finished scheduled briefing can follow.

@@ -144,13 +144,19 @@ async def _run_startup_preflight() -> None:
 
 
 @asynccontextmanager
-async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
+async def _lifespan(application: FastAPI) -> AsyncIterator[None]:
     """Run API startup and guaranteed reverse-order shutdown."""
+    from src.api.state import _close_runtime_services, _prepare_runtime_services
+
+    application.state.runtime_services = await _prepare_runtime_services()
     try:
         await _run_startup_preflight()
         yield
     finally:
-        await _stop_scheduled_research_on_shutdown()
+        try:
+            await _stop_scheduled_research_on_shutdown()
+        finally:
+            await _close_runtime_services()
 
 
 app = FastAPI(
