@@ -239,6 +239,7 @@ class AgentLoop:
         # Skipped/error call IDs never enter this ledger.
         self._successful_call_keys: dict[str, tuple[str, str]] = {}
         self._run_gate = threading.Lock()
+        self._handoff_gate = threading.Lock()
         self._lifecycle = RunLifecycle(0)
         self._cancel_event = self._lifecycle.cancel
         self._active_trace: TraceWriter | None = None
@@ -293,7 +294,8 @@ class AgentLoop:
         stream chunk, and between tool batches, so a running turn stops at the
         next cooperative checkpoint instead of only at the next iteration.
         """
-        self._lifecycle.request_stop()
+        with self._handoff_gate:
+            self._lifecycle.request_stop()
 
     def _write_run_manifest(self, trace_dir: "Path", messages: List[Dict[str, Any]]) -> None:
         """Record what methodology produced this run, beside its trace.
@@ -367,24 +369,33 @@ class AgentLoop:
         Returns:
             Execution result dict.
         """
-        if not self._run_gate.acquire(blocking=False):
-            raise RuntimeError("AgentLoop is already running")
-        lifecycle = self._lifecycle
+        admitted = False
+        lifecycle = None
         token = None
-        self._active_trace = None
-        self._active_run_dir = None
         try:
-            previous = self._lifecycle
-            lifecycle = RunLifecycle(previous.generation + 1,
-                                     self._cancel_event if not self._has_run else None)
-            previous.finish()
-            self._lifecycle = lifecycle
-            self._cancel_event = lifecycle.cancel
-            self._run_done = lifecycle.done
-            self._has_run = True
+            # Admission and owner publication share the cancel gate. In
+            # particular, a reused facade cannot acknowledge a stop against
+            # its finished old owner after the new run has been admitted.
+            with self._handoff_gate:
+                if not self._run_gate.acquire(blocking=False):
+                    raise RuntimeError("AgentLoop is already running")
+                admitted = True
+                lifecycle = self._lifecycle
+                self._active_trace = None
+                self._active_run_dir = None
+                previous = lifecycle
+                lifecycle = RunLifecycle(previous.generation + 1,
+                                         self._cancel_event if not self._has_run else None)
+                previous.finish()
+                self._lifecycle = lifecycle
+                self._cancel_event = lifecycle.cancel
+                self._run_done = lifecycle.done
+                self._has_run = True
             token = bind_llm_session_id(session_id)
             return self._run_bound(user_message, history, session_id)
         except Exception as exc:
+            if not admitted:
+                raise
             logger.exception("AgentLoop initialization error: %s", exc)
             run_dir = self._active_run_dir
             if run_dir is None:
@@ -398,17 +409,19 @@ class AgentLoop:
             result["error_code"] = "agent_loop_error"
             return result
         finally:
-            try:
-                if self._active_trace is not None:
-                    try:
-                        self._active_trace.close()
-                    except Exception:
-                        logger.exception("Run trace cleanup failed")
-                if token is not None:
-                    reset_llm_session_id(token)
-            finally:
-                lifecycle.finish()
-                self._run_gate.release()
+            if admitted:
+                try:
+                    if self._active_trace is not None:
+                        try:
+                            self._active_trace.close()
+                        except Exception:
+                            logger.exception("Run trace cleanup failed")
+                    if token is not None:
+                        reset_llm_session_id(token)
+                finally:
+                    if lifecycle is not None:
+                        lifecycle.finish()
+                    self._run_gate.release()
 
     def _run_bound(self, user_message: str, history: Optional[List[Dict[str, Any]]] = None, session_id: str = "") -> Dict[str, Any]:
         """Run the ReAct loop with the LLM session already bound.

@@ -360,3 +360,112 @@ def test_terminal_artifact_fault_still_stops_real_watchdog(tmp_path, monkeypatch
     assert agent.run("request")["status"] == "success"
     assert agent._run_done.is_set()
     assert watchdog_exited.wait(5)
+
+
+@pytest.mark.parametrize("reuse", [False, True], ids=["first-run", "reuse"])
+@pytest.mark.parametrize("window", ["admission", "retirement"])
+def test_cancel_during_owner_handoff_reaches_published_generation(tmp_path, monkeypatch, reuse, window):
+    """An accepted stop between admission and publication belongs to that run."""
+    from src.agent.tools import BaseTool
+    entered, publish = threading.Event(), threading.Event()
+    cancel_entered, cancel_returned = threading.Event(), threading.Event()
+    agent = build(tmp_path, monkeypatch)
+    if reuse:
+        assert agent.run("previous request")["status"] == "success"
+    initial_ends = len([e for e in TraceWriter.read(tmp_path) if e.get("type") == "end"])
+    provider_effects, tool_effects = [], []
+
+    class LocalTool(BaseTool):
+        name = "handoff_write"
+        description = "Offline handoff test tool"
+        parameters = {"type": "object", "properties": {}}
+        is_readonly = False
+        def execute(self, **kwargs):
+            tool_effects.append("write")
+            return '{"status":"success"}'
+
+    agent.registry.register(LocalTool())
+    agent.max_iterations = 2
+    def stream(*args, **kwargs):
+        provider_effects.append("provider")
+        result = response("" if len(provider_effects) == 1 else "done")
+        if len(provider_effects) == 1:
+            result.has_tool_calls = True
+            result.tool_calls = [SimpleNamespace(id="handoff", name="handoff_write", arguments={})]
+        return result
+    agent.llm.stream_chat = stream
+
+    if window == "retirement":
+        old_owner = agent._lifecycle
+        original_finish = old_owner.finish
+        def finish():
+            original_finish()
+            entered.set()
+            assert publish.wait(5)
+        monkeypatch.setattr(old_owner, "finish", finish)
+    else:
+        original_gate = agent._run_gate
+        class AdmissionGate:
+            def acquire(self, **kwargs):
+                accepted = original_gate.acquire(**kwargs)
+                if accepted:
+                    entered.set()
+                    assert publish.wait(5)
+                return accepted
+            def release(self):
+                original_gate.release()
+        agent._run_gate = AdmissionGate()
+
+    # Signal at cancellation's actual owner read or at its blocked gate
+    # acquisition, so publication never races an unscheduled cancel thread.
+    original_stop = agent._lifecycle.request_stop
+    def request_stop(reason=None):
+        cancel_entered.set()
+        return original_stop(reason)
+    monkeypatch.setattr(agent._lifecycle, "request_stop", request_stop)
+    stop_thread = []
+    handoff_gate = getattr(agent, "_handoff_gate", threading.Lock())
+    class ObservedHandoffGate:
+        def __enter__(self):
+            if stop_thread and threading.get_ident() == stop_thread[0]:
+                cancel_entered.set()
+            handoff_gate.acquire()
+        def __exit__(self, *args):
+            handoff_gate.release()
+    agent._handoff_gate = ObservedHandoffGate()
+
+    original_bound = agent._run_bound
+    def run_bound(*args, **kwargs):
+        # The acknowledged stop precedes the first possible provider/tool
+        # checkpoint. No I/O or callback is performed inside the handoff gate.
+        assert cancel_returned.wait(5)
+        return original_bound(*args, **kwargs)
+    monkeypatch.setattr(agent, "_run_bound", run_bound)
+    def cancel():
+        stop_thread.append(threading.get_ident())
+        agent.cancel()
+        cancel_returned.set()
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        owner = executor.submit(agent.run, "cancelled request")
+        try:
+            assert entered.wait(5)
+            stopper = executor.submit(cancel)
+            assert cancel_entered.wait(5)
+            publish.set()
+            result = owner.result(timeout=5)
+            stopper.result(timeout=5)
+        finally:
+            publish.set()
+            cancel_returned.set()
+    ends = [e for e in TraceWriter.read(tmp_path) if e.get("type") == "end"][initial_ends:]
+    assert provider_effects == []
+    assert tool_effects == []
+    assert result["status"] == "cancelled"
+    assert result["reason"] == "cancelled by user"
+    assert len(ends) == 1
+    state = json.loads((tmp_path / "state.json").read_text())
+    assert state["status"] == ends[0]["status"] == result["status"]
+    assert state["reason"] == ends[0]["reason"] == result["reason"]
+    assert agent._cancel_event is agent._lifecycle.cancel
+    assert agent._run_done is agent._lifecycle.done
+    assert agent._run_done.is_set()
