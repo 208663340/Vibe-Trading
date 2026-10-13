@@ -54,7 +54,7 @@ def test_blocking_sdk_cancel_fences_late_results_and_holds_capacity(phase):
     budget = ProviderCallBudget(1)
     runner = ProviderCallRunner(budget=budget)
     entered, release, cancel, done = (threading.Event() for _ in range(4))
-    callbacks, results, failures = [], [], []
+    callbacks, reasoning_callbacks, results, failures = [], [], [], []
     accepted = threading.Event()
 
     def on_chunk(value):
@@ -68,6 +68,9 @@ def test_blocking_sdk_cancel_fences_late_results_and_holds_capacity(phase):
             if phase != "fallback":
                 entered.set()
                 assert release.wait(2)
+                late_reasoning = chunk("")
+                late_reasoning.additional_kwargs = {"reasoning_content": "late thought"}
+                yield late_reasoning
                 yield chunk("late")
 
         def invoke(self, *args, **kwargs):
@@ -83,7 +86,14 @@ def test_blocking_sdk_cancel_fences_late_results_and_holds_capacity(phase):
                 if phase == "invoke":
                     client.chat([{"role": "user", "content": "hi"}], timeout=0)
                 else:
-                    results.append(client.stream_chat([], should_cancel=cancel.is_set, on_text_chunk=on_chunk))
+                    results.append(
+                        client.stream_chat(
+                            [],
+                            should_cancel=cancel.is_set,
+                            on_text_chunk=on_chunk,
+                            on_reasoning_chunk=reasoning_callbacks.append,
+                        )
+                    )
         except ProviderCallCancelled:
             failures.append("cancelled")
         finally:
@@ -111,6 +121,7 @@ def test_blocking_sdk_cancel_fences_late_results_and_holds_capacity(phase):
         assert runner.wait_for_idle(2)
     assert budget.active_count == budget.abandoned_count == 0
     assert callbacks == (["accepted"] if phase == "between" else [])
+    assert reasoning_callbacks == [], "revoked SDK output must not emit late reasoning"
     assert ProviderCallRunner(budget=budget).run_call(lambda: "released") == "released"
 
 
