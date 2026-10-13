@@ -1577,7 +1577,8 @@ delivery are recoverable projections. The runtime ownership protocol is for one
 server process. Blocked external calls remain bounded and retain their resource
 slots until they actually exit. See the [stability design](docs/architecture/2026-10-13-stability-design.md)
 and [runtime ownership decision](docs/decisions/0001-runtime-ownership-and-compatible-stability.md)
-for the internal contracts.
+for the internal contracts. The [2026-10-14 verification report](docs/architecture/2026-10-14-stability-verification.md)
+records the completed upgrade, independent reviews, regression commands and remaining limits.
 
 ### Security defaults
 

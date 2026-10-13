@@ -1,7 +1,8 @@
 # ADR-001: Explicit runtime ownership with compatible boundaries
 
-Status: Accepted for implementation on `codex/architecture-stability-upgrade`.
+Status: Accepted and verified locally on `codex/architecture-stability-upgrade`.
 Date: 2026-10-13.
+Verification date: 2026-10-14; code revision `3fab9117dce6f5b0631fc2ffdb7d1c69743a45b2`.
 
 ## Context
 
@@ -36,3 +37,10 @@ work. Abandoned external producers can remain alive, but cannot emit late UI/evi
 updates or grow unbounded. Future distributed execution will require a separate
 storage-owner protocol. Focused red/green tests and independent reviews protect each
 boundary; full non-live regression is the final integration gate.
+
+All six implementation tasks passed independent review after their recorded fixes.
+The complete branch review found two frontend ordering defects; one consolidated fix
+and scoped re-review closed both. Backend 18,026 tests and frontend 787 tests passed;
+85 backend skips and existing warnings remain documented. The branch stays local and
+unmerged. Commands, evidence and the precise thread, callback and filesystem limits
+are in the [verification report](../architecture/2026-10-14-stability-verification.md).

@@ -253,8 +253,16 @@ frontend hydration suites form compatibility characterization coverage. Each tas
 its own signed commit and independent review; revert an individual commit to roll back
 its boundary while keeping public schemas stable.
 
-Baseline evidence: frontend 77 files / 744 tests passed. Backend collection succeeded
-with 17,937 tests. The first backend run stopped at 15 failures, 10,902 passed and 160
-skipped: 13 failures were loopback bind restrictions and two lacked statsmodels. The
-loopback rerun and CI-declared optional dependency setup are recorded in the progress
-ledger; their outcomes are not assumed here.
+Baseline evidence: frontend 77 files / 744 tests passed. After granting loopback
+permission for test fixtures and installing the CI-declared optional test dependencies,
+the complete non-live backend baseline passed: 17,890 passed / 85 skipped / 2,097
+warnings. Initial sandbox and missing-dependency failures were environment omissions,
+not demonstrated production regressions.
+
+Implementation and independent reviews completed on 2026-10-14 at code revision
+`3fab9117dce6f5b0631fc2ffdb7d1c69743a45b2`. Final integration: backend 18,026 passed /
+85 skipped / 2,097 warnings; frontend 80 files / 787 tests passed; production build,
+CI gates, changed-file Ruff, Python 3.11 syntax and diff checks passed. The two final
+frontend review findings were fixed together and passed scoped re-review. See the
+[verification report](2026-10-14-stability-verification.md) for commands, revision
+coverage, archived reviews, controller decisions and remaining limits.

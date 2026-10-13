@@ -109,8 +109,12 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 **Interfaces:** Consume all task reports and commits. Deliver verified architecture branch, compatibility notes, actual tests and explicit limitations.
 
-- [ ] Step 1: Dispatch an independent whole-branch reviewer with diff/spec/ledger, covering cross-layer cancellation, persisted terminal identity, SSE ordering and resource ownership.
-- [ ] Step 2: Fix actionable findings in one consolidated worker dispatch, then one scoped re-review; record decisions instead of silently dropping defects.
-- [ ] Step 3: Root runs `.venv/bin/python -m pytest --ignore=agent/tests/e2e_backtest --ignore=agent/tests/test_e2e_harness_v2.py --tb=short -q`, with loopback permission for local fixture servers; no live E2E. Run `tools/test_ci_env_var_gate.py`, `tools/ci_grep_gates.sh`, changed-file Ruff/syntax and `git diff --check`. Record all skips/failures.
-- [ ] Step 4: Run frontend `npm run test:run` and `npm run build`, plus focused integration reruns only if final fixes justify them. Verify confidential code/history remains absent.
-- [ ] Step 5: Update tracked ADR/design/README with final behavior, commits, regressions and limitations; pause the architecture heartbeat after all required work is complete. Keep branch local and unmerged for the user; no push while repository privacy is unresolved.
+- [x] Step 1: Dispatch an independent whole-branch reviewer with diff/spec/ledger, covering cross-layer cancellation, persisted terminal identity, SSE ordering and resource ownership.
+- [x] Step 2: Fix actionable findings in one consolidated worker dispatch, then one scoped re-review; record decisions instead of silently dropping defects.
+- [x] Step 3: Root runs `.venv/bin/python -m pytest --ignore=agent/tests/e2e_backtest --ignore=agent/tests/test_e2e_harness_v2.py --tb=short -q`, with loopback permission for local fixture servers; no live E2E. Run `tools/test_ci_env_var_gate.py`, `tools/ci_grep_gates.sh`, changed-file Ruff/syntax and `git diff --check`. Record all skips/failures.
+- [x] Step 4: Run frontend `npm run test:run` and `npm run build`, plus focused integration reruns only if final fixes justify them. Verify confidential code/history remains absent.
+- [x] Step 5: Update tracked ADR/design/README with final behavior, commits, regressions and limitations; pause the architecture heartbeat after all required work is complete. Keep branch local and unmerged for the user; no push while repository privacy is unresolved.
+
+Completed 2026-10-14 at code revision `3fab9117dce6f5b0631fc2ffdb7d1c69743a45b2`.
+Final results and archived task/review records:
+[stability verification](../../architecture/2026-10-14-stability-verification.md).
