@@ -512,3 +512,76 @@ def test_owned_client_close_keeps_lease_until_cleanup_returns():
         thread.join(2)
         assert runner.wait_for_idle(2)
     assert runner.budget.active_count == 0
+
+
+@pytest.mark.parametrize("cleanup_fails", [False, True])
+def test_start_failure_retains_lease_through_deferred_async_close(monkeypatch, cleanup_fails):
+    import asyncio
+
+    runner = ProviderCallRunner(budget=ProviderCallBudget(1))
+    start_entered, close_admitted = threading.Event(), threading.Event()
+    original_start = threading.Thread.start
+
+    async def scenario():
+        cleanup_entered, cleanup_release, cleanup_exited = (asyncio.Event() for _ in range(3))
+
+        class Client:
+            async def aclose(self):
+                cleanup_entered.set()
+                try:
+                    await cleanup_release.wait()
+                    if cleanup_fails:
+                        raise RuntimeError("controlled async cleanup failure")
+                finally:
+                    cleanup_exited.set()
+
+        class EarlyFailureClient:
+            async def aclose(self):
+                raise RuntimeError("another client failed before blocked cleanup exited")
+
+        clients = (Client(), EarlyFailureClient()) if cleanup_fails else (Client(),)
+        client = wrapper(SimpleNamespace(_vibe_owned_http_clients=clients), runner)
+
+        def close_owner():
+            assert start_entered.wait(1)
+            client.close()
+            close_admitted.set()
+
+        closer = threading.Thread(target=close_owner)
+        closer.start()
+
+        def fail_start(thread):
+            if thread.name != "provider-call":
+                return original_start(thread)
+            start_entered.set()
+            assert close_admitted.wait(1), "close must be admitted before startup fails"
+            raise RuntimeError("controlled start failure")
+
+        monkeypatch.setattr(threading.Thread, "start", fail_start)
+        try:
+            with pytest.raises(RuntimeError, match="controlled start failure"):
+                runner.run_call(lambda: "never invoked")
+            await asyncio.wait_for(cleanup_entered.wait(), 0.5)
+            assert not cleanup_exited.is_set()
+            assert runner.budget.active_count == runner.budget.abandoned_count == 1
+            assert not runner.wait_for_idle(0), "scheduled cleanup is not actual exit"
+            with pytest.raises(ProviderCallCapacityError):
+                ProviderCallRunner(budget=runner.budget).run_call(lambda: "must reject")
+        finally:
+            start_entered.set()
+            cleanup_release.set()
+            closer.join(1)
+            assert not closer.is_alive()
+            await asyncio.wait_for(cleanup_exited.wait(), 0.5)
+            # Allow all cleanup completion callbacks, including error logging,
+            # to execute before observing released ownership.
+            for _ in range(10):
+                if runner.wait_for_idle(0):
+                    break
+                await asyncio.sleep(0)
+        assert runner.wait_for_idle(0)
+        assert runner.budget.active_count == runner.budget.abandoned_count == 0
+        monkeypatch.setattr(threading.Thread, "start", original_start)
+        assert ProviderCallRunner(budget=runner.budget).run_call(lambda: "free") == "free"
+
+    asyncio.run(scenario())

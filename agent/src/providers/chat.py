@@ -386,7 +386,8 @@ class ChatLLM:
                 self._call_runner = ProviderCallRunner()
             return self._call_runner
 
-    def _close_clients(self) -> None:
+    def _close_clients(self) -> asyncio.Future[Any] | None:
+        pending: list[asyncio.Task[Any]] = []
         for label, client in self._close_candidates():
             close_fn = getattr(client, "aclose", None)
             if not callable(close_fn):
@@ -396,9 +397,14 @@ class ChatLLM:
             try:
                 result = close_fn()
                 if inspect.isawaitable(result):
-                    self._run_or_schedule_close(result, label)
+                    task = self._run_or_schedule_close(result, label)
+                    if task is not None:
+                        pending.append(task)
             except Exception:
                 logger.debug("ChatLLM.close: failed to close %s", label, exc_info=True)
+        # Each task logs its own failure. The completion barrier must wait for
+        # all clients even when one fails, before a deferred runner lease exits.
+        return asyncio.gather(*pending, return_exceptions=True) if pending else None
 
     async def aclose(self) -> None:
         """Asynchronously release HTTP clients owned by this adapter."""
@@ -462,7 +468,7 @@ class ChatLLM:
         return unique
 
     @staticmethod
-    def _run_or_schedule_close(awaitable: Any, label: str) -> None:
+    def _run_or_schedule_close(awaitable: Any, label: str) -> asyncio.Task[Any] | None:
         """Consume an async close from either synchronous or async code."""
         try:
             loop = asyncio.get_running_loop()
@@ -483,6 +489,7 @@ class ChatLLM:
                 )
 
         task.add_done_callback(_log_failure)
+        return task
 
     def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, timeout: Optional[int] = None) -> LLMResponse:
         """Call the LLM synchronously.

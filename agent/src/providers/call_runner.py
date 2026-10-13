@@ -11,6 +11,7 @@ import logging
 import queue
 import threading
 import time
+from asyncio import Future
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -132,10 +133,14 @@ class ProviderCallRunner:
         self._active: set[_Lease] = set()
         self._finishing: set[_Lease] = set()
         self._closing = False
-        self._on_idle: Callable[[], None] | None = None
+        self._on_idle: Callable[[], Future[Any] | None] | None = None
 
-    def defer_close(self, callback: Callable[[], None]) -> bool:
-        """Fence admission/delivery; return whether an active producer owns close."""
+    def defer_close(self, callback: Callable[[], Future[Any] | None]) -> bool:
+        """Fence delivery and retain active leases through callback completion.
+
+        A callback may return an asyncio Future when it schedules cleanup on its
+        running loop; ownership is retained until that completion is done.
+        """
         with self._condition:
             if self._closing:
                 return True
@@ -147,7 +152,7 @@ class ProviderCallRunner:
                 return True
         return False
 
-    def close_when_idle(self, callback: Callable[[], None]) -> None:
+    def close_when_idle(self, callback: Callable[[], Future[Any] | None]) -> None:
         """Fence this owner now and defer owned client close until actual exit."""
         if not self.defer_close(callback):
             callback()
@@ -221,15 +226,31 @@ class ProviderCallRunner:
                     release_locked()
                     return
                 self._on_idle = None
+
             # Client close can itself block: keep ownership, but never
             # hold the observation lock while calling external cleanup.
+            def cleanup_finished(completion: Future[Any] | None = None) -> None:
+                try:
+                    if completion is not None:
+                        completion.result()
+                except BaseException:
+                    logger.debug("Deferred provider close failed", exc_info=True)
+                finally:
+                    with self._condition:
+                        release_locked()
+
             try:
-                callback()
+                completion = callback()
             except BaseException:
                 logger.debug("Deferred provider close failed", exc_info=True)
-            finally:
-                with self._condition:
-                    release_locked()
+                cleanup_finished()
+            else:
+                if completion is None:
+                    cleanup_finished()
+                else:
+                    # Startup failure may run finish on an asyncio caller.
+                    # Scheduling async cleanup there is not cleanup completion.
+                    completion.add_done_callback(cleanup_finished)
 
         def worker() -> None:
             iterator = None
