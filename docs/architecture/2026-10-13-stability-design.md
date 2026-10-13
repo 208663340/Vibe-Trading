@@ -197,7 +197,7 @@ ProviderCallRunner owns bounded producer admission, cancel/deadline waiting, cop
 context and abandonment fencing. ToolInvoker owns invocation progress/deadline/resource
 leases; ToolBatchExecutor owns finite concurrent admission and ordered observation/
 commit boundaries. Replay policy owns observation validity across writes. RunLifecycle
-owns stop reasons, true progress, one terminal claim and unconditional cleanup. The
+owns stop reasons, true progress, one terminal claim and unconditional cleanup. Event admission is generation-fenced under its lock, but external callbacks run outside that lock so blocked callbacks cannot prevent cancellation or terminal claims. Already-admitted callbacks may finish later; they cannot be forcibly withdrawn. The
 AgentLoop remains the orchestration facade, with grounding and raw result ingestion at
 the single commit boundary before truncation/redaction.
 
@@ -224,7 +224,7 @@ terminal/worker-exited claim is emitted: the run remains in progress/stopping an
 shutdown reports unfinished ownership. No automatic uncertain-write retry is allowed.
 
 Existing established stall reason wins over user cancellation before terminal claim;
-requests after terminal claim cannot rewrite it. Pre-start cancel is finalized by the
+requests after terminal claim cannot rewrite it. A final run-state or trace artifact write failure is logged without replacing the actual claimed owner outcome used by SessionService; this cannot promise an updated artifact when storage is physically unwritable. Startup and pre-terminal failures still run unconditional cleanup. Pre-start cancel is finalized by the
 session supervisor; once a main run worker started, SessionService uses its unique run
 outcome, not a second outcome synthesized from wrapper CancelledError. Done describes
 facade exit/cleanup, not the disappearance of detached fenced readers.
