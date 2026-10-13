@@ -58,7 +58,8 @@ class ExecutionHandle:
 
 
 # One in-process storage owner; the gate also linearizes retiring an idle owner
-# against new admission on that owner. Live workers keep a strong registration.
+# against new admission on that owner. Initializing/recovering owners and live
+# workers keep a strong registration until their actual write paths exit.
 _OWNER_GATE = threading.RLock()
 _OWNERS: weakref.WeakValueDictionary[Path, ExecutionSupervisor] = weakref.WeakValueDictionary()
 _LIVE_OWNERS: dict[Path, ExecutionSupervisor] = {}
@@ -73,19 +74,30 @@ class ExecutionSupervisor:
         self.executor = executor
         self.max_inflight = max_inflight
         self.state = ExecutionState.OPEN
+        self.initializing = True
         self.handles: dict[str, ExecutionHandle] = {}
         self.tasks: dict[str, asyncio.Task] = {}
         self.inflight: set[str] = set()
         with self.gate:
             previous = _OWNERS.get(self.store_dir)
             if previous is not None:
-                if previous.handles:
+                if previous.initializing or previous.handles:
                     raise SessionServiceClosingError("An active execution owner still owns this session store")
                 previous.state = ExecutionState.CLOSED
             _OWNERS[self.store_dir] = self
+            _LIVE_OWNERS[self.store_dir] = self
+
+    def finish_initialization(self, *, failed: bool = False) -> None:
+        """Release startup ownership only after recovery/failure cleanup exits."""
+        with self.gate:
+            self.initializing = False
+            if failed or self.state == ExecutionState.CLOSING:
+                self.state = ExecutionState.CLOSED
+            if not self.handles:
+                _LIVE_OWNERS.pop(self.store_dir, None)
 
     def require_open(self) -> None:
-        if self.state != ExecutionState.OPEN:
+        if self.initializing or self.state != ExecutionState.OPEN:
             raise SessionServiceClosingError("Session service is closing or closed")
 
     def reserve(self, session_id: str, attempt_id: str) -> ExecutionHandle:
@@ -121,7 +133,7 @@ class ExecutionSupervisor:
             if self.tasks.get(handle.session_id) is handle.task:
                 self.tasks.pop(handle.session_id, None)
             handle.phase = "released"
-            if not self.handles:
+            if not self.handles and not self.initializing:
                 _LIVE_OWNERS.pop(self.store_dir, None)
                 if self.state == ExecutionState.CLOSING:
                     self.state = ExecutionState.CLOSED
@@ -153,7 +165,7 @@ class ExecutionSupervisor:
         with self.gate:
             if self.state == ExecutionState.OPEN:
                 self.state = ExecutionState.CLOSING
-            if not self.handles:
+            if not self.handles and not self.initializing:
                 self.state = ExecutionState.CLOSED
             return tuple(self.handles.values())
 
@@ -167,4 +179,4 @@ class ExecutionSupervisor:
                     runs.append(handle.attempt_id)
                 else:
                     finalizers.append(handle.attempt_id)
-            return CloseSummary(not self.handles, tuple(runs), tuple(finalizers))
+            return CloseSummary(not self.handles and not self.initializing, tuple(runs), tuple(finalizers))

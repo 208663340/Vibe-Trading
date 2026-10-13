@@ -10,7 +10,7 @@ import pytest
 from src.session.events import EventBus
 from src.session.models import Attempt, AttemptStatus, Message
 from src.session.search import SessionSearchIndex
-from src.session.service import SessionBusyError, SessionService
+from src.session.service import SessionBusyError, SessionService, SessionServiceClosingError
 from src.session.store import SessionStore
 
 
@@ -614,3 +614,97 @@ def test_concurrent_index_write_cannot_commit_another_failed_delete(tmp_path, mo
         deleter.join(1)
         monkeypatch.undo()
         index.close()
+
+
+@pytest.mark.parametrize("failure_phase", [None, "reply", "attempt"])
+def test_same_store_recovery_is_owned_until_writes_or_failure_exit(service, monkeypatch, failure_phase):
+    """A second store object cannot retire a constructor which is still writing."""
+    session = service.create_session()
+    attempt = Attempt(session_id=session.session_id, prompt="recover")
+    attempt.mark_running()
+    service.store.create_attempt(attempt)
+    recovering_store = SessionStore(service.store.base_dir)
+    competing_store = SessionStore(service.store.base_dir)
+    entered, release = threading.Event(), threading.Event()
+    outcomes, failures = [], []
+    recovering_owners = []
+    recover = SessionService._recover_interrupted_attempts
+    def capture_owner(owner):
+        recovering_owners.append(owner)
+        recover(owner)
+    monkeypatch.setattr(SessionService, "_recover_interrupted_attempts", capture_owner)
+    if failure_phase == "attempt":
+        def blocked_update(record):
+            entered.set()
+            assert release.wait(2)
+            raise OSError("recovery attempt fault")
+        monkeypatch.setattr(recovering_store, "update_attempt", blocked_update)
+    else:
+        original = recovering_store.append_message
+        def blocked_append(message):
+            entered.set()  # append_terminal_message has already checked idempotency.
+            assert release.wait(2)
+            if failure_phase == "reply":
+                raise OSError("recovery reply fault")
+            original(message)
+        monkeypatch.setattr(recovering_store, "append_message", blocked_append)
+    def construct():
+        try:
+            outcomes.append(SessionService(recovering_store, EventBus(), service.runs_dir))
+        except Exception as exc:
+            failures.append(exc)
+    constructor = threading.Thread(target=construct)
+    constructor.start()
+    try:
+        assert entered.wait(1)
+        if failure_phase is None:
+            summary = asyncio.run(recovering_owners[0].aclose(timeout_s=0))
+            assert not summary.complete
+            assert recovering_owners[0]._supervisor.state.value == "closing"
+        with pytest.raises(SessionServiceClosingError, match="owner|initializ|recover|active"):
+            SessionService(competing_store, EventBus(), service.runs_dir)
+    finally:
+        release.set()
+        constructor.join(2)
+    assert not constructor.is_alive()
+    if failure_phase is None:
+        assert not failures and len(outcomes) == 1
+    else:
+        assert not outcomes and len(failures) == 1 and isinstance(failures[0], OSError)
+    # The initializing owner is released only after its stack exited; errors do
+    # not leave a permanent admission/recovery lock on this store.
+    recovered = SessionService(competing_store, EventBus(), service.runs_dir)
+    replies = [m for m in recovered.get_messages(session.session_id) if m.linked_attempt_id == attempt.attempt_id]
+    assert len(replies) == 1
+    assert recovered.store.get_attempt(session.session_id, attempt.attempt_id).status == AttemptStatus.INTERRUPTED
+    assert recovered.create_session(title="usable after recovery")
+
+
+def test_initialization_resource_failure_releases_owner_after_actual_exit(service, monkeypatch):
+    entered, release = threading.Event(), threading.Event()
+    failures = []
+    def blocked_index():
+        entered.set()
+        assert release.wait(2)
+        raise OSError("index initialization fault")
+    monkeypatch.setattr("src.session.service.get_shared_index", blocked_index)
+    def construct():
+        try:
+            SessionService(SessionStore(service.store.base_dir), EventBus(), service.runs_dir)
+        except Exception as exc:
+            failures.append(exc)
+    constructor = threading.Thread(target=construct)
+    constructor.start()
+    try:
+        assert entered.wait(1)
+        # A half-initialized owner is also live before recovery starts.
+        with pytest.raises(SessionServiceClosingError):
+            SessionService(SessionStore(service.store.base_dir), EventBus(), service.runs_dir)
+    finally:
+        release.set()
+        constructor.join(2)
+        monkeypatch.setattr("src.session.service.get_shared_index", lambda: service._search_index)
+    assert not constructor.is_alive()
+    assert len(failures) == 1 and isinstance(failures[0], OSError)
+    replacement = SessionService(SessionStore(service.store.base_dir), EventBus(), service.runs_dir)
+    assert replacement.create_session()

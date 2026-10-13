@@ -76,19 +76,24 @@ class SessionService:
         self.event_bus = event_bus
         self.runs_dir = runs_dir
         self._supervisor = ExecutionSupervisor(store.base_dir, executor or _AGENT_EXECUTOR, max_inflight)
-        # Legacy handles are views; the supervisor owns execution identities.
-        self._active_loops: Dict[str, "AgentLoop"] = {}
-        self._active_tasks = self._supervisor.tasks
-        self._inflight = self._supervisor.inflight
-        self._inflight_lock = self._supervisor.gate
-        self._search_index = get_shared_index()
-        if hasattr(self._search_index, "bind_store"):
-            self._search_index.bind_store(store.base_dir)
         try:
+            # The initializing supervisor owns this store before any startup
+            # resource initialization or recovery write can be observed.
+            self._active_loops: Dict[str, "AgentLoop"] = {}
+            self._active_tasks = self._supervisor.tasks
+            self._inflight = self._supervisor.inflight
+            self._inflight_lock = self._supervisor.gate
+            self._search_index = get_shared_index()
+            if hasattr(self._search_index, "bind_store"):
+                self._search_index.bind_store(store.base_dir)
             self._recover_interrupted_attempts()
         except BaseException:
-            self._supervisor.begin_close()
+            # This runs after synchronous recovery has actually unwound; it
+            # cannot retire a still-running recovery merely by requesting close.
+            self._supervisor.finish_initialization(failed=True)
             raise
+        else:
+            self._supervisor.finish_initialization()
 
     def _optional(self, operation, *args, **kwargs):
         """Optional projection/notification failures cannot change durable truth."""
