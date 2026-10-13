@@ -99,6 +99,7 @@ class _Reader:
     raw_result: str = ""
     exception: BaseException | None = None
     executed: bool = False
+    refused: bool = False
     next_heartbeat: float = 0
 
     def publish(self, event: ProgressEvent) -> None:
@@ -169,7 +170,9 @@ class ToolInvoker:
                     # Recheck stop inside the copied request context at actual
                     # dispatch, before installing progress or claiming effects.
                     if reader.revoked.is_set() or self.should_cancel():
-                        reader.revoked.set()
+                        with reader.gate:
+                            reader.refused = True
+                            reader.revoked.set()
                         return
                     _set_emitter(reader.publish)
                     reader.executed = True
@@ -234,10 +237,13 @@ class ToolInvoker:
             # A callback may have blocked while the worker finished. Drain its
             # bounded final progress before accepting completion, on the caller.
             with reader.gate:
-                events = list(reader.events)
+                # Refusal may arrive after poll's entry check. Preserve its
+                # terminal identity before our own completion delivery fence.
+                refused = reader.refused
+                events = [] if refused else list(reader.events)
                 reader.events.clear()
                 reader.revoked.set()
-            if not deliver(events) or self.should_cancel():
+            if refused or not deliver(events) or self.should_cancel():
                 return self.diagnostic(
                     reader.prepared, "tool_cancelled", elapsed_ms=elapsed_ms, executed=reader.executed
                 )

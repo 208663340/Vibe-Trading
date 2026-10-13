@@ -653,3 +653,60 @@ def test_worker_context_stop_refusal_is_delivered_as_cancellation(monkeypatch):
     assert result.executed is False
     assert events == []
     assert budget.active_count == budget.abandoned_count == 0
+
+
+def test_worker_refusal_after_poll_entry_stays_cancelled_at_completion():
+    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+
+    marker = contextvars.ContextVar("completion-refusal-context", default="missing")
+    worker_entered, release_worker = threading.Event(), threading.Event()
+    workers, contexts, effects, events, readers = [], [], [], [], []
+    caller_checks = 0
+    budget = ReadonlyToolBudget(1)
+
+    def stop():
+        nonlocal caller_checks
+        if threading.current_thread().name == "tool-read":
+            workers.append(threading.current_thread())
+            contexts.append(marker.get())
+            worker_entered.set()
+            assert release_worker.wait(2)
+            return marker.get() == "refused-request"
+        caller_checks += 1
+        if caller_checks == 2:
+            # The first caller check admits start. Poll's entry reads revocation
+            # before this second check. Finish the worker's context-only refusal
+            # now, before that same poll accepts done, while caller stop is false.
+            release_worker.set()
+            assert readers[0].done.wait(1)
+        return False
+
+    invoker = ToolInvoker(
+        lambda *args: effects.append("unexpected read effect") or '{"status":"ok"}',
+        should_cancel=stop,
+        emit=lambda *event: events.append(event),
+        budget=budget,
+    )
+    prepared = PreparedToolCall(0, "completion-refusal", "read", {}, True)
+    token = marker.set("refused-request")
+    try:
+        reader = invoker.start(prepared)
+        readers.append(reader)
+        assert worker_entered.wait(0.5)
+        assert budget.active_count == 1
+        result = invoker.poll(reader)
+    finally:
+        marker.reset(token)
+        release_worker.set()
+        for worker in workers:
+            worker.join(1)
+    assert effects == []
+    assert contexts == ["refused-request"]
+    assert result is not None
+    assert result.outcome == "tool_cancelled", "completed refusal must not become an empty executed result"
+    assert result.executed is False
+    assert result.prepared is prepared
+    assert json.loads(result.raw_result)["error_code"] == "tool_cancelled"
+    assert events == []
+    assert budget.active_count == budget.abandoned_count == 0
+    assert all(not worker.is_alive() for worker in workers)
