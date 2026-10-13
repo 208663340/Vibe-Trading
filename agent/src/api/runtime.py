@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 
+from src.agent.tool_execution import abandoned_readonly_tool_count
 from src.providers.call_runner import abandoned_provider_count
 from src.session.events import EventBus
 from src.session.execution import CloseSummary, SessionServiceClosingError
@@ -66,6 +67,7 @@ class RuntimeServices:
     def _provider_snapshot(self) -> CloseSummary:
         self.close_summary = replace(
             self.close_summary, abandoned_producers=abandoned_provider_count(),
+            abandoned_readers=abandoned_readonly_tool_count(),
         )
         return self.close_summary
 
