@@ -85,6 +85,7 @@ owns the executor, service lifecycle and shutdown order at the API boundary.
 | POST `/sessions/{id}/cancel` | Existing accepted/no-active status | Ack is acceptance, not proof of worker exit |
 | DELETE `/sessions/{id}` | `{status: deleted, session_id}` | 404 absent; 409 active; failed I/O cannot return success |
 | GET session/messages/events | Existing DTOs and event names | REST remains authoritative after reconnect |
+| GET `/sessions/{id}/attempts/{attempt_id}` (additive) | Authenticated attempt snapshot | 404 absent; safe status/timing/terminal metadata only |
 
 The supervisor linearizes send versus delete under one gate, observes wrapper and
 worker completion separately, and protects later tasks from earlier callbacks. Its
@@ -109,6 +110,15 @@ identity before modifying a later owner. CloseSummary includes complete,
 pending_run_writers, pending_finalizers and abandoned_readers/producers; the last group
 can outlive main completion only after callback/evidence fencing and retains its pool
 permits. OPEN/CLOSING/CLOSED state is monotonic and repeated close is idempotent.
+The complete terminal persistence transaction runs as one supervised I/O future on
+the injectable executor. A slow filesystem operation cannot block the application
+loop or defeat aclose(timeout_s); its actual future retains the finalizer claim and
+appears in pending_finalizers until it exits. Other short synchronous storage entry
+points remain outside this task's nonblocking guarantee.
+The session supervisor accepts at most 16 in-flight attempts by default, with a
+constructor override for tests/application composition. Capacity rejection is 503
+and precedes all user message/attempt persistence; the four-worker executor therefore
+has a finite application queue. No additional environment-variable contract is added.
 
 Durable finalization decision table: no transcript commit means execution/persistence
 failure can still be recorded; transcript committed but attempt update failed means
@@ -139,6 +149,12 @@ messages/session attempt status, reconciles newer observations, then reconnects 
 new cursor. A transport open/heartbeat is not proof of synchronized history. Failed
 hydration keeps recoverable/unknown state, never fake completion or a resent mutation.
 Existing REST attempt metadata is the authority for cancelled/failed with empty text.
+The additive attempt snapshot is needed because the baseline session DTO has only a
+session status and last_attempt_id, not the execution's status. It uses committed
+linked terminal evidence when present; otherwise persisted attempt status. Never expose
+the original prompt, credentials or absolute runtime paths. Task 1 reports its exact
+safe fields; Task 3 uses the snapshot with messages instead of inferring completion
+from missing text.
 
 ## Frontend responsibility boundaries
 
