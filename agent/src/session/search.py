@@ -18,12 +18,22 @@ import threading as _threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
+from functools import wraps
 from pathlib import Path
 from typing import List, Optional
 
 from src.config.paths import get_runtime_root
 
 logger = logging.getLogger(__name__)
+
+
+def _serialized(method):
+    @wraps(method)
+    def locked(self, *args, **kwargs):
+        # A shared connection's commit/rollback belongs to one operation.
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return locked
 
 _DB_PATH = get_runtime_root() / "sessions.db"
 
@@ -100,7 +110,22 @@ class SessionSearchIndex:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn: Optional[sqlite3.Connection] = None
+        self._lock = _threading.RLock()
+        self._store_base_dir: Optional[Path] = None
         self._init_db()
+
+    @_serialized
+    def bind_store(self, base_dir: Path) -> None:
+        """Filter the rebuildable projection against the authoritative store."""
+        self._store_base_dir = base_dir
+
+    @_serialized
+    def delete_session(self, session_id: str) -> None:
+        """Delete the session and its FTS rows in one SQLite transaction."""
+        conn = self._get_conn()
+        with conn:
+            conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
+            conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
 
     def _get_conn(self) -> sqlite3.Connection:
         """Get or create the SQLite connection (WAL mode)."""
@@ -110,6 +135,7 @@ class SessionSearchIndex:
             self._conn.execute("PRAGMA synchronous=NORMAL")
         return self._conn
 
+    @_serialized
     def _init_db(self) -> None:
         """Create tables and FTS5 virtual table if they don't exist."""
         conn = self._get_conn()
@@ -160,6 +186,7 @@ class SessionSearchIndex:
             if migrating:
                 conn.execute("INSERT INTO messages_fts(messages_fts) VALUES ('rebuild')")
 
+    @_serialized
     def index_session(
         self,
         session_id: str,
@@ -193,6 +220,7 @@ class SessionSearchIndex:
         )
         conn.commit()
 
+    @_serialized
     def index_message(self, session_id: str, role: str, content: str,
                       tool_name: Optional[str] = None) -> None:
         """Index a single message.
@@ -237,6 +265,7 @@ class SessionSearchIndex:
         tokens = [_prepare_search_text(term).strip() for term in _QUERY_TERM.findall(query)]
         return " OR ".join(f'"{token}"' for token in tokens) if tokens else '""'
 
+    @_serialized
     def search(self, query: str, max_sessions: int = 3) -> List[SearchMatch]:
         """Full-text search across all sessions.
 
@@ -275,6 +304,8 @@ class SessionSearchIndex:
         seen: dict[str, SearchMatch] = {}
         for row in cursor.fetchall():
             sid = row[0]
+            if self._store_base_dir is not None and not (self._store_base_dir / sid / "session.json").is_file():
+                continue
             if sid in seen:
                 continue
             seen[sid] = SearchMatch(
@@ -290,6 +321,7 @@ class SessionSearchIndex:
 
         return list(seen.values())
 
+    @_serialized
     def reindex_from_store(self, store_base_dir: Path) -> int:
         """Rebuild the entire index from file-based session store.
 
@@ -360,6 +392,7 @@ class SessionSearchIndex:
         except (OSError, ValueError):
             return "unknown"
 
+    @_serialized
     def close(self) -> None:
         """Close the database connection."""
         if self._conn:

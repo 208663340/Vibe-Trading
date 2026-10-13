@@ -12,14 +12,14 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
+from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.session.events import SSEEvent
-from src.session.service import SessionBusyError
+from src.session.service import SessionBusyError, SessionServiceClosingError
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,10 @@ MAX_MESSAGE_CHARS = 100_000
 class SendMessageRequest(BaseModel):
     """Send an interactive research prompt."""
     content: str = Field(..., description="Research prompt", min_length=1, max_length=MAX_MESSAGE_CHARS)
+
+
+class CancelSessionRequest(BaseModel):
+    expected_attempt_id: str = Field(..., min_length=1)
 
 
 class MessageResponse(BaseModel):
@@ -359,7 +363,10 @@ def register_sessions_routes(app: FastAPI) -> None:
     # Late-access closures for shared host symbols (monkeypatch-safe)
     def _host_get_session_service():
         h = _sys.modules.get("api_server") or _sys.modules.get("agent.api_server")
-        return h._get_session_service()
+        try:
+            return h._get_session_service()
+        except SessionServiceClosingError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     def _host_validate_path_param(value: str, kind: str) -> None:
         h = _sys.modules.get("api_server") or _sys.modules.get("agent.api_server")
@@ -400,9 +407,12 @@ def register_sessions_routes(app: FastAPI) -> None:
         svc = _host_get_session_service()
         if not svc:
             raise HTTPException(status_code=501, detail="Session runtime not enabled")
-        session = svc.create_session(
-            title=request.title, config=request.config, owner=principal
-        )
+        try:
+            session = svc.create_session(
+                title=request.title, config=request.config, owner=principal
+            )
+        except SessionServiceClosingError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
         return SessionResponse(
             session_id=session.session_id,
             title=session.title,
@@ -660,7 +670,12 @@ def register_sessions_routes(app: FastAPI) -> None:
         svc = _host_get_session_service()
         if not svc:
             raise HTTPException(status_code=501, detail="Session runtime not enabled")
-        deleted = svc.delete_session(session_id)
+        try:
+            deleted = svc.delete_session(session_id)
+        except SessionBusyError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except SessionServiceClosingError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
         if not deleted:
             raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
         _get_goal_store().delete_session_goals(session_id)
@@ -767,20 +782,34 @@ def register_sessions_routes(app: FastAPI) -> None:
             # Must precede ValueError-style handling and stay distinct from 404:
             # the session exists, it is simply already running.
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except SessionServiceClosingError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc))
 
     @app.post("/sessions/{session_id}/cancel", dependencies=[Depends(require_auth)])
-    async def cancel_session(session_id: str):
+    async def cancel_session(session_id: str, payload: Optional[CancelSessionRequest] = Body(None)):
         """Cancel the in-flight agent loop for this session."""
         _host_validate_path_param(session_id, "session_id")
         svc = _host_get_session_service()
         if not svc:
             raise HTTPException(status_code=501, detail="Session runtime not enabled")
-        cancelled = svc.cancel_current(session_id)
+        cancelled = (svc.cancel_current(session_id, expected_attempt_id=payload.expected_attempt_id)
+                     if payload is not None else svc.cancel_current(session_id))
         if not cancelled:
             return {"status": "no_active_loop"}
         return {"status": "cancelled"}
+
+    @app.get("/sessions/{session_id}/attempts/{attempt_id}", dependencies=[Depends(require_auth)])
+    async def get_attempt_snapshot(session_id: str, attempt_id: str):
+        """Read an attempt's authoritative status after reconnect or a stream gap."""
+        _host_validate_path_param(session_id, "session_id")
+        _host_validate_path_param(attempt_id, "attempt_id")
+        svc, _session = _get_existing_session_or_404(session_id)
+        snapshot = svc.get_attempt_snapshot(session_id, attempt_id)
+        if snapshot is None:
+            raise HTTPException(status_code=404, detail=f"Attempt {attempt_id} not found")
+        return snapshot
 
     @app.get("/sessions/{session_id}/messages", response_model=List[MessageResponse], dependencies=[Depends(require_auth)])
     async def get_messages(session_id: str, limit: int = Query(100, ge=1, le=1000)):

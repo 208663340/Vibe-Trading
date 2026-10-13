@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import tempfile
+import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -39,6 +40,7 @@ class SessionStore:
         """
         self.base_dir = base_dir
         self.base_dir.mkdir(parents=True, exist_ok=True)
+        self._message_lock = threading.RLock()
 
     def _session_dir(self, session_id: str) -> Path:
         return self.base_dir / session_id
@@ -116,7 +118,7 @@ class SessionStore:
         if not session_dir.exists():
             return False
         import shutil
-        shutil.rmtree(session_dir, ignore_errors=True)
+        shutil.rmtree(session_dir)
         return True
 
     def list_sessions(self, limit: int = 50) -> List[Session]:
@@ -158,12 +160,41 @@ class SessionStore:
         Args:
             message: Message to append.
         """
-        path = self._messages_file(message.session_id)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(message.to_dict(), ensure_ascii=False) + "\n")
-            f.flush()
-            os.fsync(f.fileno())
+        with self._message_lock:
+            path = self._messages_file(message.session_id)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            self._repair_message_tail(path)
+            with path.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(message.to_dict(), ensure_ascii=False) + "\n")
+                f.flush()
+                os.fsync(f.fileno())
+
+    @staticmethod
+    def _repair_message_tail(path: Path) -> None:
+        """Isolate a torn tail without discarding the original evidence."""
+        if not path.exists() or not path.stat().st_size:
+            return
+        with path.open("rb+") as log:
+            log.seek(-1, os.SEEK_END)
+            if log.read(1) != b"\n":
+                log.seek(0, os.SEEK_END)
+                log.write(b"\n")
+                log.flush()
+                os.fsync(log.fileno())
+
+    def append_terminal_message(self, message: Message) -> Message:
+        """Commit a linked reply exactly once, including after an uncertain append.
+
+        A complete JSON tail lacking its delimiter is adopted only after repair;
+        rechecking after repair avoids creating two replies for that attempt.
+        """
+        with self._message_lock:
+            self._repair_message_tail(self._messages_file(message.session_id))
+            existing = self.get_message_for_attempt(message.session_id, message.linked_attempt_id)
+            if existing is not None:
+                return existing
+            self.append_message(message)
+            return message
 
     def get_messages(self, session_id: str, limit: int = 100) -> List[Message]:
         """Read all messages for a session.
@@ -183,6 +214,9 @@ class SessionStore:
         # cost one record, never the intact messages on either side of it.
         with path.open("rb") as log:
             for line_number, raw_line in enumerate(log, start=1):
+                if not raw_line.endswith(b"\n"):
+                    # The JSONL newline is the transcript commit delimiter.
+                    continue
                 if not raw_line.strip():
                     continue
                 try:
@@ -284,7 +318,7 @@ class SessionStore:
             The linked message, or None when the reply is not in the log.
         """
         for message in reversed(self.get_messages(session_id, limit=1_000_000)):
-            if message.linked_attempt_id == attempt_id:
+            if message.role == "assistant" and message.linked_attempt_id == attempt_id:
                 return message
         return None
 
