@@ -177,6 +177,13 @@ attempt to streaming. Token validation plus state commit occurs in one functiona
 store update. View navigation/toast/composer side effects and background session-cache
 confirmation are separate ownership decisions.
 
+A cancellation acknowledgment records the pending intent, not a terminal outcome.
+The UI retains the attempt's busy ownership until a terminal SSE event or authoritative
+attempt snapshot confirms actual termination; it cannot enable a competing send just
+because cancellation was accepted. A no-active response uses the same authoritative
+recovery if the terminal event was missed. Cancellation completion still commits under
+the operation/view/attempt guard, so a stale callback cannot end a newer attempt.
+
 History entity keys: durable user message_id (ACK maps the local optimistic ID);
 assistant slot `(session_id, attempt_id, answer)` bridged from REST linked_attempt_id;
 activity slot `(session_id, attempt_id, activity)`; report slot `(session_id, attempt_id,

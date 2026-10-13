@@ -49,11 +49,11 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 **Interfaces:** Consume Task 1 `SessionService.aclose(timeout_s)`. Produce RuntimeServices ownership at the API boundary, restart-safe close/reset, and loop-owned SSE subscriber resources. Keep legacy api_server exported symbols and test monkeypatch seams compatible. No domain code may begin reading api_server globals.
 
-- [ ] Step 1: Regressions: full 200-event subscriber queue still receives session close and terminates; terminal cannot silently vanish; worker-thread publish targets the subscriber's actual loop; replay registration stays atomic; startup/partial failure/shutdown order closes resources once; next app lifespan never reuses an unclosed writer.
-- [ ] Step 2: Record baseline RED with focused lifecycle/event tests.
-- [ ] Step 3: Bind RuntimeServices to app lifecycle and lazily preserve current entry points. Stop inbound scheduler/channel work before session close; report incomplete worker shutdown honestly, retain closing same-store owner until actual worker exit. Guarantee control delivery under backpressure without inventing successful outcomes; additive session.resync carries reason and latest buffered cursor and triggers REST hydration in Task 3.
-- [ ] Step 4: Run event bus, session API, startup/shutdown, scheduled/channels integration suites in isolated temp state. No externally reachable server; loopback fixtures only when explicitly needed.
-- [ ] Step 5: Signed commit and report; specify any additive SSE control for Task 3.
+- [x] Step 1: Regressions: full 200-event subscriber queue still receives session close and terminates; terminal cannot silently vanish; worker-thread publish targets the subscriber's actual loop; replay registration stays atomic; startup/partial failure/shutdown order closes resources once; next app lifespan never reuses an unclosed writer.
+- [x] Step 2: Record baseline RED with focused lifecycle/event tests.
+- [x] Step 3: Bind RuntimeServices to app lifecycle and lazily preserve current entry points. Stop inbound scheduler/channel work before session close; report incomplete worker shutdown honestly, retain closing same-store owner until actual worker exit. Guarantee control delivery under backpressure without inventing successful outcomes; additive session.resync carries reason and latest buffered cursor and triggers REST hydration in Task 3.
+- [x] Step 4: Run event bus, session API, startup/shutdown, scheduled/channels integration suites in isolated temp state. No externally reachable server; loopback fixtures only when explicitly needed.
+- [x] Step 5: Signed commit and report; specify any additive SSE control for Task 3.
 
 ### Task 3: Frontend session runtime, history and transport boundaries
 
