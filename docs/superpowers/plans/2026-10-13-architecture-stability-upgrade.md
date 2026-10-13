@@ -97,11 +97,11 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 **Interfaces:** RunLifecycle owns generation, cancellation/done, true monotonic progress, requested stop reason and one terminal claim. Watchdog requests failure through this owner; main flow persists outcome once. ContextMeter binds observations to actual tools/model request shape while retaining compatibility for existing callers.
 
-- [ ] Step 1: Barrier-controlled watchdog/finish races produce one end event and matching result/state; state write/trace write/close/initialization failures still set done and stop watchdog; reuse rejects concurrent run or fences old callbacks. Record baseline RED.
-- [ ] Step 2: Regress tools→text-only→tools and model-shape changes against hand-derived token counts; missing/malformed usage does not corrupt estimate; static prompt/schema above window produces actionable failure rather than impossible compaction target.
-- [ ] Step 3: Centralize terminal transition and outer finally cleanup: watchdog requests a stop, only main flow commits terminal once; non-returning active write remains in progress/stopping with retained ownership, not falsely terminal. Make RunStateStore atomic replacement. Integrate actual request-shape anchoring without changing prompt text, schema, model choice or grounding policy.
-- [ ] Step 4: Run all Agent loop, state/outcome, context budget/compaction, tool evidence and provider integration covering suites. Verify no unsafe write retry or fake worker termination.
-- [ ] Step 5: Signed commit and report; prepare final integration diff.
+- [x] Step 1: Barrier-controlled watchdog/finish races produce one end event and matching result/state; state write/trace write/close/initialization failures still set done and stop watchdog; reuse rejects concurrent run or fences old callbacks. Record baseline RED.
+- [x] Step 2: Regress tools→text-only→tools and model-shape changes against hand-derived token counts; missing/malformed usage does not corrupt estimate; static prompt/schema above window produces actionable failure rather than impossible compaction target.
+- [x] Step 3: Centralize terminal transition and outer finally cleanup: watchdog requests a stop, only main flow commits terminal once; non-returning active write remains in progress/stopping with retained ownership, not falsely terminal. Make RunStateStore atomic replacement. Integrate actual request-shape anchoring without changing prompt text, schema, model choice or grounding policy.
+- [x] Step 4: Run all Agent loop, state/outcome, context budget/compaction, tool evidence and provider integration covering suites. Verify no unsafe write retry or fake worker termination.
+- [x] Step 5: Signed commit and report; prepare final integration diff.
 
 ### Task 7: Whole-branch review and regression delivery
 

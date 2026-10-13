@@ -2161,7 +2161,11 @@ Vibe-Trading/
 │   │
 │   ├── src/
 │   │   ├── agent/                  # ReAct agent core
-│   │   │   ├── loop.py             #   5-layer compression + read/write tool batching
+│   │   │   ├── loop.py             #   orchestration facade and ordered grounding commits
+│   │   │   ├── run_lifecycle.py    #   generation, stop requests and one terminal owner
+│   │   │   ├── tool_execution.py   #   bounded tool admission, progress and actual worker leases
+│   │   │   ├── tool_replay.py      #   dispatch-time replay validity across writes
+│   │   │   ├── context_budget.py   #   actual request-shape token calibration
 │   │   │   ├── context.py          #   system prompt + auto-recall from persistent memory
 │   │   │   ├── skills.py           #   skill loader (90 bundled + user-created via CRUD)
 │   │   │   ├── tools.py            #   tool base class + registry
@@ -2188,13 +2192,17 @@ Vibe-Trading/
 │   │   │   └── zoo/                #   qlib158 (154) + alpha101 (101) + gtja191 (191) + academic (12) + fundamental (4)
 │   │   │
 │   │   ├── api/                    # FastAPI route modules
+│   │   │   ├── runtime.py          #   application resource ownership and shutdown
 │   │   │   └── alpha_routes.py     #   /alpha/list, /alpha/{id}, /alpha/bench, SSE stream
 │   │   │
 │   │   ├── skills/                 # 90 finance skills in 9 categories (SKILL.md each)
 │   │   ├── swarm/                  # Swarm DAG execution engine
 │   │   │   └── presets/            #   30 swarm preset YAML definitions
 │   │   ├── session/                # Multi-turn chat + FTS5 session search
+│   │   │   ├── execution.py        #   attempt/worker/finalizer ownership
+│   │   │   └── events.py           #   bounded replay, subscriber ingress and gap recovery
 │   │   └── providers/              # LLM provider abstraction
+│   │       └── call_runner.py      #   bounded SDK producers and cancellation/deadlines
 │   │
 │   └── backtest/                   # Backtest engines
 │       ├── engines/                #   10 engines + composite cross-market engine + options_portfolio
@@ -2207,6 +2215,8 @@ Vibe-Trading/
 │   └── src/
 │       ├── pages/                  #   Home, Agent, AlphaZoo, RunDetail, Compare, Correlation, Settings
 │       ├── components/             #   chat, charts, layout
+│       ├── features/agent/          #   view operations, history reconciliation and stream leaves
+│       ├── lib/http/request.ts     #   bounded headers/body requests and abort ownership
 │       └── stores/                 #   Zustand state management
 │
 ├── Dockerfile                      # Multi-stage build
