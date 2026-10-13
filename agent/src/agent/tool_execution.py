@@ -164,11 +164,16 @@ class ToolInvoker:
             ctx = contextvars.copy_context()
 
             def work():
-                _set_emitter(reader.publish)
                 try:
-                    if not reader.revoked.is_set():
-                        reader.executed = True
-                        reader.raw_result = self.execute(prepared.name, args) or ""
+                    # Snapshotting and thread scheduling can outlive admission.
+                    # Recheck stop inside the copied request context at actual
+                    # dispatch, before installing progress or claiming effects.
+                    if reader.revoked.is_set() or self.should_cancel():
+                        reader.revoked.set()
+                        return
+                    _set_emitter(reader.publish)
+                    reader.executed = True
+                    reader.raw_result = self.execute(prepared.name, args) or ""
                 except BaseException as exc:  # noqa: BLE001 - transported to caller
                     reader.exception = exc
                 finally:
@@ -184,8 +189,9 @@ class ToolInvoker:
 
     def poll(self, reader: _Reader) -> ToolExecutionResult | None:
         elapsed_ms = int((time.monotonic() - reader.started_at) * 1000)
-        # Cancellation fences even a completed-but-unconsumed result.
-        if self.should_cancel():
+        # Honor worker-context refusal as well as caller-side cancellation,
+        # including a completed-but-unconsumed result.
+        if reader.revoked.is_set() or self.should_cancel():
             with reader.gate:
                 reader.revoked.set()
                 reader.events.clear()

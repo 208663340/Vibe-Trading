@@ -411,3 +411,245 @@ def test_worker_progress_is_bounded_while_caller_callback_stalls(monkeypatch):
     assert 1 < len(events) <= 33, "stalled callback cannot accumulate unbounded progress"
     assert events[-1][1] == 10000
     assert all(thread_id == caller.ident for thread_id, _ in events)
+
+
+def test_cancel_during_argument_snapshot_refuses_actual_reader_dispatch(monkeypatch):
+    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+
+    snapshot_entered, snapshot_release, cancel = threading.Event(), threading.Event(), threading.Event()
+    marker = contextvars.ContextVar("snapshot-dispatch-context", default="missing")
+    effects, worker_contexts, workers, results, errors = [], [], [], [], []
+    budget = ReadonlyToolBudget(1)
+    events = []
+    original_run, original_start = threading.Thread.run, threading.Thread.start
+    worker_exited = threading.Event()
+
+    class Snapshot:
+        def __deepcopy__(self, memo):
+            snapshot_entered.set()
+            assert snapshot_release.wait(2)
+            return "snapshot"
+
+    def run(self):
+        if self.name != "tool-read":
+            return original_run(self)
+        workers.append(self)
+        try:
+            return original_run(self)
+        finally:
+            worker_exited.set()
+
+    def start(self):
+        original_start(self)
+        if self.name == "tool-read":
+            assert worker_exited.wait(2)
+
+    monkeypatch.setattr(threading.Thread, "run", run)
+    monkeypatch.setattr(threading.Thread, "start", start)
+
+    def stop():
+        if threading.current_thread().name == "tool-read":
+            worker_contexts.append(marker.get())
+        return cancel.is_set()
+
+    def execute(name, args):
+        effects.append(args["snapshot"])
+        emit_progress("late", message="should never dispatch")
+        return '{"status":"ok"}'
+
+    invoker = ToolInvoker(execute, should_cancel=stop, emit=lambda *event: events.append(event), budget=budget)
+
+    def invoke():
+        token = marker.set("request-snapshot")
+        try:
+            results.append(invoker.invoke(PreparedToolCall(0, "snapshot-call", "read", {"snapshot": Snapshot()}, True)))
+        except BaseException as exc:
+            errors.append(exc)
+        finally:
+            marker.reset(token)
+
+    caller = threading.Thread(target=invoke, name="snapshot-caller")
+    caller.start()
+    try:
+        assert snapshot_entered.wait(0.5)
+        assert budget.active_count == 1
+        cancel.set()
+        snapshot_release.set()
+        caller.join(1)
+    finally:
+        cancel.set()
+        snapshot_release.set()
+        caller.join(2)
+        for worker in workers:
+            worker.join(1)
+    assert not caller.is_alive()
+    assert errors == []
+    assert effects == [], "a cancel during snapshot must prevent actual registry effects"
+    assert worker_contexts == ["request-snapshot"]
+    assert results[0].outcome == "tool_cancelled"
+    assert results[0].executed is False
+    assert events == []
+    assert budget.active_count == budget.abandoned_count == 0
+
+
+def test_cancel_after_worker_admission_refuses_actual_reader_dispatch(monkeypatch):
+    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+
+    paused, release, worker_exited, cancel = (threading.Event() for _ in range(4))
+    marker = contextvars.ContextVar("paused-dispatch-context", default="missing")
+    effects, worker_contexts, workers, results, errors, events = [], [], [], [], [], []
+    budget = ReadonlyToolBudget(1)
+    original_start, original_run = threading.Thread.start, threading.Thread.run
+
+    def run(self):
+        if self.name != "tool-read":
+            return original_run(self)
+        workers.append(self)
+        paused.set()
+        try:
+            assert release.wait(2)
+            return original_run(self)
+        finally:
+            worker_exited.set()
+
+    def start(self):
+        original_start(self)
+        if self.name == "tool-read":
+            # Hold the caller at Thread.start until the admitted worker has
+            # checked dispatch. Caller polling cannot mask the missing check
+            # by revoking the private reader first.
+            assert worker_exited.wait(2)
+
+    monkeypatch.setattr(threading.Thread, "run", run)
+    monkeypatch.setattr(threading.Thread, "start", start)
+
+    def stop():
+        if threading.current_thread().name == "tool-read":
+            worker_contexts.append(marker.get())
+        return cancel.is_set()
+
+    def execute(name, args):
+        effects.append("read effect")
+        emit_progress("late", message="should never dispatch")
+        return '{"status":"ok"}'
+
+    invoker = ToolInvoker(execute, should_cancel=stop, emit=lambda *event: events.append(event), budget=budget)
+
+    def invoke():
+        token = marker.set("request-paused")
+        try:
+            results.append(invoker.invoke(PreparedToolCall(0, "paused-call", "read", {}, True)))
+        except BaseException as exc:
+            errors.append(exc)
+        finally:
+            marker.reset(token)
+
+    caller = threading.Thread(target=invoke, name="paused-caller")
+    caller.start()
+    try:
+        assert paused.wait(0.5)
+        assert effects == []
+        assert budget.active_count == 1
+        cancel.set()
+        release.set()
+        caller.join(1)
+    finally:
+        cancel.set()
+        release.set()
+        caller.join(2)
+        for worker in workers:
+            worker.join(1)
+    assert not caller.is_alive()
+    assert errors == []
+    assert effects == [], "an admitted-but-unstarted reader must honor stop before effects"
+    assert worker_contexts == ["request-paused"]
+    assert results[0].outcome == "tool_cancelled"
+    assert results[0].executed is False
+    assert events == []
+    assert budget.active_count == budget.abandoned_count == 0
+
+
+def test_worker_stop_predicate_failure_releases_capacity_without_dispatch(monkeypatch):
+    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+
+    marker = contextvars.ContextVar("failed-dispatch-context", default="missing")
+    workers, contexts, effects, events = [], [], [], []
+    budget = ReadonlyToolBudget(1)
+    original_run = threading.Thread.run
+
+    def run(self):
+        if self.name == "tool-read":
+            workers.append(self)
+        return original_run(self)
+
+    monkeypatch.setattr(threading.Thread, "run", run)
+
+    def stop():
+        if threading.current_thread().name == "tool-read":
+            contexts.append(marker.get())
+            raise RuntimeError("dispatch predicate failed")
+        return False
+
+    def execute(name, args):
+        effects.append("read effect")
+        emit_progress("late")
+        return '{"status":"ok"}'
+
+    invoker = ToolInvoker(execute, should_cancel=stop, emit=lambda *event: events.append(event), budget=budget)
+    token = marker.set("request-failure")
+    try:
+        result = invoker.invoke(PreparedToolCall(0, "failed-call", "read", {}, True))
+    finally:
+        marker.reset(token)
+        for worker in workers:
+            worker.join(1)
+    assert effects == []
+    assert contexts == ["request-failure"]
+    assert result.outcome == "tool_exception"
+    assert result.executed is False
+    assert isinstance(result.exception, RuntimeError)
+    assert str(result.exception) == "dispatch predicate failed"
+    assert events == []
+    assert budget.active_count == budget.abandoned_count == 0
+
+
+def test_worker_context_stop_refusal_is_delivered_as_cancellation(monkeypatch):
+    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+
+    marker = contextvars.ContextVar("context-stop-refusal", default="missing")
+    workers, contexts, effects, events = [], [], [], []
+    budget = ReadonlyToolBudget(1)
+    original_run = threading.Thread.run
+
+    def run(self):
+        if self.name == "tool-read":
+            workers.append(self)
+        return original_run(self)
+
+    monkeypatch.setattr(threading.Thread, "run", run)
+
+    def stop():
+        if threading.current_thread().name == "tool-read":
+            contexts.append(marker.get())
+            return marker.get() == "stopped-request"
+        return False
+
+    invoker = ToolInvoker(
+        lambda *args: effects.append("read effect") or '{"status":"ok"}',
+        should_cancel=stop,
+        emit=lambda *event: events.append(event),
+        budget=budget,
+    )
+    token = marker.set("stopped-request")
+    try:
+        result = invoker.invoke(PreparedToolCall(0, "context-refusal", "read", {}, True))
+    finally:
+        marker.reset(token)
+        for worker in workers:
+            worker.join(1)
+    assert effects == []
+    assert contexts == ["stopped-request"]
+    assert result.outcome == "tool_cancelled"
+    assert result.executed is False
+    assert events == []
+    assert budget.active_count == budget.abandoned_count == 0
