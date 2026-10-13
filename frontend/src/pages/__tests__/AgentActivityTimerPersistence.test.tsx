@@ -78,7 +78,7 @@ describe("Agent activity elapsed clock survives navigation", () => {
       { initialEntries: ["/?session=session-one"] },
     );
     render(<RouterProvider router={router} />);
-    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one"));
+    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one", expect.any(AbortSignal)));
 
     // An attempt has been running for a while on this session.
     const originalStart = Date.now() - 51_000;
@@ -122,7 +122,7 @@ describe("Agent activity elapsed clock survives navigation", () => {
       { initialEntries: ["/?session=session-one"] },
     );
     render(<RouterProvider router={router} />);
-    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one"));
+    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one", expect.any(AbortSignal)));
 
     act(() => {
       const store = useAgentStore.getState();
@@ -248,7 +248,7 @@ describe("Agent activity finished while the page was away", () => {
       { initialEntries: ["/?session=session-one"] },
     );
     render(<RouterProvider router={router} />);
-    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one"));
+    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one", expect.any(AbortSignal)));
 
     act(() => {
       const store = useAgentStore.getState();

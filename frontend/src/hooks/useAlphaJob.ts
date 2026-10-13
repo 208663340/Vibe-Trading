@@ -16,8 +16,11 @@ export function useAlphaJob<T extends AlphaBenchResult | AlphaCompareResult>(kin
   const source = useRef<EventSource | null>(null);
   const generation = useRef(0);
   const submitting = useRef(false);
+  const ticketController = useRef<AbortController | null>(null);
   const connect = useCallback(async (jobId: string) => {
     const gen = ++generation.current;
+    ticketController.current?.abort();
+    const ticket=new AbortController(); ticketController.current=ticket;
     source.current?.close();
     setState((s) => ({ ...s, status: "streaming", formError: null }));
     try {
@@ -28,7 +31,7 @@ export function useAlphaJob<T extends AlphaBenchResult | AlphaCompareResult>(kin
         setState((s) => ({ ...s, status: snapshot.status === "done" ? "done" : "error", formError: snapshot.error }));
         return;
       }
-      const url = kind === "bench" ? await api.alphaBenchStreamUrl(jobId) : await api.alphaCompareStreamUrl(jobId);
+      const url = kind === "bench" ? await api.alphaBenchStreamUrl(jobId, ticket.signal) : await api.alphaCompareStreamUrl(jobId, ticket.signal);
       if (gen !== generation.current) return;
       const stream = new EventSource(url);
       source.current = stream;
@@ -75,7 +78,7 @@ export function useAlphaJob<T extends AlphaBenchResult | AlphaCompareResult>(kin
         }).finally(() => { submitting.current = false; });
     }
     if (state.jobId && !(state.status === "done" && state.result)) void connect(state.jobId);
-    return () => { generation.current += 1; source.current?.close(); };
+    return () => { generation.current += 1; ticketController.current?.abort(); source.current?.close(); };
   }, [connect, state.jobId, state.pendingRequest]);
   const submit = async (body: AlphaBenchRequest | AlphaCompareRequest) => {
     if (submitting.current || ["submitting", "streaming", "disconnected"].includes(state.status)) return;

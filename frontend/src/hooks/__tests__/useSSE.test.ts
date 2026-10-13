@@ -415,3 +415,19 @@ describe("useSSE — SSE ticket auth (VT-003)", () => {
     expect(MockEventSource.latest.url).toContain("ticket=TICKET-B");
   });
 });
+
+it('aborts owned authentication on disconnect and unmount without reconnecting', async()=> {
+ localStorage.setItem('vibe_trading_api_auth_key','fixture'); let signal:AbortSignal|undefined;
+ vi.stubGlobal('fetch',vi.fn((_url,init)=>{signal=init.signal;return new Promise(()=>{});}));
+ const {result,unmount}=renderHook(()=>useSSE());act(()=>result.current.connect('/events',{}));
+ expect(signal?.aborted).toBe(false);act(()=>result.current.disconnect());expect(signal?.aborted).toBe(true);
+ await act(async()=>vi.advanceTimersByTimeAsync(16000));expect(MockEventSource.instances).toHaveLength(0);expect(vi.getTimerCount()).toBe(0);unmount();
+ localStorage.clear();
+});
+it('fences ordinary events after resync and replaces at the explicit cursor',()=> {
+ const delta=vi.fn();const resync=vi.fn();const {result}=renderHook(()=>useSSE());
+ act(()=>result.current.connect('/events',{text_delta:delta,'session.resync':resync}));
+ act(()=> {MockEventSource.latest.emit('session.resync',{reason:'queue_overflow',latest_event_id:'nine'});MockEventSource.latest.emit('text_delta',{delta:'damaged'},'ten');});
+ expect(delta).not.toHaveBeenCalled();expect(resync).toHaveBeenCalledOnce();
+ act(()=>result.current.connect('/events',{text_delta:delta},'nine'));expect(MockEventSource.latest.url).toContain('Last-Event-ID=nine');
+});

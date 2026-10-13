@@ -6,6 +6,8 @@ import type {
   OptionsPayoffResponse,
 } from "@/lib/options";
 
+import { boundedRequest, RequestTimeout } from "@/lib/http/request";
+
 const BASE = "";
 const configuredTimeout = Number(import.meta.env.VITE_API_TIMEOUT_MS);
 const REQUEST_TIMEOUT_MS = Number.isFinite(configuredTimeout) && configuredTimeout > 0
@@ -19,32 +21,19 @@ async function performRequest<T>(
   read: (response: Response) => Promise<T>,
   timeoutMs = REQUEST_TIMEOUT_MS,
 ): Promise<T> {
-  const controller = new AbortController();
-  let timedOut = false;
-  const timer = setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, timeoutMs);
-  const abort = () => controller.abort(options.signal?.reason);
-  if (options.signal?.aborted) abort();
-  else options.signal?.addEventListener("abort", abort, { once: true });
   try {
-    const response = await fetch(`${BASE}${path}`, { ...options, signal: controller.signal });
-    if (!response.ok) throw await errorFromResponse(response);
-    return await read(response);
+    return await boundedRequest(`${BASE}${path}`, options, async (response) => {
+      if (!response.ok) throw await errorFromResponse(response);
+      return read(response);
+    }, timeoutMs);
   } catch (error) {
-    if (timedOut) {
+    if (error instanceof RequestTimeout) {
       const mutation = options.method && !["GET", "HEAD"].includes(options.method.toUpperCase());
       throw new ApiError(i18n.t(mutation ? "connection.requestTimeoutMutation" : "connection.requestTimeout"), 0, "request_timeout");
     }
     if (options.signal?.aborted || error instanceof ApiError) throw error;
-    if (error instanceof TypeError) {
-      throw new ApiError(i18n.t("connection.requestFailed"), 0, "network_error");
-    }
+    if (error instanceof TypeError) throw new ApiError(i18n.t("connection.requestFailed"), 0, "network_error");
     throw error;
-  } finally {
-    clearTimeout(timer);
-    options.signal?.removeEventListener("abort", abort);
   }
 }
 
@@ -489,12 +478,12 @@ export const api = {
     return performRequest("/api/portfolio/export.csv", { headers: authHeaders() }, (response) => response.blob());
   },
   listRuns: (limit?: number) => request<RunListItem[]>(`/runs${limit ? `?limit=${encodeURIComponent(String(limit))}` : ""}`),
-  getRun: (id: string, params: RunDetailParams = {}) => {
+  getRun: (id: string, params: RunDetailParams = {}, signal?: AbortSignal) => {
     const q = new URLSearchParams();
     if (params.chart_payload) q.set("chart_payload", params.chart_payload);
     if (params.chart_symbol) q.set("chart_symbol", params.chart_symbol);
     const qs = q.toString();
-    return request<RunData>(`/runs/${id}${qs ? `?${qs}` : ""}`);
+    return request<RunData>(`/runs/${id}${qs ? `?${qs}` : ""}`, { signal });
   },
   getRunCode: (id: string) => request<Record<string, string>>(`/runs/${id}/code`),
   getRunFactor: (id: string) => request<FactorReportPayload>(`/runs/${id}/factor`),
@@ -530,14 +519,16 @@ export const api = {
       { method: "POST" },
     ),
   sendMessage: (sid: string, content: string) => request<{ message_id: string; attempt_id: string }>(`/sessions/${sid}/messages`, { method: "POST", body: JSON.stringify({ content }) }),
-  cancelSession: (sid: string) => request<{ status: string }>(`/sessions/${sid}/cancel`, { method: "POST" }),
-  getSessionMessages: (sid: string) => request<MessageItem[]>(`/sessions/${sid}/messages`),
+  cancelSession: (sid: string, expectedAttemptId?: string) => request<{ status: string }>(`/sessions/${sid}/cancel`, { method: "POST", ...(expectedAttemptId ? { body: JSON.stringify({ expected_attempt_id: expectedAttemptId }) } : {}) }),
+  getSession: (sid: string, signal?: AbortSignal) => request<SessionItem>(`/sessions/${sid}`, { signal }),
+  getAttempt: (sid: string, attemptId: string, signal?: AbortSignal) => request<AttemptSnapshot>(`/sessions/${sid}/attempts/${encodeURIComponent(attemptId)}`, { signal }),
+  getSessionMessages: (sid: string, signal?: AbortSignal) => request<MessageItem[]>(`/sessions/${sid}/messages`, { signal }),
   createGoal: (sid: string, body: CreateGoalRequest) =>
     request<GoalSnapshot>(`/sessions/${sid}/goal`, {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  getGoal: (sid: string) => request<GoalSnapshot>(`/sessions/${sid}/goal`),
+  getGoal: (sid: string, signal?: AbortSignal) => request<GoalSnapshot>(`/sessions/${sid}/goal`, { signal }),
   updateGoal: (sid: string, body: UpdateGoalRequest) =>
     request<UpdateGoalResponse>(`/sessions/${sid}/goal`, {
       method: "PATCH",
@@ -633,15 +624,15 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  alphaBenchStreamUrl: (jobId: string) =>
-    withAuthTicket(`${BASE}/alpha/bench/${encodeURIComponent(jobId)}/stream`),
+  alphaBenchStreamUrl: (jobId: string, signal?: AbortSignal) =>
+    withAuthTicket(`${BASE}/alpha/bench/${encodeURIComponent(jobId)}/stream`, signal),
   createAlphaCompare: (body: AlphaCompareRequest) =>
     request<{ status: string; job_id: string }>("/alpha/compare", {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  alphaCompareStreamUrl: (jobId: string) =>
-    withAuthTicket(`${BASE}/alpha/compare/${encodeURIComponent(jobId)}/stream`),
+  alphaCompareStreamUrl: (jobId: string, signal?: AbortSignal) =>
+    withAuthTicket(`${BASE}/alpha/compare/${encodeURIComponent(jobId)}/stream`, signal),
 
   // Options Lab
   analyzeOptionsPayoff: (body: OptionsPayoffRequest, signal?: AbortSignal) =>
@@ -1448,6 +1439,13 @@ export interface ArtifactInfo {
 export interface PineScriptResult {
   exists: boolean;
   content: string | null;
+}
+
+export interface AttemptSnapshot {
+  attempt_id: string;
+  status: "pending" | "running" | "waiting_user" | "completed" | "cancelled" | "failed" | "interrupted";
+  started_at: number | null;
+  terminal_metadata: Record<string, unknown>;
 }
 
 export interface SessionItem {

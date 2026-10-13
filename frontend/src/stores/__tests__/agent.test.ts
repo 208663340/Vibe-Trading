@@ -442,3 +442,9 @@ describe("reset", () => {
     expect(s.sessionLoading).toBe(false);
   });
 });
+
+it('uses unique local IDs after cached navigation', () => {
+ const s=useAgentStore.getState(); s.switchSession('A',[]); s.addMessage({type:'user',content:'same',timestamp:1});
+ const cached=useAgentStore.getState().messages; s.switchSession('B',[]); s.switchSession('A',cached); s.addMessage({type:'user',content:'same',timestamp:2});
+ expect(new Set(useAgentStore.getState().messages.map(m=>m.id)).size).toBe(2);
+});

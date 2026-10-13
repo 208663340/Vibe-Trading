@@ -140,3 +140,10 @@ describe("apiAuth", () => {
     });
   });
 });
+
+it.each(['headers','body'])('bounds ticket %s waits and cleans timers', async (stage) => {
+ vi.useFakeTimers(); setApiAuthKey('fixture');
+ vi.stubGlobal('fetch', vi.fn(() => stage === 'headers' ? new Promise(()=>{}) : Promise.resolve({ok:true,json:()=>new Promise(()=>{})})));
+ const request=withAuthTicket('/events'); const failure=expect(request).rejects.toThrow(/timeout|timed out/i);
+ await vi.advanceTimersByTimeAsync(15001); await failure; expect(vi.getTimerCount()).toBe(0); vi.useRealTimers();
+});

@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import type { AgentMessage, SwarmRunStatus, ToolCallEntry } from "@/types/agent";
 
+import { reconcileHistory, confirmUserMessage } from "@/features/agent/history";
+import { owns, type OperationKind, type OperationToken } from "@/features/agent/sessionRuntime";
+
 const SESSION_CACHE_MAX = 5;
 
 export type ActivityState =
@@ -44,6 +47,10 @@ export function deriveActivityVerb(tool: string | undefined): ActivityVerb {
 }
 
 export interface AgentMessageMeta {
+  entityKey?: string;
+  revision?: number;
+  attemptId?: string;
+  operationId?: string;
   attachment?: { filename: string };
   attachments?: Array<{ filename: string }>;
   swarmMode?: boolean;
@@ -58,7 +65,13 @@ export type StoredAgentMessage = AgentMessage & { meta?: AgentMessageMeta };
 const _sessionCache = new Map<string, StoredAgentMessage[]>();
 const _swarmSessionCache = new Map<string, Record<string, SwarmRunStatus>>();
 
-interface AgentState {
+export interface AgentState {
+  viewEpoch: number;
+  transcriptRevision: number;
+  operations: Partial<Record<OperationKind, string>>;
+  beginOperation: (kind: OperationKind, attemptId?: string) => OperationToken;
+  commitOperation: (token: OperationToken, update: (state: AgentState) => Partial<AgentState>) => boolean;
+  invalidateView: () => void;
   messages: StoredAgentMessage[];
   sessionId: string | null;
   status: "idle" | "streaming" | "error";
@@ -69,6 +82,7 @@ interface AgentState {
   /** The session currently streaming on the backend. Survives switchSession
    *  so the sidebar spinner persists when the user navigates away. */
   streamingSessionId: string | null;
+  cancelPendingAttemptId: string | null;
 
   toolCalls: ToolCallEntry[];
   activity: AgentActivity | null;
@@ -81,7 +95,7 @@ interface AgentState {
   appendDelta: (delta: string) => void;
   setStatus: (s: AgentState["status"]) => void;
   setSessionId: (id: string | null) => void;
-  loadHistory: (msgs: StoredAgentMessage[]) => void;
+  loadHistory: (msgs: StoredAgentMessage[], startedRevision?: number) => void;
 
   addToolCall: (entry: ToolCallEntry) => void;
   updateToolCall: (id: string, update: Partial<ToolCallEntry>) => void;
@@ -98,6 +112,8 @@ interface AgentState {
   upsertSwarmStatus: (status: SwarmRunStatus) => void;
   updateSwarmStatus: (runId: string, updater: (status: SwarmRunStatus) => SwarmRunStatus) => void;
 
+  confirmCachedSend: (sid: string, operationId: string, messageId: string) => void;
+  forgetSession: (sid: string) => void;
   cacheSession: (sid: string, msgs: StoredAgentMessage[]) => void;
   getCachedSession: (sid: string) => StoredAgentMessage[] | undefined;
 
@@ -114,16 +130,28 @@ interface AgentState {
   reset: () => void;
 }
 
-let _id = 0;
-const nextId = () => String(++_id);
+const nextId = () => `local:${crypto.randomUUID()}`;
 
-export const useAgentStore = create<AgentState>((set) => ({
+export const useAgentStore = create<AgentState>((set, get) => ({
+  viewEpoch: 0, transcriptRevision: 0, operations: {},
+  beginOperation: (kind, attemptId) => {
+    const state=get(); const operationId=nextId();
+    const token={sessionId:state.sessionId,viewEpoch:state.viewEpoch,operationId,kind,attemptId};
+    set({operations:{...state.operations,[kind]:operationId}}); return token;
+  },
+  commitOperation: (token, update) => {
+    let committed=false;
+    set(state=> { if (!owns(state,token)) return {}; committed=true; return update(state); });
+    return committed;
+  },
+  invalidateView: () => set(state=>({viewEpoch:state.viewEpoch+1,operations:{}})),
   messages: [],
   sessionId: null,
   status: "idle",
   streamingText: "",
   reasoningTail: "",
   streamingSessionId: null,
+  cancelPendingAttemptId: null,
   toolCalls: [],
   activity: null,
   swarmRuns: {},
@@ -132,7 +160,7 @@ export const useAgentStore = create<AgentState>((set) => ({
   sessionLoading: false,
 
   addMessage: (msg) =>
-    set((s) => ({ messages: [...s.messages, { ...msg, id: msg.id || nextId() } as AgentMessage] })),
+    set((s) => ({ transcriptRevision: s.transcriptRevision+1, messages: [...s.messages, { ...msg, id: msg.id || nextId(), meta: {...msg.meta, revision:s.transcriptRevision+1} } as StoredAgentMessage] })),
 
   appendDelta: (delta) =>
     set((s) => ({ streamingText: s.streamingText + delta })),
@@ -140,6 +168,7 @@ export const useAgentStore = create<AgentState>((set) => ({
   setStatus: (status) =>
     set((s) => {
       const patch: Partial<AgentState> = { status };
+      if(status!=="streaming") patch.cancelPendingAttemptId=null;
       if (status === "streaming" && s.sessionId) {
         patch.streamingSessionId = s.sessionId;
       } else if (status !== "streaming" && s.streamingSessionId === s.sessionId) {
@@ -148,7 +177,7 @@ export const useAgentStore = create<AgentState>((set) => ({
       return patch;
     }),
   setSessionId: (sessionId) => set({ sessionId }),
-  loadHistory: (msgs) =>
+  loadHistory: (msgs, startedRevision) =>
     set((s) => {
       const historicalSwarmIds = new Set(
         msgs.flatMap((msg) => msg.swarmRunId ? [msg.swarmRunId] : []),
@@ -160,8 +189,7 @@ export const useAgentStore = create<AgentState>((set) => ({
         !historicalSwarmIds.has(msg.swarmRunId)
       ));
       return {
-        messages: [...msgs, ...liveSwarmPlaceholders]
-          .sort((a, b) => a.timestamp - b.timestamp),
+        messages: startedRevision === undefined ? [...msgs, ...liveSwarmPlaceholders].sort((a,b)=>a.timestamp-b.timestamp) : reconcileHistory(msgs, s.messages, startedRevision),
       };
     }),
 
@@ -223,6 +251,7 @@ export const useAgentStore = create<AgentState>((set) => ({
     }),
   startActivity: (attemptId, startedAt = Date.now()) =>
     set({
+      cancelPendingAttemptId:null,
       activity: {
         attemptId,
         state: "thinking",
@@ -280,10 +309,16 @@ export const useAgentStore = create<AgentState>((set) => ({
       };
     }),
 
+  confirmCachedSend: (sid, operationId, messageId) => {
+    const cached=_sessionCache.get(sid);
+    if(cached) _sessionCache.set(sid,confirmUserMessage(cached,operationId,messageId,Math.max(0,...cached.map(message=>message.meta?.revision??0))+1));
+  },
+  forgetSession: sid => { _sessionCache.delete(sid); _swarmSessionCache.delete(sid); },
   cacheSession: (sid, msgs) =>
     set((s) => {
+      const confirmed=confirmedCacheMessages(sid,msgs);
       _sessionCache.delete(sid);
-      _sessionCache.set(sid, msgs);
+      _sessionCache.set(sid, confirmed);
       _swarmSessionCache.delete(sid);
       _swarmSessionCache.set(sid, s.swarmRuns);
       if (_sessionCache.size > SESSION_CACHE_MAX) {
@@ -306,8 +341,9 @@ export const useAgentStore = create<AgentState>((set) => ({
     set({ sseStatus, sseRetryAttempt: retryAttempt ?? 0 }),
 
   switchSession: (sid, msgs) => {
-    _id = 0;
     set((s) => ({
+      viewEpoch: s.viewEpoch+1, operations: {},
+      cancelPendingAttemptId:null,
       sessionId: sid,
       messages: msgs || [],
       status: "idle",
@@ -326,11 +362,19 @@ export const useAgentStore = create<AgentState>((set) => ({
   setSessionLoading: (sessionLoading) => set({ sessionLoading }),
 
   reset: () => {
-    _id = 0;
-    set({
+    set((s) => ({
+      viewEpoch:s.viewEpoch+1, operations:{}, transcriptRevision:0,
       messages: [], status: "idle", streamingText: "", reasoningTail: "",
       sessionId: null, toolCalls: [], activity: null, swarmRuns: {}, sessionLoading: false,
-      streamingSessionId: null,
-    });
+      streamingSessionId: null, cancelPendingAttemptId:null,
+    }));
   },
 }));
+
+/** Background ACK evidence promotes cached user identity on the next owned read. */
+export function confirmedCacheMessages(sid: string, messages: StoredAgentMessage[]): StoredAgentMessage[] {
+  const confirmed=new Map((_sessionCache.get(sid)??[]).filter(message=>message.type==="user" && message.meta?.operationId && !message.id.startsWith("local:")).map(message=>[message.meta!.operationId,{id:message.id,revision:message.meta?.revision??0}]));
+  let result=messages;
+  for(const [operationId,message] of confirmed) if(operationId) result=confirmUserMessage(result,operationId,message.id,Math.max(message.revision,...result.map(row=>row.meta?.revision??0)));
+  return result;
+}

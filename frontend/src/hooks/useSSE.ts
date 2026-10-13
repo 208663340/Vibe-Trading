@@ -2,7 +2,7 @@
  * SSE Hook — auto-reconnect + exponential backoff + LRU dedup + Last-Event-ID resume.
  */
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { getApiAuthKey, withAuthTicket } from "@/lib/apiAuth";
 
 type EventHandler = (data: Record<string, unknown>) => void;
@@ -36,6 +36,8 @@ export function useSSE(config?: SSEConfig) {
   const statusRef = useRef<SSEStatus>("disconnected");
   const onStatusChangeRef = useRef<((s: SSEStatus) => void) | null>(null);
   const generationRef = useRef(0);
+  const handshakeRef = useRef<AbortController | null>(null);
+  const damagedRef = useRef(false);
 
   // LRU dedup set
   const seenIdsRef = useRef<Set<string>>(new Set());
@@ -92,13 +94,15 @@ export function useSSE(config?: SSEConfig) {
       "message.received", "session.created",
       "goal.created", "goal.evidence", "goal.updated",
       "mandate.proposal", "mandate.committed", "scheduled_research.proposal", "live.halted", "live.resumed", "live.action",
-      "heartbeat", "done",
+      "heartbeat", "done", "session.resync", "session_cleared",
     ];
 
     const handleRaw = (eventType: string, raw: MessageEvent) => {
       if (generation !== generationRef.current || sourceRef.current !== source) {
         return;
       }
+      if (eventType === "session.resync") damagedRef.current = true;
+      else if (damagedRef.current && !["attempt.completed", "attempt.failed", "attempt.cancelled", "heartbeat", "session_cleared"].includes(eventType)) return;
       if (raw.lastEventId) {
         lastEventIdRef.current = raw.lastEventId;
       }
@@ -129,6 +133,7 @@ export function useSSE(config?: SSEConfig) {
       }
       source.close();
       sourceRef.current = null;
+      if(damagedRef.current) { setStatus("reconnecting"); return; }
       scheduleReconnect(generation);
     };
   }, [trackEventId, setStatus]);
@@ -146,7 +151,10 @@ export function useSSE(config?: SSEConfig) {
       attach(baseUrl, generation);
       return;
     }
-    withAuthTicket(baseUrl)
+    handshakeRef.current?.abort();
+    const handshake=new AbortController();
+    handshakeRef.current=handshake;
+    withAuthTicket(baseUrl, handshake.signal)
       .then((url) => attach(url, generation))
       .catch(() => {
         if (!closedRef.current && generation === generationRef.current) {
@@ -173,8 +181,11 @@ export function useSSE(config?: SSEConfig) {
     }, delay);
   }, [opts.initialRetryMs, opts.backoffFactor, opts.maxRetryMs, setStatus, doConnect]);
 
-  const connect = useCallback((url: string, handlers: Handlers) => {
+  const connect = useCallback((url: string, handlers: Handlers, cursor?: string | null) => {
     const generation = ++generationRef.current;
+    handshakeRef.current?.abort();
+    handshakeRef.current=null;
+    damagedRef.current=false;
     closedRef.current = true;
     sourceRef.current?.close();
     if (retryTimerRef.current) {
@@ -186,7 +197,7 @@ export function useSSE(config?: SSEConfig) {
     handlersRef.current = handlers;
     closedRef.current = false;
     retryCountRef.current = 0;
-    lastEventIdRef.current = null;
+    lastEventIdRef.current = cursor ?? null;
     seenIdsRef.current.clear();
     seenOrderRef.current.length = 0;
 
@@ -195,6 +206,8 @@ export function useSSE(config?: SSEConfig) {
 
   const disconnect = useCallback(() => {
     generationRef.current += 1;
+    handshakeRef.current?.abort();
+    handshakeRef.current=null;
     closedRef.current = true;
     if (retryTimerRef.current) {
       clearTimeout(retryTimerRef.current);
@@ -204,6 +217,8 @@ export function useSSE(config?: SSEConfig) {
     sourceRef.current = null;
     setStatus("disconnected");
   }, [setStatus]);
+
+  useEffect(() => disconnect, [disconnect]);
 
   const getStatus = useCallback(() => statusRef.current, []);
 

@@ -95,7 +95,7 @@ describe("Agent background stream completion reconciliation", () => {
       { initialEntries: ["/?session=session-one"] },
     );
     render(<RouterProvider router={router} />);
-    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one"));
+    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one", expect.any(AbortSignal)));
 
     // Simulate: session-bg was mid-turn when the user navigated away from it earlier.
     act(() => {
@@ -121,7 +121,7 @@ describe("Agent background stream completion reconciliation", () => {
       { initialEntries: ["/?session=session-one"] },
     );
     render(<RouterProvider router={router} />);
-    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one"));
+    await waitFor(() => expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-one", expect.any(AbortSignal)));
 
     act(() => {
       useAgentStore.setState({ streamingSessionId: "session-bg" });
@@ -132,7 +132,7 @@ describe("Agent background stream completion reconciliation", () => {
     });
 
     await waitFor(() => {
-      expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-bg");
+      expect(apiMock.getSessionMessages).toHaveBeenCalledWith("session-bg", expect.any(AbortSignal));
     });
     expect(useAgentStore.getState().streamingSessionId).toBe("session-bg");
   });

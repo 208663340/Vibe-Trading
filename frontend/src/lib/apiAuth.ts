@@ -1,5 +1,7 @@
 import { safeGet, safeRemove, safeSet } from "@/lib/storage";
 
+import { boundedRequest } from "@/lib/http/request";
+
 const STORAGE_KEY = "vibe_trading_api_auth_key";
 
 export function getApiAuthKey(): string {
@@ -33,17 +35,15 @@ export function authHeaders(): Record<string, string> {
  * single-use: every connect/reconnect must mint a fresh one, so callers invoke
  * this per connection attempt rather than caching the result.
  */
-export async function withAuthTicket(url: string): Promise<string> {
+export async function withAuthTicket(url: string, signal?: AbortSignal): Promise<string> {
   const key = getApiAuthKey();
   if (!key) return url;
-  const res = await fetch("/auth/sse-ticket", {
-    method: "POST",
-    headers: authHeaders(),
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to obtain SSE ticket (HTTP ${res.status})`);
-  }
-  const data: unknown = await res.json();
+  const data: unknown = await boundedRequest("/auth/sse-ticket", {
+    method: "POST", headers: authHeaders(), signal,
+  }, async (res) => {
+    if (!res.ok) throw new Error(`Failed to obtain SSE ticket (HTTP ${res.status})`);
+    return res.json();
+  }, 15_000);
   const ticket = (data as { ticket?: unknown } | null)?.ticket;
   if (typeof ticket !== "string" || !ticket) {
     throw new Error("SSE ticket response missing ticket");
