@@ -68,12 +68,12 @@ class TestResolveFinalStatus:
             "success", None, "success", False,
         )
 
-    def test_stall_wins_and_does_not_remark(self) -> None:
+    def test_stall_wins_and_main_owner_marks_failure(self) -> None:
         out = resolve_final_status(_inputs(stall_reason="stalled: no progress"))
         assert out.status == "failed"
         assert out.reason == "stalled: no progress"
-        # The watchdog already wrote the failed state.
-        assert out.mark is None
+        # The watchdog requested a stop; the main owner persists failure.
+        assert out.mark == "failure"
 
     def test_cancelled(self) -> None:
         out = resolve_final_status(_inputs(cancelled=True))
@@ -155,7 +155,7 @@ class TestResolveFinalStatus:
             _inputs(stall_reason="stalled", cancelled=True)
         )
         assert out.status == "failed"
-        assert out.mark is None
+        assert out.mark == "failure"
 
 
 class TestBuildEndEvent:

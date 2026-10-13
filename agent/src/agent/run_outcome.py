@@ -7,25 +7,10 @@ no-progress, content-filter circuit breaker, success, empty model
 response, max iterations — onto ``(status, reason)`` plus the ``end``
 trace event and the caller-facing result dict.
 
-Everything here is pure: no state-store writes, no trace writes. The
-side-effectful calls (``state_store.mark_*``, ``trace.write/close``) stay
-in ``loop.py`` right after ``resolve_final_status`` returns, in the same
-order they executed before the extraction.
-
-Behavior is unchanged: every branch condition and message string moved
-verbatim.
-
-One deliberate semantic delta, flagged in review: pre-extraction the
-``degraded`` flag on the end event and result dict keyed off
-``self._released_fallback`` read *after* the status ladder, so a run that
-released the fallback and then died to a cancel or stall in the narrow
-window before the ladder still stamped ``degraded=True`` on a
-non-success terminal. Post-extraction ``degraded`` only comes from the
-success branches. Both release sites set ``final_content`` first, so
-``has_output`` wins the ladder in every normal flow; the delta needs a
-cancel or watchdog stall in exactly that gap, and nothing outside
-``loop.py`` consumes the flag on failed runs. Documented here rather
-than re-plumbed, per review.
+Everything here is pure: no state-store or trace writes. AgentLoop claims the
+selected outcome through RunLifecycle, then performs terminal persistence once.
+Stall failure has precedence over user cancellation and is persisted by the main
+owner after executing work returns.
 """
 
 from __future__ import annotations
@@ -46,10 +31,8 @@ class OutcomeInputs:
     """The run-end facts the status ladder reads.
 
     Attributes:
-        stall_reason: Reason the stall watchdog already recorded, if any.
-            A non-None value wins the ladder: the watchdog already wrote
-            the failed state, so the run's terminal status must stay
-            honest instead of overwriting it.
+        stall_reason: Reason the stall watchdog requested, if any. A non-None value
+            wins the ladder and the main owner persists the failed state.
         cancelled: Whether the user cancel event is set.
         no_progress_reason: Reason the no-progress check recorded, if any.
         content_filter_circuit_breaker: Whether the content-filter skip
@@ -101,8 +84,7 @@ class RunOutcome:
             success. Propagates into the result dict so SessionService
             can surface a meaningful UI message instead of
             ``Execution failed: unknown`` (issue #114).
-        mark: Which ``RunStateStore`` transition to record, or ``None``
-            when the stall watchdog already wrote the failed state.
+        mark: Which ``RunStateStore`` transition the main owner records.
         degraded: Whether the final answer was released through the
             degraded fallback path. Drives the ``degraded`` flag on both
             the end event and the result dict.
@@ -118,14 +100,13 @@ def resolve_final_status(inputs: OutcomeInputs) -> RunOutcome:
     """Run the terminal-status decision ladder.
 
     The branch order is load-bearing and unchanged from the pre-extraction
-    ``_run_bound`` tail: stall (already recorded) → cancelled → no
+    ``_run_bound`` tail: stall (requested) → cancelled → no
     progress → content-filter breaker → success → empty response → max
     iterations.
     """
     if inputs.stall_reason is not None:
-        # The stall watchdog already wrote the failed state; keep this
-        # run's terminal status honest instead of overwriting it.
-        return RunOutcome("failed", inputs.stall_reason, None, False)
+        # Watchdog requests failure; only the main owner records it.
+        return RunOutcome("failed", inputs.stall_reason, "failure", False)
     if inputs.cancelled:
         return RunOutcome("cancelled", "cancelled by user", "cancelled", False)
     if inputs.no_progress_reason is not None:

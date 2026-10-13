@@ -113,9 +113,9 @@ def test_cost_cap_bounds_a_huge_window() -> None:
     assert budget.compact_at == 200_000
 
 
-def test_a_window_smaller_than_the_static_prompt_still_has_a_floor() -> None:
+def test_a_window_smaller_than_the_static_prompt_has_no_impossible_conversation_floor() -> None:
     budget = CompactionBudget(window=32_000, source="t", max_tokens=200_000, static_tokens=STATIC_TOKENS)
-    assert budget.conversation == cb.MIN_CONVERSATION_TOKENS
+    assert budget.conversation == 0
 
 
 # --------------------------------------------------------------------------
@@ -370,3 +370,102 @@ def test_a_window_too_small_for_the_summary_tail_does_not_resummarise_every_turn
     assert result["status"] == "success", result.get("reason")
     assert compacts
     assert len(compacts) <= len(CODES) // 2
+
+
+def test_meter_uses_actual_request_tools_and_configured_model():
+    meter = ContextMeter(estimator=lambda value: sum(m["size"] for m in value))
+    messages = [{"size": 20}, {"size": 30}]
+    first = meter.snapshot(messages, 100, model="configured-a")
+    meter.observe(180, request=first)
+    assert meter.tokens(messages, 0, model="configured-a") == 80
+    text_only = meter.snapshot(messages, 0, model="configured-a")
+    meter.observe(80, request=text_only)
+    assert meter.tokens(messages + [{"size": 10}], 100, model="configured-a") == 190
+    # Missing/bogus usage cannot damage calibration, even for a text-only turn.
+    for value in [None, True, -1, 0, "50"]:
+        meter.observe(value, request=text_only)
+    assert meter.tokens(messages, 100, model="configured-a") == 180
+    assert meter.tokens(messages, 100, model="configured-b") == 150
+    assert meter.static(messages, 100, model="configured-b") == 120
+
+
+def test_meter_snapshot_is_not_recounted_after_request_mutates():
+    meter = ContextMeter(estimator=lambda value: sum(m["size"] for m in value))
+    messages = [{"size": 20}, {"size": 30}]
+    sent = meter.snapshot(messages, 100, model="a")
+    messages.append({"size": 10})
+    meter.observe(180, request=sent)
+    assert meter.tokens(messages, 100, model="a") == 190
+
+
+def test_static_floor_above_window_fails_before_provider_or_compaction(tmp_path, monkeypatch):
+    from tests.test_run_lifecycle_races import build
+    monkeypatch.setenv("VIBE_TRADING_CONTEXT_WINDOW", "1000")
+    reset_env_config()
+    calls = []
+    agent = build(tmp_path, monkeypatch, SimpleNamespace(stream_chat=lambda *a, **k: calls.append("main")))
+    monkeypatch.setattr(loop_mod := __import__("src.agent.loop", fromlist=["ContextBuilder"]),
+                        "estimate_tokens", cb.estimate_tokens)
+    monkeypatch.setattr(loop_mod.ContextBuilder, "build_messages",
+                        lambda *a: [{"role": "system", "content": "s" * 5000}, {"role": "user", "content": "q"}])
+    result = agent.run("request")
+    assert result["status"] == "failed"
+    assert "static context" in result["reason"]
+    assert "reduce" in result["reason"]
+    assert calls == []
+
+
+def test_loop_calibrates_sent_tools_and_keeps_response_alias_separate(tmp_path, monkeypatch):
+    from src.providers.chat import LLMResponse, ToolCallRequest
+    from tests.test_run_lifecycle_races import build
+    requests = []
+    class LLM:
+        model_name = "configured-shape"
+        def stream_chat(self, messages, tools=None, **kwargs):
+            tools_estimate = estimate_tokens(tools) if tools is not None else 0
+            copied = [dict(m) for m in messages]
+            actual = estimate_tokens(copied) + tools_estimate + 200
+            requests.append((copied, tools_estimate, actual))
+            return LLMResponse(
+                content="done" if tools is None else "",
+                tool_calls=[] if tools is None else [ToolCallRequest(str(len(requests)), "missing_tool", {})],
+                usage_metadata={"input_tokens": actual, "output_tokens": 1, "total_tokens": actual + 1},
+                response_model=f"provider-alias-{len(requests)}",
+            )
+    agent = build(tmp_path, monkeypatch, LLM())
+    agent.max_iterations = 3
+    # A sanitized schema is sufficient; registry execution remains offline.
+    monkeypatch.setattr(agent.registry, "get_definitions", lambda: [{"name": "missing_tool", "schema": "s" * 400}])
+    result = agent.run("request")
+    assert result["status"] == "success"
+    assert [tools > 0 for _, tools, _ in requests] == [True, True, False]
+    final_messages, final_tools, final_actual = requests[-1]
+    assert final_tools == 0
+    restored_tools = requests[0][1]
+    assert agent._context_meter.tokens(final_messages, restored_tools, model=LLM.model_name) == final_actual + restored_tools
+    assert result["model"] == "provider-alias-3"
+    assert result["configured_model"] == "configured-shape"
+
+
+def test_compaction_usage_does_not_calibrate_main_request(tmp_path, monkeypatch):
+    from src.providers.chat import LLMResponse
+    from tests.test_run_lifecycle_races import build
+    summary_calls = []
+    def summarize(*args, **kwargs):
+        summary_calls.append(args)
+        return LLMResponse(content="offline summary", usage_metadata={"input_tokens": 900_000})
+    agent = build(tmp_path, monkeypatch, SimpleNamespace(chat=summarize))
+    messages = [{"role": "system", "content": "static"}] + [
+        {"role": "user" if i % 2 else "assistant", "content": f"turn {i}"} for i in range(6)
+    ]
+    before_estimate = estimate_tokens(messages)
+    model = agent._request_model()
+    sent = agent._context_meter.snapshot(messages, 100, model=model)
+    agent._context_meter.observe(200, request=sent)
+    trace = TraceWriter(tmp_path)
+    try:
+        agent._auto_compact(messages, tmp_path, trace)
+    finally:
+        trace.close()
+    assert summary_calls
+    assert agent._context_meter.tokens(messages, 100, model=model) == max(0, 200 + estimate_tokens(messages) - before_estimate)

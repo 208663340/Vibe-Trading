@@ -1,16 +1,12 @@
 """Behaviour tests for the run-stall watchdog.
 
-The watchdog is the only thing that ends a run hung inside a tool or a
-provider call, so its state transitions are covered here directly rather
-than through a full ``run()``: a zombie run writes no ``state.json`` and no
-``end`` trace record, which is exactly what these tests assert it now does.
+The watchdog requests cooperative stop. It must leave terminal persistence to
+the main owner, which may still be executing a write.
 """
 
 from __future__ import annotations
 
-import json
 import threading
-import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -55,10 +51,10 @@ def _events(agent: AgentLoop) -> list[tuple[str, dict]]:
 def test_watchdog_fails_a_run_with_no_forward_progress(
     loop_and_run_dir: tuple[AgentLoop, Path],
 ) -> None:
-    """No LLM completion and no tool result must end the run as failed."""
+    """No true completion requests failure without ending the owner."""
     agent, run_dir = loop_and_run_dir
     captured = _events(agent)
-    agent._last_activity_wall = time.time() - 10_000
+    agent._lifecycle._progress_at = -10_000
     trace = TraceWriter(run_dir)
 
     agent._stall_watchdog(trace, run_dir, RunStateStore(), stall_timeout=1.0)
@@ -71,14 +67,8 @@ def test_watchdog_fails_a_run_with_no_forward_progress(
     # The loop must exit at its next boundary rather than stay "running".
     assert agent._cancel_event.is_set()
 
-    state = json.loads((run_dir / "state.json").read_text(encoding="utf-8"))
-    assert state["status"] == "failed"
-    assert "stall watchdog" in state["reason"]
-
-    end_records = [rec for rec in TraceWriter.read(run_dir) if rec.get("type") == "end"]
-    assert len(end_records) == 1
-    assert end_records[0]["status"] == "failed"
-    assert end_records[0]["stalled"] is True
+    assert not (run_dir / "state.json").exists()
+    assert not [rec for rec in TraceWriter.read(run_dir) if rec.get("type") == "end"]
 
 
 def test_forward_progress_clears_the_pending_warning(
@@ -92,7 +82,7 @@ def test_forward_progress_clears_the_pending_warning(
     agent, run_dir = loop_and_run_dir
     captured = _events(agent)
     trace = TraceWriter(run_dir)
-    agent._last_activity_wall = time.time() - 10_000
+    agent._lifecycle._progress_at = -10_000
 
     polls = {"n": 0}
     original_wait = agent._run_done.wait
@@ -102,9 +92,9 @@ def test_forward_progress_clears_the_pending_warning(
         # Poll 3: idle again -> must warn a second time, not fail.
         polls["n"] += 1
         if polls["n"] == 2:
-            agent._last_activity_wall = time.time()
+            agent._lifecycle.progress()
         elif polls["n"] == 3:
-            agent._last_activity_wall = time.time() - 10_000
+            agent._lifecycle._progress_at = -10_000
         elif polls["n"] >= 4:
             agent._run_done.set()
         return original_wait(timeout)
@@ -125,7 +115,7 @@ def test_watchdog_exits_when_the_run_completes(
     """A finished run must not be touched, however long it was idle."""
     agent, run_dir = loop_and_run_dir
     captured = _events(agent)
-    agent._last_activity_wall = time.time() - 10_000
+    agent._lifecycle._progress_at = -10_000
     agent._run_done.set()
     trace = TraceWriter(run_dir)
 
@@ -150,7 +140,7 @@ def test_watchdog_of_a_finished_run_does_not_fail_the_next_one(
     agent, run_dir = loop_and_run_dir
     captured = _events(agent)
     first_run_done = agent._run_done
-    agent._last_activity_wall = time.time() - 10_000
+    agent._lifecycle._progress_at = -10_000
     trace = TraceWriter(run_dir)
 
     original_wait = first_run_done.wait
@@ -172,8 +162,8 @@ def test_watchdog_of_a_finished_run_does_not_fail_the_next_one(
     agent._stall_watchdog(trace, run_dir, RunStateStore(), stall_timeout=1.0)
     trace.close()
 
-    # One warning is fine; ending a run that is no longer this thread's is not.
-    assert [name for name, _ in captured] == ["stall_warning"]
+    # Obsolete ownership cannot emit a warning or request failure.
+    assert [name for name, _ in captured] == []
     assert agent._stall_reason is None
     assert not agent._cancel_event.is_set()
     assert not (run_dir / "state.json").exists()

@@ -75,6 +75,7 @@ from src.agent.context_compact import (  # noqa: F401  (re-exported so loop impo
     _tail_cut_index,
     _verification_ledger,
 )
+from src.agent.run_lifecycle import RunLifecycle
 from src.agent.tool_progress import ToolProgress
 from src.agent.tool_execution import PreparedToolCall, ToolExecutionResult, ToolInvoker, ToolBatchExecutor
 from src.agent.tool_replay import ReplayDecision, ToolReplayPolicy, readonly_replay_allowed
@@ -237,7 +238,11 @@ class AgentLoop:
         # Capture successful identities before context collapse can stub args.
         # Skipped/error call IDs never enter this ledger.
         self._successful_call_keys: dict[str, tuple[str, str]] = {}
-        self._cancel_event = threading.Event()
+        self._run_gate = threading.Lock()
+        self._lifecycle = RunLifecycle(0)
+        self._cancel_event = self._lifecycle.cancel
+        self._active_trace: TraceWriter | None = None
+        self._active_run_dir: Path | None = None
         self._previous_summary: str = ""
         self._persistent_memory = persistent_memory
         self._run_iteration: int = 0
@@ -246,9 +251,8 @@ class AgentLoop:
         self._released_fallback = False
         self._released_fallback_reason: str | None = None
         self._written_files: set[str] = set()
-        self._stall_reason: str | None = None
         self._last_activity_wall: float = 0.0
-        self._run_done = threading.Event()
+        self._run_done = self._lifecycle.done
         # Identical deterministic tool calls (e.g. financial_rigor calc with
         # the same expression) are served from this cache instead of being
         # re-executed. Regression: after auto-compact cleared earlier tool
@@ -273,6 +277,15 @@ class AgentLoop:
         self._compacted_to_tokens: int | None = None
         self._tool_schema_tokens = 0
 
+    @property
+    def _stall_reason(self) -> str | None:
+        return self._lifecycle.stall_reason
+
+    def _stop_predicate(self) -> Callable[[], bool]:
+        """Capture stop ownership, retaining the legacy standalone helper seam."""
+        lifecycle = getattr(self, "_lifecycle", None)
+        return lifecycle.should_stop if lifecycle is not None else self._cancel_event.is_set
+
     def cancel(self) -> None:
         """Cancel the current loop.
 
@@ -280,7 +293,7 @@ class AgentLoop:
         stream chunk, and between tool batches, so a running turn stops at the
         next cooperative checkpoint instead of only at the next iteration.
         """
-        self._cancel_event.set()
+        self._lifecycle.request_stop()
 
     def _write_run_manifest(self, trace_dir: "Path", messages: List[Dict[str, Any]]) -> None:
         """Record what methodology produced this run, beside its trace.
@@ -354,11 +367,48 @@ class AgentLoop:
         Returns:
             Execution result dict.
         """
-        token = bind_llm_session_id(session_id)
+        if not self._run_gate.acquire(blocking=False):
+            raise RuntimeError("AgentLoop is already running")
+        lifecycle = self._lifecycle
+        token = None
+        self._active_trace = None
+        self._active_run_dir = None
         try:
+            previous = self._lifecycle
+            lifecycle = RunLifecycle(previous.generation + 1,
+                                     self._cancel_event if not self._has_run else None)
+            previous.finish()
+            self._lifecycle = lifecycle
+            self._cancel_event = lifecycle.cancel
+            self._run_done = lifecycle.done
+            self._has_run = True
+            token = bind_llm_session_id(session_id)
             return self._run_bound(user_message, history, session_id)
+        except Exception as exc:
+            logger.exception("AgentLoop initialization error: %s", exc)
+            run_dir = self._active_run_dir
+            if run_dir is None:
+                raise
+            outcome = self._persist_terminal(
+                RunOutcome("failed", str(exc), "failure", False),
+                RunStateStore(), run_dir, self._active_trace, 0,
+            )
+            result = build_result_dict(outcome, run_dir, [], 0, self.max_iterations,
+                                       "", self._llm_runtime, None, 0)
+            result["error_code"] = "agent_loop_error"
+            return result
         finally:
-            reset_llm_session_id(token)
+            try:
+                if self._active_trace is not None:
+                    try:
+                        self._active_trace.close()
+                    except Exception:
+                        logger.exception("Run trace cleanup failed")
+                if token is not None:
+                    reset_llm_session_id(token)
+            finally:
+                lifecycle.finish()
+                self._run_gate.release()
 
     def _run_bound(self, user_message: str, history: Optional[List[Dict[str, Any]]] = None, session_id: str = "") -> Dict[str, Any]:
         """Run the ReAct loop with the LLM session already bound.
@@ -371,22 +421,15 @@ class AgentLoop:
         Returns:
             Execution result dict.
         """
-        # Preserve cancellation accepted while the first run is queued.  A
-        # completed loop may still be reused deliberately, so clear terminal
-        # state only after the first run has begun.
-        if self._has_run:
-            self._cancel_event.clear()
-        else:
-            self._has_run = True
+        lifecycle = self._lifecycle
+        should_stop = lifecycle.should_stop
         self._called_ok = set()
         self._successful_call_keys = {}
         self._previous_summary = ""
         self._released_fallback = False
         self._released_fallback_reason = None
         self._written_files = set()
-        self._stall_reason = None
         self._last_activity_wall = _time.time()
-        self._run_done = threading.Event()
         self._called_identical = {}
         self._readonly_replay_cache = {}
         self._readonly_replay_ready = set()
@@ -412,6 +455,7 @@ class AgentLoop:
             run_dir = state_store.create_run_dir(RUNS_DIR)
             self.memory.run_dir = str(run_dir)
 
+        self._active_run_dir = run_dir
         state_store.save_request(run_dir, user_message, {"session_id": session_id})
         self._grounding = GroundingLedger(
             run_dir=run_dir,
@@ -438,6 +482,7 @@ class AgentLoop:
 
         trace_dir = SESSIONS_DIR / session_id if session_id else run_dir
         trace = TraceWriter(trace_dir)
+        self._active_trace = trace
         self._write_run_manifest(trace_dir, messages)
         if self._run_iteration == 0 and trace.path.exists():
             existing = TraceWriter.read(trace_dir)
@@ -486,7 +531,7 @@ class AgentLoop:
         if stall_timeout > 0:
             watchdog = threading.Thread(
                 target=self._stall_watchdog,
-                args=(trace, run_dir, state_store, stall_timeout),
+                args=(trace, run_dir, state_store, stall_timeout, lifecycle),
                 name="run-stall-watchdog",
                 daemon=True,
             )
@@ -495,7 +540,7 @@ class AgentLoop:
         stream_failure_streak = 0
         try:
             while iteration < self.max_iterations:
-                if self._cancel_event.is_set():
+                if self._lifecycle.should_stop():
                     trace.write({"type": "cancelled", "iter": self._run_iteration + 1})
                     logger.info("AgentLoop cancelled by user")
                     break
@@ -510,6 +555,12 @@ class AgentLoop:
                 if notifs:
                     notif_text = "\n".join(f"[bg:{n['task_id']}] {n['status']}: {n['result']}" for n in notifs)
                     messages.append({"role": "user", "content": f"<background-results>\n{notif_text}\n</background-results>\n\n<system>Continue processing with the background results above.</system>"})
+
+                tool_defs = (
+                    None if iteration == self.max_iterations or grounding_correction_text_only
+                    else self.registry.get_definitions()
+                )
+                self._tool_schema_tokens = estimate_tokens(tool_defs) if tool_defs is not None else 0
 
                 if _override("TOKEN_THRESHOLD") is not None:
                     # Test hook: a monkeypatched module-level TOKEN_THRESHOLD
@@ -661,11 +712,6 @@ class AgentLoop:
                 # starting another research/refetch loop merely to reformat a draft.
                 is_last_iteration = (iteration == self.max_iterations)
                 correction_text_only = grounding_correction_text_only
-                tool_defs = (
-                    None
-                    if is_last_iteration or correction_text_only
-                    else self.registry.get_definitions()
-                )
                 if is_last_iteration:
                     trace.write({"type": "forced_text_only", "iter": current_iter})
                 elif correction_text_only:
@@ -680,7 +726,9 @@ class AgentLoop:
                 llm_timeout = _llm_timeout_s if _llm_timeout_s > 0 else None
 
                 try:
-                    with provider_call_scope(should_cancel=self._cancel_event.is_set):
+                    request_snapshot = self._context_meter.snapshot(
+                        messages, self._tool_schema_tokens, model=self._request_model())
+                    with provider_call_scope(should_cancel=should_stop):
                         response = self.llm.stream_chat(
                             messages,
                             tools=tool_defs,
@@ -688,7 +736,7 @@ class AgentLoop:
                             on_reasoning_chunk=_on_reasoning_chunk,
                             timeout=llm_timeout,
                             idle_timeout_s=llm_timeout,
-                            should_cancel=self._cancel_event.is_set,
+                            should_cancel=should_stop,
                         )
                 except ProviderStreamError as exc:
                     # One retry for transient mid-stream failures (connection
@@ -745,9 +793,11 @@ class AgentLoop:
                     # failure. A blocking sleep would make Stop take that long
                     # to be observed; the event returns the moment it is set.
                     self._cancel_event.wait(retry_delay_s)
-                    if self._cancel_event.is_set():
+                    if self._lifecycle.should_stop():
                         break
-                    with provider_call_scope(should_cancel=self._cancel_event.is_set):
+                    request_snapshot = self._context_meter.snapshot(
+                        messages, self._tool_schema_tokens, model=self._request_model())
+                    with provider_call_scope(should_cancel=should_stop):
                         response = self.llm.stream_chat(
                             messages,
                             tools=tool_defs,
@@ -755,7 +805,7 @@ class AgentLoop:
                             on_reasoning_chunk=_on_reasoning_chunk,
                             timeout=llm_timeout,
                             idle_timeout_s=llm_timeout,
-                            should_cancel=self._cancel_event.is_set,
+                            should_cancel=should_stop,
                         )
                 else:
                     stream_failure_streak = 0
@@ -764,18 +814,19 @@ class AgentLoop:
 
                 # Cancelled mid-stream: discard this turn's partial response and
                 # end the run now, without executing any of its tool calls.
-                if self._cancel_event.is_set():
+                if self._lifecycle.should_stop():
                     break
 
                 # An LLM response arrived - real progress for the stall watchdog.
+                lifecycle.progress()
                 self._last_activity_wall = _time.time()
 
                 usage = getattr(response, "usage_metadata", None)
                 current_response_model = getattr(response, "response_model", None)
-                # `messages` is still exactly what this request sent.
+                # Usage belongs to the immutable main request snapshot.
                 self._context_meter.observe(
                     usage.get("input_tokens") if isinstance(usage, dict) else None,
-                    messages,
+                    request=request_snapshot,
                 )
                 if current_response_model:
                     last_response_model = current_response_model
@@ -1307,7 +1358,7 @@ class AgentLoop:
                 )
 
                 if (
-                    not self._cancel_event.is_set()
+                    not self._lifecycle.should_stop()
                     and self._tool_progress.finish_iteration()
                 ):
                     final_content = self._tool_progress.recovery_message()
@@ -1343,21 +1394,15 @@ class AgentLoop:
                 if isinstance(exc, ProviderStreamError)
                 else "agent_loop_error"
             )
-            trace.write({"type": "end", "iter": self._run_iteration, "status": "error", "reason": str(exc), "iterations": iteration})
-            trace.close()
-            state_store.mark_failure(run_dir, str(exc))
-            self._run_done.set()
-            return {
-                "status": "failed",
-                "error_code": error_code,
-                "reason": str(exc),
-                "run_dir": str(run_dir),
-                "run_id": run_dir.name,
-                "content": "",
-                "react_trace": react_trace,
-                "iterations": iteration,
-                "max_iterations": self.max_iterations,
-            }
+            outcome = self._persist_terminal(
+                RunOutcome("failed", str(exc), "failure", False),
+                state_store, run_dir, trace, iteration,
+            )
+            result = build_result_dict(outcome, run_dir, react_trace, iteration,
+                                       self.max_iterations, "", self._llm_runtime,
+                                       last_response_model, content_filter_count)
+            result["error_code"] = error_code
+            return result
 
         # Determine final status. The reason is also propagated into the
         # returned dict so SessionService can surface a meaningful UI
@@ -1365,7 +1410,7 @@ class AgentLoop:
         outcome = resolve_final_status(
             OutcomeInputs(
                 stall_reason=self._stall_reason,
-                cancelled=self._cancel_event.is_set(),
+                cancelled=self._lifecycle.should_stop(),
                 no_progress_reason=no_progress_reason,
                 content_filter_circuit_breaker=content_filter_circuit_breaker,
                 has_output=(run_dir / "artifacts" / "metrics.csv").exists() or bool(final_content),
@@ -1383,20 +1428,9 @@ class AgentLoop:
                 max_iterations=self.max_iterations,
             )
         )
-        final_reason = outcome.reason
-        if outcome.mark == "cancelled":
-            state_store.mark_cancelled(run_dir, final_reason or "cancelled by user")
-        elif outcome.mark == "failure":
-            state_store.mark_failure(run_dir, final_reason or "")
-        elif outcome.mark == "success":
-            state_store.mark_success(run_dir)
-        if outcome.mark == "success" and outcome.degraded and final_reason and not self._released_fallback:
-            # A success that ended without writing the target file(s): the
-            # pre-extraction code flagged it degraded only for this case.
+        outcome = self._persist_terminal(outcome, state_store, run_dir, trace, iteration)
+        if outcome.mark == "success" and outcome.degraded and not self._released_fallback:
             self._released_fallback = True
-
-        trace.write(build_end_event(outcome, self._run_iteration, iteration))
-        trace.close()
 
         result = build_result_dict(
             outcome,
@@ -1410,77 +1444,53 @@ class AgentLoop:
             content_filter_count,
         )
 
-        self._run_done.set()
-
         return result
 
-    def _stall_watchdog(
-        self,
-        trace: TraceWriter,
-        run_dir: Path,
-        state_store: Any,
-        stall_timeout: float,
-    ) -> None:
-        """Fail the run when no forward progress happens for the stall timeout.
+    def _persist_terminal(self, candidate, state_store, run_dir, trace, iteration) -> RunOutcome:
+        """Main-owner-only claim; ancillary artifact failure cannot rewrite it."""
+        outcome = self._lifecycle.claim_terminal(candidate)
+        try:
+            if outcome.mark == "cancelled":
+                state_store.mark_cancelled(run_dir, outcome.reason or "cancelled by user")
+            elif outcome.mark == "failure":
+                state_store.mark_failure(run_dir, outcome.reason or "")
+            elif outcome.mark == "success":
+                state_store.mark_success(run_dir)
+        except Exception:
+            logger.exception("Run state persistence failed")
+        if trace is not None:
+            try:
+                end = build_end_event(outcome, self._run_iteration, iteration)
+                if self._lifecycle.stall_reason is not None:
+                    end["stalled"] = True
+                trace.write(end)
+            except Exception:
+                logger.exception("Run end trace persistence failed")
+        return outcome
 
-        A run can hang inside a tool or provider call without ever raising:
-        the bash subprocess stuck in ``communicate()`` (2026-08-20 INTC run,
-        19:20:55 -> never returned) is the canonical case. Such a run stays
-        "running" forever with no state.json - a zombie. This daemon thread
-        watches wall-clock progress (LLM completions and tool results only,
-        NOT heartbeats) and, once the stall timeout passes, writes a failed
-        end event and state, and sets the cancel event so the loop exits at
-        its next boundary.
-
-        Args:
-            trace: Trace writer for this run.
-            run_dir: Run directory for state.json.
-            state_store: RunStateStore.
-            stall_timeout: Stall threshold in seconds.
-        """
-        # Capture the done-event locally: a reused AgentLoop replaces
-        # self._run_done when the next run starts, and this thread must
-        # not keep watching with the old run timeout.
-        run_done = self._run_done
+    def _stall_watchdog(self, trace, run_dir, state_store, stall_timeout: float, lifecycle=None) -> None:
+        """Request cooperative stop; never finalize a still-running owner."""
+        run_done = lifecycle.done if lifecycle is not None else self._run_done
+        lifecycle = lifecycle if lifecycle is not None else self._lifecycle
         warned = False
         while not run_done.is_set():
             wait_s = min(30.0, max(5.0, stall_timeout / 4))
             if run_done.wait(timeout=wait_s):
                 return
-            idle = _time.time() - self._last_activity_wall
+            if lifecycle is not self._lifecycle or run_done is not self._run_done:
+                return
+            idle = lifecycle.idle_seconds()
             if idle < stall_timeout:
                 warned = False
                 continue
             if not warned:
                 warned = True
-                self._emit(
-                    "stall_warning",
-                    {"idle_s": round(idle, 1), "timeout_s": stall_timeout},
-                )
+                lifecycle.emit(lambda: self._emit(
+                    "stall_warning", {"idle_s": round(idle, 1), "timeout_s": stall_timeout}))
                 continue
-            reason = (
-                "run stalled: no LLM completion or tool result for "
-                + str(int(idle)) + "s (stall watchdog)"
-            )
-            self._stall_reason = reason
-            try:
-                trace.write(
-                    {
-                        "type": "end",
-                        "iter": self._run_iteration,
-                        "status": "failed",
-                        "reason": reason,
-                        "stalled": True,
-                    }
-                )
-            except Exception:  # noqa: BLE001 - best-effort
-                pass
-            try:
-                state_store.mark_failure(run_dir, reason)
-            except Exception:  # noqa: BLE001 - best-effort
-                pass
-            self._emit("stalled", {"reason": reason})
-            self._cancel_event.set()
+            reason = f"run stalled: no LLM completion or tool result for {int(idle)}s (stall watchdog)"
+            if lifecycle.request_stop(reason):
+                lifecycle.emit(lambda: self._emit("stalled", {"reason": reason}))
             return
 
     # -- Tool execution with read/write batching --------------------------------
@@ -1507,9 +1517,10 @@ class AgentLoop:
         Returns:
             Tuple of (compact_requested, focus_topic).
         """
+        should_stop = self._stop_predicate()
         compact_requested = False
         focus_topic = ""
-        if self._cancel_event.is_set():
+        if should_stop():
             return compact_requested, focus_topic
         batch_authorized_symbols = set(self._grounding.authorized_symbols) if self._grounding is not None else set()
         batch_identity_status = self._grounding.identity_status if self._grounding is not None else "not_required"
@@ -1532,14 +1543,14 @@ class AgentLoop:
                 if not authorization.allowed:
                     return ToolExecutionResult(call, authorization.error_payload(
                         tc.name, self._grounding.identity_summary()), 0, False, "blocked")
-            if self._cancel_event.is_set():
+            if should_stop():
                 return self._tool_invoker().diagnostic(call, "tool_cancelled")
             tool_def = self.registry.get(tc.name)
             if tool_def is None:
                 # Registry refusal is not an executed mutation. Preserve the
                 # registry's original diagnostics without expiring observations.
                 self._emit_prepared_tool_call(call, trace, iteration)
-                if self._cancel_event.is_set():
+                if should_stop():
                     return self._tool_invoker().diagnostic(call, "tool_cancelled")
                 return ToolExecutionResult(call, self.registry.execute(tc.name, call.arguments),
                                            0, False, "unavailable")
@@ -1703,14 +1714,26 @@ class AgentLoop:
         )
 
     def _tool_invoker(self) -> ToolInvoker:
-        return ToolInvoker(self.registry.execute, should_cancel=self._cancel_event.is_set,
-            emit=self._emit, timeout_s=_tool_timeout_seconds(), heartbeat_interval_s=_heartbeat_interval_s(),
+        lifecycle = getattr(self, "_lifecycle", None)
+        should_stop = self._stop_predicate()
+
+        def emit(name, payload):
+            if lifecycle is None:
+                self._emit(name, payload)
+            elif lifecycle is self._lifecycle:
+                lifecycle.emit(lambda: self._emit(name, payload))
+
+        return ToolInvoker(self.registry.execute, should_cancel=should_stop,
+            emit=emit, timeout_s=_tool_timeout_seconds(), heartbeat_interval_s=_heartbeat_interval_s(),
             budget=getattr(self, "_readonly_tool_budget", None), heartbeat_factory=HeartbeatTimer,
             before_write=ToolReplayPolicy(self, recovery_limit=MAX_READONLY_REPLAY_RECOVERIES).invalidate_mutable_observations)
 
     def _observe_tool_completion(self, result: ToolExecutionResult) -> None:
-        """Caller-only accepted true completion hook; Task 6 binds run generation here."""
+        """Caller-only true completion; ordered synthetic commits are not progress."""
         if result.executed and result.outcome not in {"tool_cancelled", "tool_timeout"}:
+            lifecycle = getattr(self, "_lifecycle", None)
+            if lifecycle is not None:
+                lifecycle.progress()
             self._last_activity_wall = _time.time()
 
     def _emit_prepared_tool_call(self, call: PreparedToolCall, trace, iteration) -> None:
@@ -1734,7 +1757,7 @@ class AgentLoop:
         """Compatibility helper; raw results remain caller-owned."""
         get_tool = getattr(self.registry, "get", None)
         if callable(get_tool) and get_tool(tool_name) is None:
-            if self._cancel_event.is_set():
+            if self._stop_predicate()():
                 call = PreparedToolCall(0, call_id, tool_name, args, False)
                 return self._tool_invoker().diagnostic(call, "tool_cancelled").raw_result, 0
             return self.registry.execute(tool_name, args) or "", 0
@@ -1787,11 +1810,14 @@ class AgentLoop:
             user_message, run_started_wall, written_files=self._written_files,
         )
 
+    def _request_model(self) -> str:
+        return str(getattr(self.llm, "model_name", "") or self._llm_runtime.configured_model)
+
     def _context_budget(self, messages: list) -> CompactionBudget:
         """Compaction thresholds for the active model's real context window."""
         cfg = get_env_config()
-        provider = (cfg.llm.langchain_provider or "").strip().lower().replace("_", "-")
-        model = getattr(self.llm, "model_name", "") or cfg.llm.langchain_model_name
+        provider = self._llm_runtime.provider.replace("_", "-")
+        model = self._request_model()
         window, source = resolve_window(
             provider,
             str(model or ""),
@@ -1802,12 +1828,12 @@ class AgentLoop:
             window=window,
             source=source,
             max_tokens=cfg.agent_tuning.vibe_trading_context_max_tokens,
-            static_tokens=self._context_meter.static(messages, self._tool_schema_tokens),
+            static_tokens=self._context_meter.static(messages, self._tool_schema_tokens, model=self._request_model()),
         )
 
     def _prompt_tokens(self, messages: list) -> int:
         """Real-token size the next request would have."""
-        return self._context_meter.tokens(messages, self._tool_schema_tokens)
+        return self._context_meter.tokens(messages, self._tool_schema_tokens, model=self._request_model())
 
     def _compact_to_budget(
         self,
@@ -1830,6 +1856,12 @@ class AgentLoop:
             force: Summarise even under budget (the provider said it overflowed).
         """
         budget = self._context_budget(messages)
+        if budget.static_tokens >= budget.total:
+            raise ValueError(
+                f"static context ({budget.static_tokens} tokens) exceeds usable context "
+                f"budget ({budget.total}); reduce the system prompt/tool schemas or "
+                "configure a model with a larger context window"
+            )
         tokens = self._prompt_tokens(messages)
         if tokens > budget.micro_at:
             # Oldest results first and only until the prompt fits again:
@@ -2034,9 +2066,6 @@ class AgentLoop:
         if update_memory:
             self._update_memory(tc.name)
 
-        # A tool completed - real progress for the stall watchdog.
-        self._last_activity_wall = _time.time()
-
         success = _is_tool_success(result)
         if update_memory:
             self._tool_progress.record(
@@ -2167,6 +2196,7 @@ class AgentLoop:
             focus_topic: Optional topic to prioritize in the summary.
             iteration: Current trace iteration.
         """
+        lifecycle = self._lifecycle
         del run_dir
         # Save full transcript before compressing next to the active trace.
         transcript_path = trace.dir_path / f"transcript_{int(_time.time())}.jsonl"
@@ -2240,7 +2270,7 @@ class AgentLoop:
             )
             try:
                 with provider_call_scope(
-                    should_cancel=self._cancel_event.is_set, deadline=deadline,
+                    should_cancel=lifecycle.should_stop, deadline=deadline,
                 ):
                     if isinstance(self.llm, ChatLLM):
                         summary_resp = self.llm.chat(

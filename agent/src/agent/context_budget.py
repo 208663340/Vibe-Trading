@@ -39,8 +39,7 @@ USABLE_FRACTION = 0.8
 #: nothing: with the 200K cost cap, layer 1 starts at ~170K.
 MICRO_FRACTION = 0.8
 COLLAPSE_FRACTION = 0.9
-#: Floor for the conversation budget when the static prompt nearly fills the
-#: window, so a tiny window still compacts instead of computing a negative.
+#: Minimum regrowth after compaction before paying for another summary.
 MIN_CONVERSATION_TOKENS = 8_000
 
 _LIMIT_RE = re.compile(
@@ -147,7 +146,7 @@ class CompactionBudget:
     @property
     def conversation(self) -> int:
         """Tokens left for the conversation after the static prompt."""
-        return max(self.total - self.static_tokens, MIN_CONVERSATION_TOKENS)
+        return max(0, self.total - self.static_tokens)
 
     @property
     def micro_at(self) -> int:
@@ -162,42 +161,61 @@ class CompactionBudget:
         return self.static_tokens + self.conversation
 
 
-class ContextMeter:
-    """Current prompt size in real tokens.
+@dataclass(frozen=True)
+class RequestSnapshot:
+    """Immutable estimates of the main request before dispatch."""
 
-    The provider reports what the last request cost; messages appended or
-    compacted since then are counted by estimate. Before any usage arrives the
-    whole prompt is estimated, tool schemas included.
-    """
+    request_id: int
+    model: str | None
+    messages: int
+    tools: int | None
+    conversation: int
+
+
+class ContextMeter:
+    """Calibrate only main requests, including their actual tools/model shape."""
 
     def __init__(self, estimator: Callable[[Any], int] = estimate_tokens) -> None:
         self._estimate = estimator
-        self._anchor: Optional[tuple[int, int]] = None
-        self.static_tokens: Optional[int] = None
+        self._anchor: tuple[int, RequestSnapshot] | None = None
+        self.static_tokens: int | None = None
+        self._request_id = 0
 
-    def observe(self, input_tokens: Optional[int], messages: list) -> None:
-        """Anchor on the real input size of the request just answered.
+    def snapshot(self, messages: list, tool_schema_tokens: int | None = None,
+                 *, model: str | None = None) -> RequestSnapshot:
+        self._request_id += 1
+        return RequestSnapshot(self._request_id, model, self._estimate(messages),
+                               tool_schema_tokens, self._estimate(messages[1:]))
 
-        Args:
-            input_tokens: Provider-reported prompt tokens of that request.
-            messages: Exactly the messages that request sent.
-        """
+    def observe(self, input_tokens: Optional[int], messages: list | None = None,
+                *, request: RequestSnapshot | None = None) -> None:
+        """Valid usage anchors its captured request; legacy message calls work."""
         if not isinstance(input_tokens, int) or isinstance(input_tokens, bool) or input_tokens <= 0:
             return
-        self._anchor = (input_tokens, self._estimate(messages))
-        if self.static_tokens is None:
-            # The first request is the static prompt plus the opening turn(s).
-            self.static_tokens = max(0, input_tokens - self._estimate(messages[1:]))
+        if request is None:
+            request = self.snapshot(messages if messages is not None else [])
+        if self._anchor is not None and request.request_id < self._anchor[1].request_id:
+            return
+        self._anchor = (input_tokens, request)
+        self.static_tokens = max(0, input_tokens - request.conversation)
 
-    def tokens(self, messages: list, tool_schema_tokens: int) -> int:
-        """Real-token size the next request would have."""
-        if self._anchor is None:
+    def _matching_anchor(self, model: str | None):
+        if self._anchor is not None and model is not None and self._anchor[1].model != model:
+            self._anchor = None
+            self.static_tokens = None
+        return self._anchor
+
+    def tokens(self, messages: list, tool_schema_tokens: int, *, model: str | None = None) -> int:
+        anchor = self._matching_anchor(model)
+        if anchor is None:
             return self._estimate(messages) + tool_schema_tokens
-        anchor_input, anchor_estimate = self._anchor
-        return max(0, anchor_input + self._estimate(messages) - anchor_estimate)
+        actual, request = anchor
+        tools_delta = 0 if request.tools is None else tool_schema_tokens - request.tools
+        return max(0, actual + self._estimate(messages) - request.messages + tools_delta)
 
-    def static(self, messages: list, tool_schema_tokens: int) -> int:
-        """Static prompt size: measured once usage arrives, else estimated."""
-        if self.static_tokens is not None:
-            return self.static_tokens
+    def static(self, messages: list, tool_schema_tokens: int, *, model: str | None = None) -> int:
+        anchor = self._matching_anchor(model)
+        if anchor is not None and self.static_tokens is not None:
+            tools_delta = 0 if anchor[1].tools is None else tool_schema_tokens - anchor[1].tools
+            return max(0, self.static_tokens + tools_delta)
         return self._estimate(messages[:1]) + tool_schema_tokens

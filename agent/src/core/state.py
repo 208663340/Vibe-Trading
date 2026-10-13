@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -78,9 +79,17 @@ class RunStateStore:
 
     @staticmethod
     def _write_json(path: Path, data: Any) -> None:
-        # Write + fsync so a crash can't leave a truncated/empty state.json.
+        # Preserve the prior valid record until a complete new file is flushed.
         payload = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
-        with open(path, "wb") as f:
-            f.write(payload)
-            f.flush()
-            os.fsync(f.fileno())
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="wb", dir=path.parent,
+                                             prefix=f".{path.name}.", delete=False) as f:
+                temporary = Path(f.name)
+                f.write(payload)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(temporary, path)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
