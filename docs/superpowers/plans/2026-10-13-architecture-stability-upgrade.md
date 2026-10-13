@@ -69,7 +69,7 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 ### Task 4: Bounded cancellable provider call execution
 
-**Files:** Create `agent/src/providers/call_runner.py`; modify `agent/src/providers/chat.py`, `agent/src/agent/loop.py` compaction call waiting only; tests `agent/tests/test_provider_call_runner.py` plus existing chat/stream/DSML/thought-signature/provider replay suites.
+**Files:** Create `agent/src/providers/call_runner.py`; modify `agent/src/providers/chat.py`, `agent/src/agent/loop.py` compaction waiting and minimal active-run cancellation binding at the provider-call boundary only; modify `agent/src/api/runtime.py` only for the process-scoped abandoned-producer counter handoff; tests `agent/tests/test_provider_call_runner.py` plus existing chat/stream/DSML/thought-signature/provider replay and runtime-summary suites.
 
 **Interfaces:** A ProviderCallRunner executes blocking stream producers/calls behind finite capacity, copied context, monotonic deadlines and cancellation. Keep ChatLLM.stream_chat/chat signatures and LLMResponse unchanged; preserve ProviderStreamError mapping and encrypted/provider metadata.
 
@@ -81,7 +81,7 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 ### Task 5: Tool execution, admission and write-safe replay
 
-**Files:** Create `agent/src/agent/tool_execution.py` and `tool_replay.py` as appropriate; modify `agent/src/agent/loop.py`, `tool_progress.py` only when needed; tests `agent/tests/test_tool_execution_lifecycle.py`, `test_tool_replay_write_barriers.py` and existing timeout/replay/cache/grounding suites.
+**Files:** Create `agent/src/agent/tool_execution.py` and `tool_replay.py` as appropriate; modify `agent/src/agent/loop.py`, `tool_progress.py` only when needed; modify `agent/src/api/runtime.py` only for the process-scoped abandoned-reader counter handoff; tests `agent/tests/test_tool_execution_lifecycle.py`, `test_tool_replay_write_barriers.py` and existing timeout/replay/cache/grounding and runtime-summary suites.
 
 **Interfaces:** Produce typed prepared calls/results with index/call_id/raw_result/elapsed/executed/outcome, bounded ToolInvoker/ToolBatchExecutor and a dispatch-time replay policy. Keep original parameter cache identity, normalization and existing helper wrappers. Raw result enters grounding before redaction/truncation.
 
