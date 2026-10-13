@@ -14,7 +14,6 @@ Tool execution:
 from __future__ import annotations
 
 import concurrent.futures
-import contextvars
 import json
 import logging
 import queue
@@ -87,6 +86,7 @@ from src.goal.context import (
     goal_needs_continuation,
     goal_progress_tuple,
 )
+from src.providers.call_runner import ProviderCallRunner, provider_call_scope
 from src.providers.chat import ChatLLM, LLMRuntimeSnapshot, ProviderStreamError
 from src.providers.session_context import bind_llm_session_id, reset_llm_session_id
 from src.providers.content_filter import (
@@ -679,15 +679,16 @@ class AgentLoop:
                 llm_timeout = _llm_timeout_s if _llm_timeout_s > 0 else None
 
                 try:
-                    response = self.llm.stream_chat(
-                        messages,
-                        tools=tool_defs,
-                        on_text_chunk=_on_text_chunk,
-                        on_reasoning_chunk=_on_reasoning_chunk,
-                        timeout=llm_timeout,
-                        idle_timeout_s=llm_timeout,
-                        should_cancel=self._cancel_event.is_set,
-                    )
+                    with provider_call_scope(should_cancel=self._cancel_event.is_set):
+                        response = self.llm.stream_chat(
+                            messages,
+                            tools=tool_defs,
+                            on_text_chunk=_on_text_chunk,
+                            on_reasoning_chunk=_on_reasoning_chunk,
+                            timeout=llm_timeout,
+                            idle_timeout_s=llm_timeout,
+                            should_cancel=self._cancel_event.is_set,
+                        )
                 except ProviderStreamError as exc:
                     # One retry for transient mid-stream failures (connection
                     # reset, relay hiccup) — mirrors the swarm worker policy.
@@ -745,15 +746,16 @@ class AgentLoop:
                     self._cancel_event.wait(retry_delay_s)
                     if self._cancel_event.is_set():
                         break
-                    response = self.llm.stream_chat(
-                        messages,
-                        tools=tool_defs,
-                        on_text_chunk=_on_text_chunk,
-                        on_reasoning_chunk=_on_reasoning_chunk,
-                        timeout=llm_timeout,
-                        idle_timeout_s=llm_timeout,
-                        should_cancel=self._cancel_event.is_set,
-                    )
+                    with provider_call_scope(should_cancel=self._cancel_event.is_set):
+                        response = self.llm.stream_chat(
+                            messages,
+                            tools=tool_defs,
+                            on_text_chunk=_on_text_chunk,
+                            on_reasoning_chunk=_on_reasoning_chunk,
+                            timeout=llm_timeout,
+                            idle_timeout_s=llm_timeout,
+                            should_cancel=self._cancel_event.is_set,
+                        )
                 else:
                     stream_failure_streak = 0
 
@@ -2642,55 +2644,31 @@ class AgentLoop:
                     focus_section=focus_section,
                 )
 
-            # A silent provider stall on the summary call used to freeze the
-            # whole run (no chunk arrives, so nothing aborts it). The provider
-            # httpx timeout only bounds time-between-bytes, not total time, and
-            # LangChain does not honor a per-call config "timeout", so a slow
-            # but alive server can run for many minutes. Enforce a hard
-            # wall-clock deadline via a daemon thread; on expiry fall back to
-            # hard truncation so the loop continues.
-            _compact_result: list = []
-            _compact_error: list = []
-
-            def _run_compact_summary() -> None:
-                try:
-                    resp = self.llm.chat(
-                        [{"role": "user", "content": prompt}],
-                        timeout=_compact_timeout if _compact_timeout > 0 else None,
-                    )
-                    _compact_result.append(resp)
-                except BaseException as exc:  # noqa: BLE001 - compaction must not crash the run
-                    _compact_error.append(exc)
-
-            if _compact_timeout > 0:
-                # A new thread starts with an empty context, so the session
-                # bound by run() (x-opencode-session, #1416) would not reach
-                # this call: run it inside a copy of the caller's context.
-                worker = threading.Thread(
-                    target=contextvars.copy_context().run,
-                    args=(_run_compact_summary,),
-                    name="compact-summary",
-                    daemon=True,
-                )
-                worker.start()
-                worker.join(timeout=_compact_timeout)
-                if worker.is_alive():
-                    logger.warning(
-                        "Auto compact summary call exceeded %.1fs; degrading compaction",
-                        _compact_timeout,
-                    )
-                    degraded_compact = True
-                    break
-                if _compact_error:
-                    logger.warning(
-                        "Auto compact LLM call failed (%s); degrading compaction",
-                        _compact_error[0],
-                    )
-                    degraded_compact = True
-                    break
-                summary_resp = _compact_result[0]
-            else:
-                summary_resp = self.llm.chat([{"role": "user", "content": prompt}])
+            # ChatLLM owns the sole provider lease. Compatibility facades get
+            # one bounded wrapper rather than the old unbounded daemon thread.
+            deadline = (
+                _time.monotonic() + _compact_timeout if _compact_timeout > 0 else None
+            )
+            try:
+                with provider_call_scope(
+                    should_cancel=self._cancel_event.is_set, deadline=deadline,
+                ):
+                    if isinstance(self.llm, ChatLLM):
+                        summary_resp = self.llm.chat(
+                            [{"role": "user", "content": prompt}],
+                            timeout=_compact_timeout if _compact_timeout > 0 else None,
+                        )
+                    else:
+                        request = [{"role": "user", "content": prompt}]
+                        summary_resp = ProviderCallRunner().run_call(
+                            lambda: self.llm.chat(
+                                request, timeout=_compact_timeout if _compact_timeout > 0 else None,
+                            ),
+                        )
+            except Exception as exc:
+                logger.warning("Auto compact LLM call failed (%s); degrading compaction", exc)
+                degraded_compact = True
+                break
             if summary_resp.content:
                 summary = summary_resp.content
         if degraded_compact and not summary:

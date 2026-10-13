@@ -178,13 +178,9 @@ def test_should_cancel_stops_stream_early() -> None:
         _FakeChunk(content="c"),
     ])
     seen: list[str] = []
-    calls = {"n": 0}
-
     def should_cancel() -> bool:
-        # Polled at the top of each chunk: let the first through, cancel after.
-        n = calls["n"]
-        calls["n"] += 1
-        return n >= 1
+        # Waiting now polls cancellation even before/between SDK chunks.
+        return bool(seen)
 
     response = _client(fake).stream_chat(
         [{"role": "user", "content": "hi"}],

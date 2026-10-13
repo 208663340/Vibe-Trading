@@ -6,16 +6,20 @@ ChatLLM is designed specifically for the AgentLoop ReAct cycle.
 from __future__ import annotations
 
 import asyncio
+import copy
 import html
 import inspect
 import logging
 import os
 import re
-import time as _time
+import threading
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
 from src.config.accessor import get_env_config
+from src.providers.call_runner import (
+    ProviderCallCancelled, ProviderCallRunner, raise_if_provider_revoked,
+)
 from src.providers.content_filter import is_content_filter_triggered
 from src.providers.llm import build_llm
 
@@ -325,6 +329,11 @@ def _parse_dsml_tool_calls(content: Any) -> list[ToolCallRequest]:
     return tool_calls
 
 
+@dataclass
+class _FallbackResponse:
+    message: Any
+
+
 class ChatLLM:
     """LLM chat client with function calling support.
 
@@ -334,6 +343,8 @@ class ChatLLM:
         model_name: Model name.
     """
 
+    _runner_gate = threading.Lock()
+
     def __init__(self, model_name: Optional[str] = None) -> None:
         """Initialize ChatLLM.
 
@@ -341,6 +352,7 @@ class ChatLLM:
             model_name: Model name; defaults to the environment variable value.
         """
         self._llm = build_llm(model_name=model_name)
+        self._call_runner = ProviderCallRunner()
         runtime_cfg = get_env_config().llm
         configured_model = (
             model_name or runtime_cfg.langchain_model_name
@@ -361,6 +373,20 @@ class ChatLLM:
         adapters without the ownership marker keep the legacy best-effort
         behavior for compatibility.
         """
+        runner = getattr(self, "_call_runner", None)
+        if runner is not None:
+            runner.close_when_idle(self._close_clients)
+        else:
+            self._close_clients()
+
+    def _runner(self) -> ProviderCallRunner:
+        # Compatibility fixtures use __new__; synchronize lazy initialization.
+        with self._runner_gate:
+            if not hasattr(self, "_call_runner"):
+                self._call_runner = ProviderCallRunner()
+            return self._call_runner
+
+    def _close_clients(self) -> None:
         for label, client in self._close_candidates():
             close_fn = getattr(client, "aclose", None)
             if not callable(close_fn):
@@ -376,6 +402,9 @@ class ChatLLM:
 
     async def aclose(self) -> None:
         """Asynchronously release HTTP clients owned by this adapter."""
+        runner = getattr(self, "_call_runner", None)
+        if runner is not None and runner.defer_close(self._close_clients):
+            return
         for label, client in self._close_candidates():
             close_fn = getattr(client, "aclose", None)
             if not callable(close_fn):
@@ -466,10 +495,17 @@ class ChatLLM:
         Returns:
             LLMResponse.
         """
-        llm = self._llm.bind_tools(tools) if tools else self._llm
+        request_messages = copy.deepcopy(messages)
+        request_tools = copy.deepcopy(tools)
+        adapter = self._llm
         config = {"timeout": timeout} if timeout else {}
-        messages, call_kwargs = self._prompt_cache_request(messages)
-        ai_message = llm.invoke(messages, config=config, **call_kwargs)
+        request_messages, call_kwargs = self._prompt_cache_request(request_messages)
+
+        def invoke():
+            llm = adapter.bind_tools(request_tools) if request_tools else adapter
+            return llm.invoke(request_messages, config=config, **call_kwargs)
+
+        ai_message = self._runner().run_call(invoke, timeout_s=timeout)
         return self._parse_response(ai_message)
 
     def stream_chat(
@@ -497,75 +533,79 @@ class ChatLLM:
             idle_timeout_s: Optional per-chunk idle timeout; when no stream
                 delta arrives for this long the call fails as a retryable
                 timeout instead of hanging the loop silently.
-            should_cancel: Optional predicate polled per chunk; when it returns
+            should_cancel: Optional predicate polled while waiting and per chunk; when it returns
                 True the stream stops early and the partial response is returned.
-                Lets a caller abort a live stream promptly (cooperative cancel).
+                Lets a caller stop waiting even when the SDK blocks; cleanup retains capacity.
 
         Returns:
             Parsed ``LLMResponse``.
         """
+        accumulated = None
+        pending_text = ""
+        possible_dsml_text = True
         try:
-            llm = self._llm.bind_tools(tools) if tools else self._llm
+            request_messages = copy.deepcopy(messages)
+            request_tools = copy.deepcopy(tools)
+            adapter = self._llm
             config = {"timeout": timeout} if timeout else {}
-            messages, call_kwargs = self._prompt_cache_request(messages)
-            accumulated = None
-            pending_text = ""
-            possible_dsml_text = True
-            cancelled = False
-            last_chunk_ts = _time.monotonic()
-            for chunk in llm.stream(messages, config=config, **call_kwargs):
-                now = _time.monotonic()
-                if idle_timeout_s and now - last_chunk_ts > idle_timeout_s:
-                    # No delta for too long: the provider is stalled, not
-                    # thinking. Raising a bare TimeoutError lets the wrapper
-                    # below convert it into a retryable ProviderStreamError.
-                    raise TimeoutError(
-                        f"no stream delta for {idle_timeout_s:.0f}s"
-                    )
-                last_chunk_ts = now
-                if should_cancel and should_cancel():
-                    cancelled = True
-                    break
-                chunk_text = _text_content(chunk.content)
-                if chunk_text and on_text_chunk:
-                    if possible_dsml_text:
-                        pending_text += chunk_text
-                        if _is_possible_dsml_tool_call_prefix(pending_text):
-                            pass
+            request_messages, call_kwargs = self._prompt_cache_request(request_messages)
+
+            def produce():
+                llm = adapter.bind_tools(request_tools) if request_tools else adapter
+                iterator = None
+                had_chunks = False
+                try:
+                    iterator = iter(llm.stream(request_messages, config=config, **call_kwargs))
+                    for chunk in iterator:
+                        had_chunks = True
+                        yield chunk
+                except Exception as exc:
+                    if had_chunks or not _is_no_stream_chunk_error(exc):
+                        raise
+                finally:
+                    close = getattr(iterator, "close", None)
+                    if callable(close):
+                        close()
+                if not had_chunks:
+                    raise_if_provider_revoked()
+                    logger.warning("Provider stream returned no chunks; falling back to non-streaming invoke.")
+                    yield _FallbackResponse(llm.invoke(request_messages, config=config, **call_kwargs))
+
+            values = self._runner().stream(
+                produce, should_cancel=should_cancel, idle_timeout_s=idle_timeout_s,
+            )
+            fallback = None
+            try:
+                for chunk in values:
+                    if isinstance(chunk, _FallbackResponse):
+                        fallback = chunk.message
+                        continue
+                    chunk_text = _text_content(chunk.content)
+                    if chunk_text and on_text_chunk:
+                        if possible_dsml_text:
+                            pending_text += chunk_text
+                            if not _is_possible_dsml_tool_call_prefix(pending_text):
+                                possible_dsml_text = False
+                                on_text_chunk(pending_text)
+                                pending_text = ""
                         else:
-                            possible_dsml_text = False
-                            on_text_chunk(pending_text)
-                            pending_text = ""
-                    else:
-                        on_text_chunk(chunk_text)
-                reasoning = getattr(chunk, "additional_kwargs", {}).get("reasoning_content")
-                if reasoning and not chunk.content and on_reasoning_chunk:
-                    on_reasoning_chunk(reasoning)
-                accumulated = chunk if accumulated is None else accumulated + chunk
-            if accumulated is None:
-                if cancelled:
-                    return LLMResponse(content="", tool_calls=[], finish_reason="stop")
-                # Endpoint streamed nothing (no SSE support); a non-streaming
-                # invoke still works — fall back rather than return empty.
-                logger.warning(
-                    "Provider stream returned no chunks; falling back to "
-                    "non-streaming invoke."
-                )
-                return self._parse_response(llm.invoke(messages, config=config, **call_kwargs))
-            response = self._parse_response(accumulated)
+                            on_text_chunk(chunk_text)
+                    reasoning = getattr(chunk, "additional_kwargs", {}).get("reasoning_content")
+                    if reasoning and not chunk.content and on_reasoning_chunk:
+                        on_reasoning_chunk(reasoning)
+                    accumulated = chunk if accumulated is None else accumulated + chunk
+            finally:
+                values.close()
+            if fallback is not None:
+                return self._parse_response(fallback)
+            response = self._parse_response(accumulated) if accumulated is not None else LLMResponse(content="")
             if pending_text and not (response.has_tool_calls and response.content == ""):
-                on_text_chunk(pending_text)
+                if not should_cancel or not should_cancel():
+                    on_text_chunk(pending_text)
             return response
+        except ProviderCallCancelled:
+            return self._parse_response(accumulated) if accumulated is not None else LLMResponse(content="")
         except Exception as exc:
-            if _is_no_stream_chunk_error(exc):
-                # Provider streamed zero chunks (endpoint lacks real SSE); a
-                # non-streaming invoke still returns a valid response.
-                logger.warning(
-                    "Provider stream produced no chunks (%s); falling back to "
-                    "non-streaming invoke.",
-                    type(exc).__name__,
-                )
-                return self._parse_response(llm.invoke(messages, config=config, **call_kwargs))
             _cfg = get_env_config()
             provider = _cfg.llm.langchain_provider.strip().lower() or "openai"
             model = self.model_name or _cfg.llm.langchain_model_name.strip() or "(unset)"

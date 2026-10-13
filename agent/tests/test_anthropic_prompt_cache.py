@@ -160,7 +160,8 @@ def test_chat_and_stream_chat_send_the_marked_request() -> None:
             assert sent[0]["content"] == [
                 {"type": "text", "text": "s", "cache_control": {"type": "ephemeral"}}
             ]
-            assert sent[1] is msgs[1]
+            assert sent[1] == msgs[1]
+            assert sent[1] is not msgs[1], "producer requests own independent snapshots"
             assert kwargs == _CACHE_KWARGS
             # The caller's list is never mutated.
             assert msgs[0] == {"role": "system", "content": "s"}

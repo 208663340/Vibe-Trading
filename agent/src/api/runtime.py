@@ -5,8 +5,10 @@ from __future__ import annotations
 import asyncio
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 
+from src.providers.call_runner import abandoned_provider_count
 from src.session.events import EventBus
 from src.session.execution import CloseSummary, SessionServiceClosingError
 from src.session.service import SessionService
@@ -61,6 +63,12 @@ class RuntimeServices:
             self._release_resources()
             return True
 
+    def _provider_snapshot(self) -> CloseSummary:
+        self.close_summary = replace(
+            self.close_summary, abandoned_producers=abandoned_provider_count(),
+        )
+        return self.close_summary
+
     def _release_resources(self) -> None:
         if self.closed:
             return
@@ -76,7 +84,7 @@ class RuntimeServices:
         with self._gate:
             self.closing = True
             if self.closed:
-                return self.close_summary
+                return self._provider_snapshot()
             service = self.session_service
             if service is not None and hasattr(service, "execution_loops"):
                 supervisor = service._supervisor
@@ -88,18 +96,18 @@ class RuntimeServices:
                     self.close_summary = supervisor.close_summary()
                 if self.close_summary.complete:
                     self._release_resources()
-                    return self.close_summary
+                    return self._provider_snapshot()
                 if loops != frozenset({loop}):
                     # Foreign, mixed, or unproven task ownership: only observe
                     # actual completion, never await/cancel another loop's work.
-                    return self.close_summary
+                    return self._provider_snapshot()
         if service is not None:
             summary = await service.aclose(timeout_s)
             with self._gate:
                 if self.closed:
-                    return self.close_summary
+                    return self._provider_snapshot()
                 self.close_summary = summary
         with self._gate:
             if self.close_summary.complete:
                 self._release_resources()
-            return self.close_summary
+            return self._provider_snapshot()
