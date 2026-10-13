@@ -1520,6 +1520,7 @@ vibe-trading serve --port 8899
 | `GET` | `/runs/{run_id}/pine` | Multi-platform indicator export |
 | `POST` | `/sessions` | Create session |
 | `POST` | `/sessions/{id}/messages` | Send message |
+| `GET` | `/sessions/{id}/attempts/{attempt_id}` | Read an attempt's authoritative status and safe terminal metadata |
 | `GET` | `/sessions/{id}/events` | SSE event stream |
 | `POST` | `/upload` | Upload a document, data file, or image |
 | `GET` | `/swarm/presets` | List swarm presets |
@@ -1547,7 +1548,7 @@ vibe-trading serve --port 8899
 | `GET` | `/scheduled-runs/playbooks` | List the research templates |
 | `GET` | `/scheduled-runs/playbooks/{slug}` | Show one template, with its variables |
 | `POST` | `/scheduled-runs/playbooks/{slug}` | Schedule a job from a template |
-| `POST` | `/sessions/{id}/cancel` | Stop the session's in-flight run (recorded as cancelled, not failed) |
+| `POST` | `/sessions/{id}/cancel` | Request cancellation; optionally target `expected_attempt_id` |
 | `POST` | `/sessions/{id}/title/auto` | Summarize the first exchange into a session title (never overwrites a manual rename) |
 | `GET` | `/correlation/regime` | Correlation edge-density regime timeline |
 | `GET` | `/agents.json` · `POST` `/v1/query` | OpenBB Workspace bridge — registered only with the optional `openbb` extra; `/v1/query` requires auth |
@@ -1556,6 +1557,27 @@ Interactive docs are available at `http://localhost:8899/docs` in keyless
 loopback development mode. When `API_AUTH_KEY` is configured, `/docs` and
 `/redoc` are disabled; authenticated tooling can fetch `/openapi.json` with an
 `Authorization: Bearer <key>` header.
+
+### Session cancellation and recovery
+
+Cancellation acknowledges the request before the underlying work finishes. The
+Web UI keeps that attempt busy until its terminal event or authoritative snapshot
+arrives. API callers may send `{"expected_attempt_id":"..."}` to avoid cancelling
+a later attempt; the existing bodyless request remains supported. Deleting a
+session with active execution or finalization returns `409`; retry after it ends.
+Closing runtimes reject new work and retain ownership of unfinished writes.
+
+The event stream sends `session.resync` when a slow consumer or expired cursor
+leaves a gap. The Web UI reloads the transcript and attempt status, then reconnects
+with a fresh stream ticket. It does not resend the original message. Switching
+sessions fences late reads and callbacks from the previous view.
+
+Session replies are the durable source of truth; search indexing and event
+delivery are recoverable projections. The runtime ownership protocol is for one
+server process. Blocked external calls remain bounded and retain their resource
+slots until they actually exit. See the [stability design](docs/architecture/2026-10-13-stability-design.md)
+and [runtime ownership decision](docs/decisions/0001-runtime-ownership-and-compatible-stability.md)
+for the internal contracts.
 
 ### Security defaults
 

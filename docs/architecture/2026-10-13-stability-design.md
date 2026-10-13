@@ -208,7 +208,7 @@ actual producer/tool thread, not the waiting wrapper, and is released only on tr
 exit. Runtime close fences callbacks; it does not recreate pools to evade occupied
 slots. Detached readonly/provider producers never write transcript/evidence/state or
 emit events after their lease is revoked. Running mutating tools remain under the
-main attempt owner. Admission exhaustion is explicit, not an unbounded queued wait.
+main attempt owner. Admission exhaustion is explicit, not an unbounded queued wait. Within one tool batch, at most eight readonly producers may remain alive. A timed-out or revoked waiter retains both its batch slot and process slot until the producer exits; if those batch slots remain occupied, later calls receive explicit capacity outcomes instead of starting a ninth producer.
 
 One logical provider attempt acquires one lease: fallback invoke runs in the same
 producer or only after the prior producer exits; compaction has one runner layer, not
@@ -231,7 +231,7 @@ facade exit/cleanup, not the disappearance of detached fenced readers.
 
 Tool completion observation only updates accepted true progress early; ordered final
 commit includes executed, blocked, cancelled, compact, deterministic and replay results.
-Workers never mutate evidence/messages/trace. Executed-write invalidation linearizes
+Workers never mutate evidence/messages/trace. Each call has one ordered transcript/trace outcome. Executed raw results enter grounding at that boundary before truncation/redaction; synthetic cache/replay outcomes retain the existing canonical evidence rather than creating new external observations or changing grounding identities. Executed-write invalidation linearizes
 after authorization/cancel admission and immediately before registry.execute, even
 when execute or later persistence fails. Existing authorization-before-cache and
 run-scoped replay visibility/recovery rules remain unchanged.
