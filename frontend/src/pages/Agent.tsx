@@ -44,7 +44,7 @@ import {
   buildSwarmStatusFromToolResultPreview,
 } from "@/lib/swarmStatus";
 import { SessionRuntime, type OperationToken } from "@/features/agent/sessionRuntime";
-import { reconcileHistory, enrichRuns, confirmUserMessage } from "@/features/agent/history";
+import { reconcileHistory, enrichRuns, confirmUserMessage, mergeEnrichment, stampMessages } from "@/features/agent/history";
 import { activityRow, finishActivity } from "@/features/agent/activity";
 import { mapHistory } from "@/features/agent/mapHistory";
 import { buildToolTimelineMessages } from "@/pages/agentToolTimeline";
@@ -520,38 +520,66 @@ export function Agent() {
   }, []);
 
   const loadSessionMessages = useCallback(async (sid: string, gen: number) => {
-    const token=runtime.begin("history");
-    const signal=runtime.read("history");
-    const revision=act().transcriptRevision;
+    const token = runtime.begin("history");
+    const signal = runtime.read("history");
+    const revision = act().transcriptRevision;
     setHistoryError(null);
     try {
       const msgs = await api.getSessionMessages(sid, signal);
       if (genRef.current !== gen || !runtime.current(token)) return;
-      const mapped=mapHistory(sid,msgs,toDisplayPrompt);
-      runtime.commit(token,state=> {
-        const settled=state.activity && msgs.some(m=>m.role==="assistant" && m.linked_attempt_id===state.activity?.attemptId);
-        return {messages:reconcileHistory(mapped.messages,confirmedCacheMessages(sid,state.messages),revision), sessionLoading:false,
-          ...(settled ? {activity:null,toolCalls:[],cancelPendingAttemptId:null,status:"idle" as const} : {}),
-          ...(state.streamingSessionId===sid && msgs[msgs.length-1]?.role==="assistant" ? {streamingSessionId:null} : {})};
+      const mapped = mapHistory(sid, msgs, toDisplayPrompt);
+      runtime.commit(token, state => {
+        const settled = state.activity && msgs.some(message => (
+          message.role === "assistant" && message.linked_attempt_id === state.activity?.attemptId
+        ));
+        const committedReply = state.streamingSessionId === sid && msgs[msgs.length - 1]?.role === "assistant";
+        return {
+          messages: reconcileHistory(mapped.messages, confirmedCacheMessages(sid, state.messages), revision),
+          sessionLoading: false,
+          ...(settled ? { activity: null, toolCalls: [], cancelPendingAttemptId: null, status: "idle" as const } : {}),
+          ...(committedReply ? { streamingSessionId: null } : {}),
+        };
       });
-      act().cacheSession(sid,act().messages);
+      act().cacheSession(sid, act().messages);
       setRuntimeIdentity(mapped.runtimeIdentity ?? {});
       scheduleHistoryScroll();
-      await enrichRuns(mapped.pendingRuns.map(row=>row.runId), signal, async runId=> {
-        let metrics:Record<string,number>|undefined;
-        let equityCurve:Array<{time:string;equity:number}>|undefined;
-        let showCard=false;
-        try { const run=await api.getRun(runId,{},signal); showCard=isReportWorthyRun(run); if(showCard) {metrics=run.metrics;equityCurve=run.equity_curve?.map(e=>({time:e.time,equity:Number(e.equity)}));} }
-        catch { if(signal.aborted) return; showCard=true; }
-        if(!showCard) return;
-        runtime.commit(token,state=> ({messages:reconcileHistory([
-          ...state.messages,
-          ...mapped.pendingRuns.filter(row=>row.runId===runId).map(row=>({id:`report:${sid}:${row.attemptId||row.messageId}:${runId}`,type:"run_complete" as const,content:"",runId,metrics,equityCurve,timestamp:row.timestamp})),
-        ],[],state.transcriptRevision)}));
+      await enrichRuns(mapped.pendingRuns.map(row => row.runId), signal, async runId => {
+        const enrichmentRevision = act().transcriptRevision;
+        let metrics: Record<string, number> | undefined;
+        let equityCurve: Array<{ time: string; equity: number }> | undefined;
+        let showCard = false;
+        try {
+          const run = await api.getRun(runId, {}, signal);
+          showCard = isReportWorthyRun(run);
+          if (showCard) {
+            metrics = run.metrics;
+            equityCurve = run.equity_curve?.map(point => ({ time: point.time, equity: Number(point.equity) }));
+          }
+        } catch {
+          if (signal.aborted) return;
+          showCard = true;
+        }
+        if (!showCard) return;
+        const enrichedRows = mapped.pendingRuns.filter(row => row.runId === runId).map(row => ({
+          id: `report:${sid}:${row.attemptId || row.messageId}:${runId}`,
+          type: "run_complete" as const,
+          content: "",
+          runId,
+          metrics,
+          equityCurve,
+          timestamp: row.timestamp,
+        }));
+        runtime.commit(token, state => {
+          const committedRevision = state.transcriptRevision + 1;
+          return {
+            transcriptRevision: committedRevision,
+            messages: mergeEnrichment(state.messages, enrichedRows, enrichmentRevision, committedRevision),
+          };
+        });
       });
     } catch (error) {
       if (genRef.current !== gen || !runtime.current(token) || signal.aborted) return;
-      runtime.commit(token,()=>({sessionLoading:false}));
+      runtime.commit(token, () => ({ sessionLoading: false }));
       setHistoryError(error instanceof Error ? error.message : t("settings.unknownError"));
     }
   }, [runtime, scheduleHistoryScroll, t]);
@@ -1157,31 +1185,66 @@ export function Agent() {
       },
 
       "session.resync": async (data) => {
-        gapRef.current=data;
+        gapRef.current = data;
         cancelPendingStreamFlush();
-        const token=runtime.begin("recovery"); const signal=runtime.read("recovery"); const revision=act().transcriptRevision;
-        runtime.commit(token,()=>({streamingText:"",reasoningTail:""}));
+        runtime.fenceRead("history");
+        const token = runtime.begin("recovery");
+        const signal = runtime.read("recovery");
+        const revision = act().transcriptRevision;
+        runtime.commit(token, () => ({ streamingText: "", reasoningTail: "" }));
         try {
-          const [messages,session]=await Promise.all([api.getSessionMessages(sid,signal),api.getSession(sid,signal)]);
-          const attemptId=session.last_attempt_id || act().activity?.attemptId;
-          const attempt=attemptId && !attemptId.startsWith("pending-") ? await api.getAttempt(sid,attemptId,signal) : null;
-          if(!runtime.current(token)) return;
-          const mapped=mapHistory(sid,messages,toDisplayPrompt);
-          runtime.commit(token,state=> {
-            const observedTerminal=attempt && state.messages.some(message=>message.meta?.activity?.attemptId===attempt.attempt_id && ["done","stopped","failed"].includes(message.meta.activity.state) && (message.meta.revision??0)>revision);
-            const terminal=observedTerminal || (attempt && ["completed","cancelled","failed","interrupted"].includes(attempt.status));
-            const paused=attempt?.status==="waiting_user" && !observedTerminal;
-            const recovered=terminal && attempt && !mapped.messages.some(message=>message.meta?.activity?.attemptId===attempt.attempt_id) ? [activityRow({attemptId:attempt.attempt_id,state:attempt.status==="completed" ? "done" : attempt.status==="cancelled" ? "stopped" : "failed",verb:"working",steps:[],startedAt:attempt.started_at ? attempt.started_at*1000 : Date.now(),endedAt:Date.now()})] : [];
-            return {messages:reconcileHistory([...mapped.messages,...recovered],confirmedCacheMessages(sid,state.messages),revision),sessionLoading:false,
-              ...((terminal || paused) ? {status:"idle" as const,activity:null,toolCalls:[],cancelPendingAttemptId:null,streamingSessionId:null} : {}),
-              ...(attempt && !terminal && !paused ? {status:"streaming" as const,activity:{attemptId:attempt.attempt_id,state:"thinking" as const,verb:"working" as const,steps:[],startedAt:attempt.started_at ? attempt.started_at*1000 : Date.now()}} : {})};
+          const [messages, session] = await Promise.all([
+            api.getSessionMessages(sid, signal),
+            api.getSession(sid, signal),
+          ]);
+          const attemptId = session.last_attempt_id || act().activity?.attemptId;
+          const knownAttempt = attemptId && !attemptId.startsWith("pending-");
+          const attempt = knownAttempt ? await api.getAttempt(sid, attemptId, signal) : null;
+          if (!runtime.current(token)) return;
+          const mapped = mapHistory(sid, messages, toDisplayPrompt);
+          runtime.commit(token, state => {
+            const observedTerminal = attempt && state.messages.some(message => (
+              message.meta?.activity?.attemptId === attempt.attempt_id
+              && ["done", "stopped", "failed"].includes(message.meta.activity.state)
+              && (message.meta.revision ?? 0) > revision
+            ));
+            const snapshotTerminal = attempt && ["completed", "cancelled", "failed", "interrupted"].includes(attempt.status);
+            const terminal = observedTerminal || snapshotTerminal;
+            const paused = attempt?.status === "waiting_user" && !observedTerminal;
+            const hasActivityRow = mapped.messages.some(message => message.meta?.activity?.attemptId === attempt?.attempt_id);
+            const recovered = terminal && attempt && !hasActivityRow ? [activityRow({
+              attemptId: attempt.attempt_id,
+              state: attempt.status === "completed" ? "done" : attempt.status === "cancelled" ? "stopped" : "failed",
+              verb: "working",
+              steps: [],
+              startedAt: attempt.started_at ? attempt.started_at * 1000 : Date.now(),
+              endedAt: Date.now(),
+            })] : [];
+            const committedRevision = state.transcriptRevision + 1;
+            const recoveredRows = stampMessages([...mapped.messages, ...recovered], committedRevision);
+            return {
+              transcriptRevision: committedRevision,
+              messages: reconcileHistory(recoveredRows, confirmedCacheMessages(sid, state.messages), revision),
+              sessionLoading: false,
+              ...((terminal || paused) ? {
+                status: "idle" as const, activity: null, toolCalls: [], cancelPendingAttemptId: null, streamingSessionId: null,
+              } : {}),
+              ...(attempt && !terminal && !paused ? {
+                status: "streaming" as const,
+                activity: {
+                  attemptId: attempt.attempt_id, state: "thinking" as const, verb: "working" as const, steps: [],
+                  startedAt: attempt.started_at ? attempt.started_at * 1000 : Date.now(),
+                },
+              } : {}),
+            };
           });
-          setHistoryError(null); gapRef.current=null;
-          setupSSE(sid,typeof data.latest_event_id==="string" ? data.latest_event_id : null);
-        } catch(error) {
-          if(!runtime.current(token) || signal.aborted) return;
+          setHistoryError(null);
+          gapRef.current = null;
+          setupSSE(sid, typeof data.latest_event_id === "string" ? data.latest_event_id : null);
+        } catch (error) {
+          if (!runtime.current(token) || signal.aborted) return;
           setHistoryError(error instanceof Error ? error.message : t("settings.unknownError"));
-          runtime.commit(token,()=>({status:"error"}));
+          runtime.commit(token, () => ({ status: "error" }));
         }
       },
       "session_cleared": () => { doDisconnect(); act().forgetSession(sid); act().reset(); setSearchParams({},{replace:true}); },

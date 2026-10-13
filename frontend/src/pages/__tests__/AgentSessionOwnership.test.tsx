@@ -235,3 +235,103 @@ it('still sends a goal kickoff when its created SSE snapshot precedes the create
  await waitFor(()=>expect(fetcher.mock.calls.filter(([url,init])=>url==='/sessions/A/messages' && init?.method==='POST')).toHaveLength(1));
  expect(useAgentStore.getState().activity?.attemptId).toBe('goal-attempt');
 });
+
+it('retains authoritative resync rows when an older initial history returns', async () => {
+  const initialHistory = deferred<Response>();
+  let messageReads = 0;
+  let initialSignal: AbortSignal | undefined;
+  const recoveredReply = {
+    message_id: 'recovered-reply',
+    role: 'assistant',
+    linked_attempt_id: 'recovered-attempt',
+    content: 'authoritative recovered answer',
+    created_at: '2026-10-13T00:00:00Z',
+    metadata: { status: 'completed' },
+  };
+  fetcher.mockImplementation(async (url: string, init?: RequestInit) => {
+    if (url === '/sessions/A/messages') {
+      messageReads += 1;
+      if (messageReads === 1) {
+        initialSignal = init?.signal as AbortSignal;
+        return initialHistory.promise;
+      }
+      return json([recoveredReply]);
+    }
+    if (url === '/sessions/A') return json({ session_id: 'A', last_attempt_id: 'recovered-attempt' });
+    if (url === '/sessions/A/attempts/recovered-attempt') {
+      return json({ attempt_id: 'recovered-attempt', status: 'completed', started_at: 1, terminal_metadata: {} });
+    }
+    return empty(url);
+  });
+  const view = await page();
+  try {
+    act(() => Events.instances[0].emit('session.resync', { reason: 'queue_overflow', latest_event_id: 'recovered-cursor' }));
+    await waitFor(() => expect(Events.instances).toHaveLength(2));
+    expect(useAgentStore.getState().messages.some(message => message.content === recoveredReply.content)).toBe(true);
+    await act(async () => initialHistory.resolve(json([])));
+    expect(useAgentStore.getState().messages.filter(message => message.type === 'answer').map(message => message.content)).toEqual([recoveredReply.content]);
+    expect(useAgentStore.getState().messages.filter(message => message.meta?.activity?.attemptId === 'recovered-attempt')).toHaveLength(1);
+    expect(useAgentStore.getState().status).toBe('idle');
+    expect(initialSignal?.aborted).toBe(true);
+  } finally {
+    initialHistory.resolve(json([]));
+    view.unmount();
+  }
+});
+
+it.each(['stale', 'failure'])('preserves a newer report when old history enrichment returns %s', async (outcome) => {
+  const oldReport = deferred<Response>();
+  let runReads = 0;
+  fetcher.mockImplementation(async (url: string) => {
+    if (url === '/sessions/A/messages') {
+      // Legacy durable messages without linked_attempt_id remain supported.
+      return json([{ message_id: 'report-attempt', role: 'assistant', content: 'legacy answer', created_at: '2026-10-13T00:00:00Z', metadata: { run_id: 'run-overlap' } }]);
+    }
+    if (url === '/runs/run-overlap') {
+      runReads += 1;
+      return runReads === 1 ? oldReport.promise : json({ metrics: { total_return: 0.5 }, equity_curve: [{ time: '2026-10-13', equity: 150 }] });
+    }
+    return empty(url);
+  });
+  const view = await page();
+  try {
+    await waitFor(() => expect(runReads).toBe(1));
+    act(() => {
+      const events = Events.instances[0];
+      events.emit('tool_call', { attempt_id: 'report-attempt', call_id: 'shadow-call', tool: 'render_shadow_report' });
+      events.emit('tool_result', { call_id: 'shadow-call', tool: 'render_shadow_report', status: 'ok', preview: '{"shadow_id":"shadow_fresh"}' });
+      events.emit('attempt.completed', { attempt_id: 'report-attempt', summary: 'fresh answer', run_dir: 'run-overlap' });
+    });
+    await waitFor(() => expect(useAgentStore.getState().messages.find(message => message.type === 'run_complete')?.metrics).toEqual({ total_return: 0.5 }));
+    const freshReport = useAgentStore.getState().messages.find(message => message.type === 'run_complete');
+    expect(freshReport?.equityCurve).toEqual([{ time: '2026-10-13', equity: 150 }]);
+    expect(freshReport?.shadowId).toBe('shadow_fresh');
+    await act(async () => {
+      if (outcome === 'failure') oldReport.reject(new TypeError('old report unavailable'));
+      else oldReport.resolve(json({ metrics: { total_return: 0.1 }, equity_curve: [{ time: '2026-10-13', equity: 110 }] }));
+    });
+    expect(useAgentStore.getState().messages.filter(message => message.type === 'run_complete')).toEqual([freshReport]);
+  } finally {
+    oldReport.resolve(json({}));
+    view.unmount();
+  }
+});
+
+it('still applies fresh initial history report enrichment', async () => {
+  const report = deferred<Response>();
+  fetcher.mockImplementation(async (url: string) => {
+    if (url === '/sessions/A/messages') return json([{ message_id: 'fresh-reply', role: 'assistant', linked_attempt_id: 'fresh-attempt', content: 'base answer', created_at: '2026-10-13T00:00:00Z', metadata: { run_id: 'fresh-run' } }]);
+    if (url === '/runs/fresh-run') return report.promise;
+    return empty(url);
+  });
+  const view = await page();
+  try {
+    await screen.findByText('base answer');
+    expect(useAgentStore.getState().messages.filter(message => message.type === 'run_complete')).toHaveLength(0);
+    await act(async () => report.resolve(json({ metrics: { total_return: 0.3 }, equity_curve: [{ time: '2026-10-13', equity: 130 }] })));
+    expect(useAgentStore.getState().messages.filter(message => message.type === 'run_complete').map(message => message.metrics)).toEqual([{ total_return: 0.3 }]);
+  } finally {
+    report.resolve(json({}));
+    view.unmount();
+  }
+});
