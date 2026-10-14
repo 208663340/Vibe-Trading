@@ -183,11 +183,19 @@ negative fetch rule now excludes `refs/heads/a-share` from default origin fetche
 The remote `a-share` branch was rewritten to the sanitized base using an exact
 force-with-lease, then independently verified through the GitHub ref API.
 
-The remote repository is still public pending the requested additional approval:
-GitHub does not allow a public fork to change visibility independently. Leaving its
-fork network permanently removes associated metadata, so that operation has not been
-executed without explicit consent. See GitHub's [fork visibility reference](https://docs.github.com/en/pull-requests/reference/forks)
+Repository privacy follow-up completed on 2026-10-14 after explicit authorization
+to permanently leave the fork network and successful GitHub account verification.
+The repository keeps its name and URL, `208663340/Vibe-Trading`. Independent GitHub
+API reads confirmed `fork: false`, `parent: null`, `private: true` and
+`visibility: private`; the refreshed settings page also states that it is private.
+All 18 branch/tag refs were compared before and after detachment and privatization:
+every ref target is unchanged, including the sanitized `a-share` head. The local
+architecture upgrade branch was not uploaded as part of this operation.
+
+GitHub does not allow a public fork to change visibility independently, and leaving
+the fork network is permanent and removes associated metadata. See GitHub's
+[fork visibility reference](https://docs.github.com/en/pull-requests/reference/forks)
 and [detachment instructions](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/detaching-a-fork).
-No claim is made that GitHub cached objects or shared fork-network copies are purged.
-Repository visibility is a separate pending action; it does not alter the verified
-local upgrade delivery.
+No claim is made that GitHub cached objects or copies previously shared in the fork
+network are purged. Remote privacy completion does not change the verified local
+upgrade code or its regression results.
