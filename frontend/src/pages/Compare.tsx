@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { GitCompare, ArrowLeftRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import { api, type RunListItem, type RunData, type EquityPoint } from "@/lib/api";
-import { echarts, CHART_GROUP, connectCharts } from "@/lib/echarts";
-import { getChartTheme } from "@/lib/chart-theme";
-import { useThemeDark } from "@/lib/theme-store";
+import { echarts, CHART_GROUP, connectCharts } from "@/features/charts/echarts";
+import { getChartTheme } from "@/features/charts/theme";
+import { useThemeDark } from "@/shared/theme";
 import { SkeletonChart, SkeletonMetrics } from "@/components/common/Skeleton";
 
 interface MetricDef {

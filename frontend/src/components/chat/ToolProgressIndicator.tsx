@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useRef, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { ProgressBar } from "@/components/chat/ProgressBar";
-import { localizeToolName } from "@/lib/tools";
+import { localizeToolName } from "@/features/agent/tools";
 import type { ToolCallEntry } from "@/types/agent";
 
 /* ---------- ETA tracking (per-tool) ---------- */

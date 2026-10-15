@@ -24,7 +24,7 @@ export function makeToolCall(overrides: Partial<ToolCallEntry> = {}): ToolCallEn
 }
 
 /** Minimal RunData shape for isReportWorthyRun tests */
-type ReportWorthyInput = Parameters<typeof import("@/lib/runReports").isReportWorthyRun>[0];
+type ReportWorthyInput = Parameters<typeof import("@/features/agent/runReports").isReportWorthyRun>[0];
 
 export function makeRunData<T extends object = object>(overrides: T = {} as T): ReportWorthyInput {
   return {

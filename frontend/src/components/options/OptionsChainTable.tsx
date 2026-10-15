@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import { api } from "@/lib/api";
 import { useAnalysisState } from "@/hooks/useAnalysisState";
 import {
@@ -9,7 +9,7 @@ import {
   expirationLabel,
   type OptionsChainData,
   type OptionsContractRow,
-} from "@/lib/options";
+} from "@/features/options/model";
 
 const DEFAULT_TICKER = "AAPL";
 

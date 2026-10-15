@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { safeGet, safeSet } from "@/lib/storage";
-import { publishThemeChange } from "@/lib/theme-store";
+import { safeGet, safeSet } from "@/shared/storage";
+import { publishThemeChange } from "@/shared/theme";
 
 const STORAGE_KEY = "qa-theme";
 

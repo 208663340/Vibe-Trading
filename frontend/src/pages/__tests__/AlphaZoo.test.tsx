@@ -4,7 +4,7 @@ import { AlphaZoo } from "../AlphaZoo";
 import { clearAnalysisState } from "@/hooks/useAnalysisState";
 const mock = vi.hoisted(() => ({ job: vi.fn(), submit: vi.fn() }));
 vi.mock("@/hooks/useAlphaJob", () => ({ useAlphaJob: mock.job }));
-vi.mock("@/hooks/useChartLifecycle", () => ({ useChartLifecycle: vi.fn() }));
+vi.mock("@/features/charts/lifecycle", () => ({ useChartLifecycle: vi.fn() }));
 vi.mock("@/lib/api", () => ({ api: { getAlphaReadiness: vi.fn().mockResolvedValue({ universes: { sp500: { ready: true, reason: "public_data" } }, zoo_counts: { alpha101: 101 } }) } }));
 beforeEach(() => {
   clearAnalysisState("alpha-bench:alpha101:alpha101_001"); vi.clearAllMocks();

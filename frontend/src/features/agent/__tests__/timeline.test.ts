@@ -1,4 +1,4 @@
-import { buildToolTimelineMessages } from "../agentToolTimeline";
+import { buildToolTimelineMessages } from "../timeline";
 
 describe("buildToolTimelineMessages", () => {
   it("rebuilds one durable activity object from a persisted tool trail", () => {

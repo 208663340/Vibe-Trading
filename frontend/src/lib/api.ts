@@ -1,41 +1,23 @@
-import i18n from "@/i18n";
 import { authHeaders, withAuthTicket } from "@/lib/apiAuth";
 import type {
   OptionsChainResponse,
   OptionsPayoffRequest,
   OptionsPayoffResponse,
-} from "@/lib/options";
+} from "@/features/options/model";
+import { deleteSession, listSessions, renameSession, type SessionItem } from "@/features/sessions/api";
+import {
+  ApiError,
+  AUTH_REQUIRED_MESSAGE,
+  isAuthRequiredError,
+  METADATA_TIMEOUT_MS,
+  performRequest,
+  request,
+} from "@/shared/http/client";
 
-import { boundedRequest, RequestTimeout } from "@/lib/http/request";
+export { ApiError, AUTH_REQUIRED_MESSAGE, isAuthRequiredError };
+export type { SessionItem } from "@/features/sessions/api";
 
 const BASE = "";
-const configuredTimeout = Number(import.meta.env.VITE_API_TIMEOUT_MS);
-const REQUEST_TIMEOUT_MS = Number.isFinite(configuredTimeout) && configuredTimeout > 0
-  ? configuredTimeout : 120_000;
-const METADATA_TIMEOUT_MS = Math.min(REQUEST_TIMEOUT_MS, 15_000);
-
-/** Bound both the connection and body read; never automatically replay writes. */
-async function performRequest<T>(
-  path: string,
-  options: RequestInit,
-  read: (response: Response) => Promise<T>,
-  timeoutMs = REQUEST_TIMEOUT_MS,
-): Promise<T> {
-  try {
-    return await boundedRequest(`${BASE}${path}`, options, async (response) => {
-      if (!response.ok) throw await errorFromResponse(response);
-      return read(response);
-    }, timeoutMs);
-  } catch (error) {
-    if (error instanceof RequestTimeout) {
-      const mutation = options.method && !["GET", "HEAD"].includes(options.method.toUpperCase());
-      throw new ApiError(i18n.t(mutation ? "connection.requestTimeoutMutation" : "connection.requestTimeout"), 0, "request_timeout");
-    }
-    if (options.signal?.aborted || error instanceof ApiError) throw error;
-    if (error instanceof TypeError) throw new ApiError(i18n.t("connection.requestFailed"), 0, "network_error");
-    throw error;
-  }
-}
 
 export async function downloadGeneratedReport(reportId: string, filename: string): Promise<void> {
   const blob = await performRequest(`/api/reports/${encodeURIComponent(reportId)}`, { headers: authHeaders() }, (response) => response.blob());
@@ -45,35 +27,6 @@ export async function downloadGeneratedReport(reportId: string, filename: string
   link.download = filename;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-export class ApiError extends Error {
-  status: number;
-  code?: string;
-
-  constructor(message: string, status: number, code?: string) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.code = code;
-  }
-}
-
-const AUTH_REQUIRED_MESSAGE_KEY = "agent.authRequired";
-
-function getAuthRequiredMessage(): string {
-  return i18n.t(AUTH_REQUIRED_MESSAGE_KEY as never);
-}
-
-// Keep the existing string export compatible with consumers while updating its
-// live ES-module binding whenever the active locale changes.
-export let AUTH_REQUIRED_MESSAGE = getAuthRequiredMessage();
-i18n.on("languageChanged", () => {
-  AUTH_REQUIRED_MESSAGE = getAuthRequiredMessage();
-});
-
-export function isAuthRequiredError(error: unknown): boolean {
-  return error instanceof ApiError && (error.status === 401 || error.status === 403);
 }
 
 export interface CorrelationResponse {
@@ -342,62 +295,6 @@ export interface PortfolioSettingsResponse {
   catalog: PortfolioSourceCatalogItem[];
 }
 
-async function errorFromResponse(res: Response): Promise<ApiError> {
-  let detail = `HTTP ${res.status}`;
-  let code: string | undefined;
-  try {
-    const body = await res.json();
-    // Options endpoints report errors under an `error` key
-    // ({status:"error", error} / {ok:false, error}) rather than detail/message.
-    const raw = body.detail ?? body.message ?? body.error;
-    if (typeof raw === "string" && raw) {
-      detail = raw;
-    } else if (raw && typeof raw === "object") {
-      const structured = raw as { code?: unknown; message?: unknown; max_length?: unknown };
-      if (typeof structured.code === "string" && structured.code) code = structured.code;
-      if (typeof structured.message === "string" && structured.message) detail = structured.message;
-      else if (code) detail = code;
-      if (code === "message_too_long" && typeof structured.max_length === "number") {
-        detail = i18n.t("agent.messageTooLong", { limit: structured.max_length.toLocaleString() });
-      }
-    }
-  } catch {
-    if (res.status >= 500) detail = i18n.t("connection.requestFailed");
-  }
-  if (res.status === 401 || res.status === 403) {
-    detail = getAuthRequiredMessage();
-  }
-  return new ApiError(detail, res.status, code);
-}
-
-async function request<T>(path: string, options?: RequestInit, timeoutMs?: number): Promise<T> {
-  const { headers, ...rest } = options ?? {};
-  const mergedHeaders: Record<string, string> = { "Content-Type": "application/json", ...authHeaders() };
-  if (headers) {
-    new Headers(headers).forEach((value, key) => {
-      mergedHeaders[key] = value;
-    });
-  }
-  return performRequest(path, {
-    ...rest,
-    headers: mergedHeaders,
-  }, async (res) => {
-    const text = await res.text();
-    if (!text) return {} as T;
-
-    const contentType = res.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
-      const preview = text.slice(0, 80).replace(/\s+/g, " ");
-      throw new ApiError(
-        `Expected JSON from ${path}, got ${contentType || "unknown content type"}: ${preview}`,
-        res.status,
-      );
-    }
-
-    return JSON.parse(text) as T;
-  }, timeoutMs);
-}
-
 export interface UploadResult {
   status: string;
   file_path: string;
@@ -489,10 +386,10 @@ export const api = {
   getRunFactor: (id: string) => request<FactorReportPayload>(`/runs/${id}/factor`),
   getRunAttribution: (id: string) => request<AttributionResponse>(`/runs/${encodeURIComponent(id)}/attribution`),
   getRunPine: (id: string) => request<PineScriptResult>(`/runs/${id}/pine`),
-  listSessions: () => request<SessionItem[]>("/sessions", undefined, METADATA_TIMEOUT_MS),
+  listSessions,
   createSession: (title?: string) => request<SessionItem>("/sessions", { method: "POST", body: JSON.stringify({ title: title || "" }) }),
-  deleteSession: (sid: string) => request<{ status: string }>(`/sessions/${sid}`, { method: "DELETE" }),
-  renameSession: (sid: string, title: string) => request<{ status: string }>(`/sessions/${sid}`, { method: "PATCH", body: JSON.stringify({ title }) }),
+  deleteSession,
+  renameSession,
   // Codex-style LLM summary title from the first exchange; backend refuses to
   // overwrite a manual rename, so this is safe to fire-and-forget.
   autoTitleSession: (sid: string) => request<{ status: string; title: string }>(`/sessions/${sid}/title/auto`, { method: "POST" }),
@@ -1446,15 +1343,6 @@ export interface AttemptSnapshot {
   status: "pending" | "running" | "waiting_user" | "completed" | "cancelled" | "failed" | "interrupted";
   started_at: number | null;
   terminal_metadata: Record<string, unknown>;
-}
-
-export interface SessionItem {
-  session_id: string;
-  title?: string;
-  status?: string;
-  created_at?: string;
-  updated_at?: string;
-  last_attempt_id?: string;
 }
 
 // --- Goal types ---

@@ -6,7 +6,7 @@ import {
   abbreviateNum,
   DISPLAY_ORDER,
   METRIC_LABELS,
-} from "../formatters";
+} from "../format";
 
 describe("getMetricLabel", () => {
   it("returns human label for known keys", () => {

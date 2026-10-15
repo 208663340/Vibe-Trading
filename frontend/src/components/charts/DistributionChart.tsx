@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { getChartTheme } from "@/lib/chart-theme";
-import { echarts } from "@/lib/echarts";
-import { useThemeDark } from "@/lib/theme-store";
+import { getChartTheme } from "@/features/charts/theme";
+import { echarts } from "@/features/charts/echarts";
+import { useThemeDark } from "@/shared/theme";
 
 interface Props {
   /** Raw simulation samples (e.g. simulated Sharpe ratios). */

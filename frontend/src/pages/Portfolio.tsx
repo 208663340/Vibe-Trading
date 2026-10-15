@@ -26,9 +26,9 @@ import {
   type PortfolioSnapshot,
   type PortfolioSourceCatalogItem,
 } from "@/lib/api";
-import { echarts } from "@/lib/echarts";
-import { getChartTheme } from "@/lib/chart-theme";
-import { useThemeDark } from "@/lib/theme-store";
+import { echarts } from "@/features/charts/echarts";
+import { getChartTheme } from "@/features/charts/theme";
+import { useThemeDark } from "@/shared/theme";
 import i18n from "@/i18n";
 
 const BROKER_COLORS: Record<string, string> = {

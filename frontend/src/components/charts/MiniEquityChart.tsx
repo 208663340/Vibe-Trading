@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { echarts } from "@/lib/echarts";
-import { getChartTheme } from "@/lib/chart-theme";
-import { useThemeDark } from "@/lib/theme-store";
+import { echarts } from "@/features/charts/echarts";
+import { getChartTheme } from "@/features/charts/theme";
+import { useThemeDark } from "@/shared/theme";
 
 interface Props {
   data: Array<{ time: string; equity: number | string }>;

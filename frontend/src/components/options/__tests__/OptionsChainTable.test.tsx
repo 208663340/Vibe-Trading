@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { clearAnalysisState } from "@/hooks/useAnalysisState";
 import { api } from "@/lib/api";
 import { OptionsChainTable } from "../OptionsChainTable";
-import type { OptionsChainResponse, OptionsContractRow } from "@/lib/options";
+import type { OptionsChainResponse, OptionsContractRow } from "@/features/options/model";
 
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock("@/lib/api", () => ({ api: { getOptionsChain: vi.fn() } }));

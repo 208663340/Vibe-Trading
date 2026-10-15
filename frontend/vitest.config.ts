@@ -15,7 +15,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
-      include: ["src/lib/**", "src/stores/**"],
+      include: ["src/lib/**", "src/shared/**", "src/features/**", "src/stores/**"],
       exclude: ["src/**/__tests__/**", "src/tests/**"],
     },
     restoreMocks: true,

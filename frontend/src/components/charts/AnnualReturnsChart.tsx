@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import i18n from "@/i18n";
-import type { AnnualReturn } from "@/lib/tearsheet";
-import { getChartTheme } from "@/lib/chart-theme";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
+import type { AnnualReturn } from "@/features/runs/tearsheet";
+import { getChartTheme } from "@/features/charts/theme";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
 
 interface Props {
   data: AnnualReturn[];

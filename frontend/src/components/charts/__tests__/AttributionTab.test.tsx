@@ -4,13 +4,13 @@ import { api } from "@/lib/api";
 import type { AttributionResponse, RunData } from "@/lib/api";
 import { AttributionTab } from "../AttributionTab";
 
-vi.mock("@/lib/echarts", () => ({
+vi.mock("@/features/charts/echarts", () => ({
   echarts: { init: vi.fn() },
   CHART_GROUP: "quant-charts",
   connectCharts: vi.fn(),
 }));
 
-import { echarts } from "@/lib/echarts";
+import { echarts } from "@/features/charts/echarts";
 
 function makeRun(): RunData {
   return {

@@ -4,7 +4,7 @@ import type { FactorReportPayload, FactorResult } from "@/lib/api";
 
 // No canvas in jsdom: stub the echarts instance contract so chart init is a
 // no-op and only the DOM around the charts is asserted here.
-vi.mock("@/lib/echarts", () => ({
+vi.mock("@/features/charts/echarts", () => ({
   CHART_GROUP: "quant-charts",
   connectCharts: vi.fn(),
   echarts: {

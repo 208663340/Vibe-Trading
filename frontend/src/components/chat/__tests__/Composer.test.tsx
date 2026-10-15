@@ -5,7 +5,7 @@ import i18n from "../../../i18n";
 import { api } from "@/lib/api";
 import { Composer } from "../Composer";
 import { toast } from "sonner";
-import { MAX_MESSAGE_CHARS, SWARM_PROMPT_PREFIX } from "@/lib/chatPrompt";
+import { MAX_MESSAGE_CHARS, SWARM_PROMPT_PREFIX } from "@/features/agent/prompt";
 
 vi.mock("@/lib/api", () => ({
   api: { uploadFile: vi.fn() },

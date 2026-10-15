@@ -13,8 +13,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { api, type RunListItem } from "@/lib/api";
-import { formatMetricVal } from "@/lib/formatters";
-import { cn } from "@/lib/utils";
+import { formatMetricVal } from "@/shared/format";
+import { cn } from "@/shared/cn";
 
 const REPORT_SCAN_LIMIT = 100;
 

@@ -1,4 +1,4 @@
-import { prependUploadedAttachments, type UploadedAttachment } from "@/lib/attachments";
+import { prependUploadedAttachments, type UploadedAttachment } from "@/features/agent/attachments";
 
 // Match the interactive and goal request schemas in sessions_routes.py.
 export const MAX_MESSAGE_CHARS = 100_000;

@@ -1,7 +1,7 @@
 import { Cpu } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { LLMSettings } from "@/lib/api";
-import { effortLabelKey } from "@/lib/reasoningEffort";
+import { effortLabelKey } from "@/features/agent/reasoning";
 
 interface Props {
   settings: LLMSettings | null;

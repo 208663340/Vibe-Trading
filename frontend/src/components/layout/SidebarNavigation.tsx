@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
+import { preloadRoute } from "@/app/chunks";
+import { cn } from "@/shared/cn";
 import { isNavigationActive, NAVIGATION_GROUPS } from "./navigation";
 
 export function SidebarNavigation({ collapsed }: { collapsed: boolean }) {
@@ -47,6 +48,8 @@ export function SidebarNavigation({ collapsed }: { collapsed: boolean }) {
           return (
             <Link key={to} to={to} aria-label={label} aria-current={active ? "page" : undefined}
               title={`${label} — ${t(`navigation.descriptions.${itemId}`)}`}
+              onMouseEnter={() => preloadRoute(to)}
+              onFocus={() => preloadRoute(to)}
               onClick={() => setMenuOpen(false)}
               className={cn("flex items-center rounded-md text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
                 compact ? "justify-center px-2 py-1.5" : "gap-3 px-3 py-1.5",

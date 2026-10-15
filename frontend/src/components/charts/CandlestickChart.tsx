@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import i18n from "@/i18n";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import { ChevronDown } from "lucide-react";
 import type { PriceBar, TradeMarker, IndicatorPoint } from "@/lib/api";
-import { calcMA, calcBOLL, calcMACD, calcRSI, calcKDJ, calcEMA } from "@/lib/indicators";
-import { getChartTheme } from "@/lib/chart-theme";
-import { abbreviateNum } from "@/lib/formatters";
-import { echarts, CHART_GROUP, connectCharts } from "@/lib/echarts";
-import { escapeHtml } from "@/lib/escapeHtml";
-import { useThemeDark } from "@/lib/theme-store";
+import { calcMA, calcBOLL, calcMACD, calcRSI, calcKDJ, calcEMA } from "@/features/charts/indicators";
+import { getChartTheme } from "@/features/charts/theme";
+import { abbreviateNum } from "@/shared/format";
+import { echarts, CHART_GROUP, connectCharts } from "@/features/charts/echarts";
+import { escapeHtml } from "@/shared/escapeHtml";
+import { useThemeDark } from "@/shared/theme";
 
 type Sub = "vol" | "macd" | "rsi" | "kdj";
 type Range = "1M" | "3M" | "6M" | "1Y" | "ALL";

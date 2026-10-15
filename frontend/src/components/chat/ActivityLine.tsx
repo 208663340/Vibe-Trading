@@ -17,8 +17,8 @@ import {
   Octagon,
   XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { localizeToolName } from "@/lib/tools";
+import { cn } from "@/shared/cn";
+import { localizeToolName } from "@/features/agent/tools";
 import { ToolProgressIndicator } from "@/components/chat/ToolProgressIndicator";
 import type { AgentActivity } from "@/stores/agent";
 

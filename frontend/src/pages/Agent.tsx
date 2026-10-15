@@ -14,9 +14,9 @@ import { useSSE } from "@/hooks/useSSE";
 import { ApiError, AUTH_REQUIRED_MESSAGE, api, isAuthRequiredError, type GoalSnapshot, type MandateProposal, type MandateCommitted, type ScheduledResearchProposal, type LiveAction, type LiveHalted, type LLMSettings } from "@/lib/api";
 import {
   extractUploadedAttachments,
-} from "@/lib/attachments";
-import { buildChatPrompt, MAX_GOAL_CHARS, MAX_MESSAGE_CHARS, promptExceedsLimit, SWARM_PROMPT_PREFIX } from "@/lib/chatPrompt";
-import { isReportWorthyRun } from "@/lib/runReports";
+} from "@/features/agent/attachments";
+import { buildChatPrompt, MAX_GOAL_CHARS, MAX_MESSAGE_CHARS, promptExceedsLimit, SWARM_PROMPT_PREFIX } from "@/features/agent/prompt";
+import { isReportWorthyRun } from "@/features/agent/runReports";
 import type { AgentMessage, SwarmRunStatus, ToolCallEntry } from "@/types/agent";
 import { AgentStream } from "@/features/agent/AgentStream";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
@@ -42,12 +42,12 @@ import {
   applySwarmEvent,
   buildSwarmStatusFromStarted,
   buildSwarmStatusFromToolResultPreview,
-} from "@/lib/swarmStatus";
+} from "@/features/agent/swarmStatus";
 import { SessionRuntime, type OperationToken } from "@/features/agent/sessionRuntime";
 import { reconcileHistory, enrichRuns, confirmUserMessage, mergeEnrichment, stampMessages } from "@/features/agent/history";
 import { activityRow, finishActivity } from "@/features/agent/activity";
 import { mapHistory } from "@/features/agent/mapHistory";
-import { buildToolTimelineMessages } from "@/pages/agentToolTimeline";
+import { buildToolTimelineMessages } from "@/features/agent/timeline";
 
 /* ---------- Message grouping ---------- */
 type MsgGroup =

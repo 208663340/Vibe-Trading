@@ -1,6 +1,6 @@
 import type { MessageItem } from '@/lib/api';
 import type { StoredAgentMessage, AgentMessageMeta } from '@/stores/agent';
-import { buildToolTimelineMessages } from '@/pages/agentToolTimeline';
+import { buildToolTimelineMessages } from '@/features/agent/timeline';
 interface RuntimeIdentity {sessionId?:string; provider?:string;model?:string;reasoningEffort?:string;}
 interface PendingRun {runId:string;messageId:string;attemptId?:string;timestamp:number;}
 const answerId=(sid:string,m:MessageItem)=>m.linked_attempt_id ? `answer:${sid}:${m.linked_attempt_id}` : m.message_id;

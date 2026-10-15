@@ -1,5 +1,5 @@
 import i18n from '@/i18n';
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import type { ValidationData } from "@/lib/api";
 import { DistributionChart } from "@/components/charts/DistributionChart";
 import { MonteCarloPathsChart } from "@/components/charts/MonteCarloPathsChart";

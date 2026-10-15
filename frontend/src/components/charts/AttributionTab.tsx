@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import i18n from "@/i18n";
 import { Activity, AlertTriangle, BarChart3, Loader2, TrendingUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import { api } from "@/lib/api";
 import type {
   AttributionBenchmarkInfo,

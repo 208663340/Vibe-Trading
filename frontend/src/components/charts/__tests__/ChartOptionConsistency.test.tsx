@@ -5,13 +5,13 @@ import { AttributionCumulativeChart } from "../AttributionCumulativeChart";
 import { RollingBetaAlphaChart } from "../RollingBetaAlphaChart";
 import { OptionsPayoffChart } from "../OptionsPayoffChart";
 
-vi.mock("@/lib/echarts", () => ({
+vi.mock("@/features/charts/echarts", () => ({
   echarts: { init: vi.fn() },
   CHART_GROUP: "quant-charts",
   connectCharts: vi.fn(),
 }));
 
-import { echarts } from "@/lib/echarts";
+import { echarts } from "@/features/charts/echarts";
 
 interface FakeChart {
   setOption: Mock;

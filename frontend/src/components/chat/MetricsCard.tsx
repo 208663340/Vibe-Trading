@@ -1,7 +1,7 @@
 import { memo } from "react";
 import i18n from "@/i18n";
-import { cn } from "@/lib/utils";
-import { getMetricLabel, DISPLAY_ORDER, formatMetricVal, metricSentiment } from "@/lib/formatters";
+import { cn } from "@/shared/cn";
+import { getMetricLabel, DISPLAY_ORDER, formatMetricVal, metricSentiment } from "@/shared/format";
 
 const SENTIMENT = {
   positive: "text-success",

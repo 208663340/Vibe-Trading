@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import i18n from "@/i18n";
 import type { AttributionCumulativePoint } from "@/lib/api";
-import { getChartTheme } from "@/lib/chart-theme";
-import { getPnlColors } from "@/lib/pnl-colors";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
-import { escapeHtml } from "@/lib/escapeHtml";
+import { getChartTheme } from "@/features/charts/theme";
+import { getPnlColors } from "@/features/charts/pnl";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
+import { escapeHtml } from "@/shared/escapeHtml";
 
 interface Props {
   data: AttributionCumulativePoint[];

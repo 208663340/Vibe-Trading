@@ -5,7 +5,7 @@ import ReactMarkdown, { type Options as ReactMarkdownOptions } from "react-markd
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { toast } from "sonner";
-import { normalizeMathDelimiters } from "@/lib/markdown";
+import { normalizeMathDelimiters } from "@/features/agent/markdown";
 import { downloadGeneratedReport } from "@/lib/api";
 import type { AgentMessage } from "@/types/agent";
 import type { StoredAgentMessage } from "@/stores/agent";

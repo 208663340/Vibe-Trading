@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarClock, Loader2, Pencil, Plus, Save, Trash2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import { api, ApiError, type ChannelAdapterStatus, type ScheduledRun } from "@/lib/api";
 import {
   describeCadence,
   formatIntervalMs,
   formatWallTime,
   formatWeekdays,
-} from "@/lib/cadence";
+} from "@/features/scheduled/cadence";
 
 const fieldClass =
   "w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60";

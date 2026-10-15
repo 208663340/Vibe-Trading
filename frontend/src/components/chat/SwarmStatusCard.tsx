@@ -6,7 +6,7 @@ import {
   localizePreset,
   localizeStatus,
   type ManifestTranslation,
-} from "@/lib/swarmI18n";
+} from "@/features/agent/swarmI18n";
 import type { SwarmRunStatus } from "@/types/agent";
 
 interface Props {

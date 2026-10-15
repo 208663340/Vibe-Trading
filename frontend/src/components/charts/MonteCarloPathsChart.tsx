@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import i18n from "@/i18n";
 import type { MonteCarloEquityPaths } from "@/lib/api";
-import { getChartTheme } from "@/lib/chart-theme";
-import { abbreviateNum } from "@/lib/formatters";
-import { echarts } from "@/lib/echarts";
-import { useThemeDark } from "@/lib/theme-store";
+import { getChartTheme } from "@/features/charts/theme";
+import { abbreviateNum } from "@/shared/format";
+import { echarts } from "@/features/charts/echarts";
+import { useThemeDark } from "@/shared/theme";
 
 interface Props {
   paths: MonteCarloEquityPaths;

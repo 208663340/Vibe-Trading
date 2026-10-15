@@ -2,10 +2,15 @@ import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useSearchParams } from "react-router";
 import { Check, ChevronDown, Languages, Moon, Sun, Plus, Trash2, Pencil, MessageSquare, ChevronsLeft, ChevronsRight, Loader2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { api, type SessionItem } from "@/lib/api";
-import { safeGet, safeSet } from "@/lib/storage";
+import {
+  deleteSession as deleteSessionRequest,
+  listSessions,
+  renameSession as renameSessionRequest,
+  type SessionItem,
+} from "@/features/sessions/api";
+import { safeGet, safeSet } from "@/shared/storage";
 import { useAgentStore } from "@/stores/agent";
 import { BrandMark } from "@/components/common/BrandMark";
 import { ConnectionBanner } from "@/components/layout/ConnectionBanner";
@@ -75,7 +80,7 @@ export function Layout() {
   const loadSessions = useCallback(() => {
     const generation = ++sessionsLoadGeneration.current;
     setSessionsLoading(true);
-    api.listSessions()
+    listSessions()
       .then((list) => {
         if (generation !== sessionsLoadGeneration.current) return;
         setSessions(Array.isArray(list) ? list : []);
@@ -115,7 +120,7 @@ export function Layout() {
     if (pendingSessionActions.current.has(sid)) return;
     pendingSessionActions.current.add(sid);
     try {
-      await api.deleteSession(sid);
+      await deleteSessionRequest(sid);
       setSessions((prev) => prev.filter((s) => s.session_id !== sid));
       setDeleteTarget(null);
     } catch (error) {
@@ -131,7 +136,7 @@ export function Layout() {
     pendingSessionActions.current.add(sid);
     const title = renameValue.trim();
     try {
-      await api.renameSession(sid, title);
+      await renameSessionRequest(sid, title);
       setSessions((prev) => prev.map((s) => s.session_id === sid ? { ...s, title } : s));
       setRenameTarget(null);
     } catch (error) {

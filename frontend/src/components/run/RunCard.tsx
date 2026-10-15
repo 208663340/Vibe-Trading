@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 
 /**
  * Shared Run-Card building blocks. Extracted from pages/RunDetail.tsx so that

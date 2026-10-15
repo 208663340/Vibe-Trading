@@ -26,7 +26,7 @@ import {
   Library,
 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import {
   api,
   type AlphaSummary,
@@ -35,8 +35,8 @@ import {
   type AlphaBenchTopRow,
   type AlphaCompareResult,
 } from "@/lib/api";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
-import { getChartTheme } from "@/lib/chart-theme";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
+import { getChartTheme } from "@/features/charts/theme";
 import { useAnalysisState } from "@/hooks/useAnalysisState";
 import { useAlphaJob } from "@/hooks/useAlphaJob";
 import type { AlphaReadiness } from "@/lib/api";

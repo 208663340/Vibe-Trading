@@ -1,39 +1,33 @@
 import { Suspense, lazy, type ComponentType } from "react";
 import { createBrowserRouter } from "react-router";
+import {
+  loadAgent,
+  loadAlphaZoo,
+  loadCompare,
+  loadCorrelation,
+  loadHome,
+  loadOptionsLab,
+  loadPortfolio,
+  loadReports,
+  loadRunDetail,
+  loadRuntime,
+  loadScheduled,
+  loadSettings,
+} from "@/app/chunks";
 import { Layout } from "@/components/layout/Layout";
 
-const Home = lazy(() => import("@/pages/Home").then((m) => ({ default: m.Home })));
-const Agent = lazy(() => import("@/pages/Agent").then((m) => ({ default: m.Agent })));
-const RunDetail = lazy(() =>
-  import("@/pages/RunDetail").then((m) => ({ default: m.RunDetail })),
-);
-const Compare = lazy(() =>
-  import("@/pages/Compare").then((m) => ({ default: m.Compare })),
-);
-const Settings = lazy(() =>
-  import("@/pages/Settings").then((m) => ({ default: m.Settings })),
-);
-const Runtime = lazy(() =>
-  import("@/pages/Runtime").then((m) => ({ default: m.Runtime })),
-);
-const Scheduled = lazy(() =>
-  import("@/pages/Scheduled").then((m) => ({ default: m.Scheduled })),
-);
-const Reports = lazy(() =>
-  import("@/pages/Reports").then((m) => ({ default: m.Reports })),
-);
-const Portfolio = lazy(() =>
-  import("@/pages/Portfolio").then((m) => ({ default: m.Portfolio })),
-);
-const Correlation = lazy(() =>
-  import("@/pages/Correlation").then((m) => ({ default: m.Correlation })),
-);
-const AlphaZoo = lazy(() =>
-  import("@/pages/AlphaZoo").then((m) => ({ default: m.AlphaZoo })),
-);
-const OptionsLab = lazy(() =>
-  import("@/pages/OptionsLab").then((m) => ({ default: m.OptionsLab })),
-);
+const Home = lazy(loadHome);
+const Agent = lazy(loadAgent);
+const RunDetail = lazy(loadRunDetail);
+const Compare = lazy(loadCompare);
+const Settings = lazy(loadSettings);
+const Runtime = lazy(loadRuntime);
+const Scheduled = lazy(loadScheduled);
+const Reports = lazy(loadReports);
+const Portfolio = lazy(loadPortfolio);
+const Correlation = lazy(loadCorrelation);
+const AlphaZoo = lazy(loadAlphaZoo);
+const OptionsLab = lazy(loadOptionsLab);
 
 function PageLoader() {
   return (

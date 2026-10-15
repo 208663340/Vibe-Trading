@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import i18n from "@/i18n";
 import type { AttributionRollingPoint } from "@/lib/api";
-import { getChartTheme } from "@/lib/chart-theme";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
-import { escapeHtml } from "@/lib/escapeHtml";
+import { getChartTheme } from "@/features/charts/theme";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
+import { escapeHtml } from "@/shared/escapeHtml";
 
 interface Props {
   data: AttributionRollingPoint[];

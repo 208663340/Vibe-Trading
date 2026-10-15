@@ -8,7 +8,7 @@ import { QVerisSettings } from "@/components/settings/QVerisSettings"; // QVERIS
 import { SourcePrioritySettings } from "@/components/settings/SourcePrioritySettings";
 import { api, isAuthRequiredError, type DataSourceSettings, type LLMProviderOption, type LLMSettings } from "@/lib/api";
 import { getApiAuthKey, setApiAuthKey } from "@/lib/apiAuth";
-import { effortLabelKey } from "@/lib/reasoningEffort";
+import { effortLabelKey } from "@/features/agent/reasoning";
 
 interface LLMFormState {
   provider: string;

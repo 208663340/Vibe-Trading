@@ -27,8 +27,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import type { UploadedAttachment } from "@/lib/attachments";
-import { buildChatPrompt, MAX_GOAL_CHARS, MAX_MESSAGE_CHARS, promptExceedsLimit } from "@/lib/chatPrompt";
+import type { UploadedAttachment } from "@/features/agent/attachments";
+import { buildChatPrompt, MAX_GOAL_CHARS, MAX_MESSAGE_CHARS, promptExceedsLimit } from "@/features/agent/prompt";
 import type { AgentActivity } from "@/stores/agent";
 import {
   LiveRuntimeControl,

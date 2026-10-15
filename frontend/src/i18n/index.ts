@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import { safeRemove } from "@/lib/storage";
+import { safeRemove } from "@/shared/storage";
 import en from "./locales/en.json";
 
 // Language registry — keep in sync with the Layout switcher and README_xx.md.

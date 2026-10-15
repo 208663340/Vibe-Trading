@@ -1,5 +1,5 @@
 import { memo, useEffect, useState, useCallback, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import type { AgentMessage } from "@/types/agent";
 
 interface Props {

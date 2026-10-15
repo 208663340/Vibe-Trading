@@ -4,13 +4,13 @@ import type { Mock } from "vitest";
 import type { RunData } from "@/lib/api";
 import { PositionsTab } from "../PositionsTab";
 
-vi.mock("@/lib/echarts", () => ({
+vi.mock("@/features/charts/echarts", () => ({
   echarts: { init: vi.fn() },
   CHART_GROUP: "quant-charts",
   connectCharts: vi.fn(),
 }));
 
-import { echarts } from "@/lib/echarts";
+import { echarts } from "@/features/charts/echarts";
 
 interface FakeChart {
   setOption: Mock;

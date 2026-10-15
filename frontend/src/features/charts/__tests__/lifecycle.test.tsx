@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import { render } from "@testing-library/react";
-import { useChartLifecycle } from "../useChartLifecycle";
+import { useChartLifecycle } from "../lifecycle";
 
 const chart = vi.hoisted(() => ({ init: vi.fn(), setOption: vi.fn(), resize: vi.fn(), dispose: vi.fn(), dark: false }));
-vi.mock("@/lib/echarts", () => ({ echarts: { init: chart.init }, CHART_GROUP: "analysis", connectCharts: vi.fn() }));
-vi.mock("@/lib/theme-store", () => ({ useThemeDark: () => chart.dark }));
+vi.mock("@/features/charts/echarts", () => ({ echarts: { init: chart.init }, CHART_GROUP: "analysis", connectCharts: vi.fn() }));
+vi.mock("@/shared/theme", () => ({ useThemeDark: () => chart.dark }));
 function Plot({ visible, value }: { visible: boolean; value: number }) {
   const ref = useRef<HTMLDivElement>(null);
   useChartLifecycle(ref, () => ({ series: [{ data: [value] }] }), [visible, value]);

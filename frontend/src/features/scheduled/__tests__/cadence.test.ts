@@ -4,7 +4,7 @@ import {
   formatIntervalMs,
   formatWallTime,
   formatWeekdays,
-} from "@/lib/cadence";
+} from "@/features/scheduled/cadence";
 
 describe("describeCadence", () => {
   it("classifies interval-ms schedules", () => {

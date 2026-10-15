@@ -1,6 +1,6 @@
-import { safeGet, safeRemove, safeSet } from "@/lib/storage";
+import { safeGet, safeRemove, safeSet } from "@/shared/storage";
 
-import { boundedRequest } from "@/lib/http/request";
+import { boundedRequest } from "@/shared/http/request";
 
 const STORAGE_KEY = "vibe_trading_api_auth_key";
 

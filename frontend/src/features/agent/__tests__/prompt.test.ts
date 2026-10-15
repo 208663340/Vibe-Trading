@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildChatPrompt, promptExceedsLimit } from "../chatPrompt";
+import { buildChatPrompt, promptExceedsLimit } from "../prompt";
 
 describe("chat request length", () => {
   it("includes attachment paths and counts Unicode code points", () => {

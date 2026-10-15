@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { Layout } from "../Layout";
-import { api } from "@/lib/api";
+import { deleteSession, listSessions, renameSession } from "@/features/sessions/api";
 import { toast } from "sonner";
 
 vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
@@ -52,17 +52,15 @@ vi.mock("@/hooks/useDarkMode", () => ({
   useDarkMode: () => ({ dark: false, toggle: vi.fn() }),
 }));
 
-vi.mock("@/lib/api", () => ({
-  api: {
-    listSessions: vi.fn().mockResolvedValue([
-      {
-        session_id: "session-1",
-        title: "A very long session title that must truncate",
-      },
-    ]),
-    deleteSession: vi.fn().mockResolvedValue(undefined),
-    renameSession: vi.fn().mockResolvedValue(undefined),
-  },
+vi.mock("@/features/sessions/api", () => ({
+  listSessions: vi.fn().mockResolvedValue([
+    {
+      session_id: "session-1",
+      title: "A very long session title that must truncate",
+    },
+  ]),
+  deleteSession: vi.fn().mockResolvedValue(undefined),
+  renameSession: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@/stores/agent", () => ({
@@ -93,9 +91,9 @@ describe("Layout accessibility", () => {
   beforeEach(() => {
     window.localStorage.removeItem("qa-sidebar");
     vi.mocked(toast.error).mockClear();
-    vi.mocked(api.listSessions).mockReset().mockResolvedValue(sessions as never);
-    vi.mocked(api.renameSession).mockReset().mockResolvedValue({ status: "ok" });
-    vi.mocked(api.deleteSession).mockReset().mockResolvedValue({ status: "ok" });
+    vi.mocked(listSessions).mockReset().mockResolvedValue(sessions as never);
+    vi.mocked(renameSession).mockReset().mockResolvedValue({ status: "ok" });
+    vi.mocked(deleteSession).mockReset().mockResolvedValue({ status: "ok" });
   });
   it("labels landmarks, brand, main content, and the new-chat affordance", () => {
     renderLayout();
@@ -164,7 +162,7 @@ describe("Layout accessibility", () => {
   });
 
   it("shows a connection failure instead of an empty history, and retries", async () => {
-    vi.mocked(api.listSessions).mockRejectedValueOnce(new Error("Backend unavailable"));
+    vi.mocked(listSessions).mockRejectedValueOnce(new Error("Backend unavailable"));
     renderLayout();
     expect(await screen.findByRole("alert")).toHaveTextContent("Backend unavailable");
     expect(screen.queryByText("No sessions yet")).not.toBeInTheDocument();
@@ -174,7 +172,7 @@ describe("Layout accessibility", () => {
   });
 
   it("retains the rename draft and surfaces a failed save", async () => {
-    vi.mocked(api.renameSession).mockRejectedValueOnce(new Error("Rename failed"));
+    vi.mocked(renameSession).mockRejectedValueOnce(new Error("Rename failed"));
     renderLayout();
     await screen.findByText(sessions[0].title);
     fireEvent.click(screen.getByRole("button", { name: "Rename" }));
@@ -188,7 +186,7 @@ describe("Layout accessibility", () => {
   });
 
   it("keeps a failed deletion visible so it can be retried", async () => {
-    vi.mocked(api.deleteSession).mockRejectedValueOnce(new Error("Delete failed"));
+    vi.mocked(deleteSession).mockRejectedValueOnce(new Error("Delete failed"));
     renderLayout();
     await screen.findByText(sessions[0].title);
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
@@ -201,7 +199,7 @@ describe("Layout accessibility", () => {
 
   it("does not submit rename twice when Enter is followed by blur", async () => {
     let complete!: (value: { status: string }) => void;
-    vi.mocked(api.renameSession).mockReturnValueOnce(new Promise((resolve) => { complete = resolve; }));
+    vi.mocked(renameSession).mockReturnValueOnce(new Promise((resolve) => { complete = resolve; }));
     renderLayout();
     await screen.findByText(sessions[0].title);
     fireEvent.click(screen.getByRole("button", { name: "Rename" }));
@@ -209,7 +207,7 @@ describe("Layout accessibility", () => {
     fireEvent.change(input, { target: { value: "Renamed once" } });
     fireEvent.keyDown(input, { key: "Enter" });
     fireEvent.blur(input);
-    expect(api.renameSession).toHaveBeenCalledOnce();
+    expect(renameSession).toHaveBeenCalledOnce();
     await act(async () => complete({ status: "ok" }));
     expect(screen.getByText("Renamed once")).toBeInTheDocument();
   });

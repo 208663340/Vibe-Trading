@@ -27,7 +27,7 @@ import {
   CircleSlash,
 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import { api, type BacktestMetrics, type EquityPoint, type FactorReportPayload, type RebalanceNotesPayload, type RiskXRayPayload, type RunCard, type RunData, type ValidationData } from "@/lib/api";
 import {
   computeAnnualReturns,
@@ -35,7 +35,7 @@ import {
   computeTopDrawdowns,
   normalizeEquitySeries,
   toDrawdownZones,
-} from "@/lib/tearsheet";
+} from "@/features/runs/tearsheet";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import { AnnualReturnsChart } from "@/components/charts/AnnualReturnsChart";
@@ -52,7 +52,7 @@ import { FactorResearchPanel } from "@/components/charts/FactorResearchPanel";
 import { AttributionTab } from "@/components/charts/AttributionTab";
 import { PositionsTab } from "@/components/run/PositionsTab";
 import { RunCardPanel, RunCardStat, formatRunCardValue } from "@/components/run/RunCard";
-import { isDateColumn } from "@/lib/positions";
+import { isDateColumn } from "@/features/runs/positions";
 
 const rehypePlugins = [rehypeHighlight];
 

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
 import type { EChartsCoreOption } from "echarts/core";
-import { echarts, CHART_GROUP, connectCharts } from "@/lib/echarts";
-import { useThemeDark } from "@/lib/theme-store";
+import { echarts, CHART_GROUP, connectCharts } from "@/features/charts/echarts";
+import { useThemeDark } from "@/shared/theme";
 
 /**
  * Shared ECharts lifecycle: init on mount, rebuild the option whenever `deps`

@@ -15,7 +15,7 @@ import {
   STRATEGY_PRESETS,
   type OptionLeg,
   type OptionsContractRow,
-} from "../options";
+} from "../model";
 
 describe("strategy preset catalog", () => {
   it("ships at least 10 presets with unique ids and options.presets.* name keys", () => {

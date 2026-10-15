@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CandlestickChart, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import { api } from "@/lib/api";
 import {
   buildPayoffRequest,
@@ -11,7 +11,7 @@ import {
   type OptionsLabParams,
   type OptionsPayoffRequest,
   type OptionsPayoffResponse,
-} from "@/lib/options";
+} from "@/features/options/model";
 import { StrategyBuilder } from "@/components/options/StrategyBuilder";
 import { GreeksCards } from "@/components/options/GreeksCards";
 import { OptionsChainTable } from "@/components/options/OptionsChainTable";

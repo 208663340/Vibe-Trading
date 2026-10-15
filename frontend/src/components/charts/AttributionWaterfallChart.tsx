@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import i18n from "@/i18n";
 import type { AttributionBrinson } from "@/lib/api";
-import { getChartTheme } from "@/lib/chart-theme";
-import { getPnlColors } from "@/lib/pnl-colors";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
+import { getChartTheme } from "@/features/charts/theme";
+import { getPnlColors } from "@/features/charts/pnl";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
 
 export interface WaterfallBar {
   base: number;

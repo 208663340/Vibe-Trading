@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 import {
   buildPayoffRequest,
   roundToNiceStrike,
   STRATEGY_PRESETS,
   type OptionLeg,
   type OptionsLabParams,
-} from "@/lib/options";
+} from "@/features/options/model";
 
 interface Props {
   legs: OptionLeg[];

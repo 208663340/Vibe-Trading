@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import i18n from "@/i18n";
-import { getChartTheme } from "@/lib/chart-theme";
-import { escapeHtml } from "@/lib/escapeHtml";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
+import { getChartTheme } from "@/features/charts/theme";
+import { escapeHtml } from "@/shared/escapeHtml";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
 
 interface Props {
   labels: string[];

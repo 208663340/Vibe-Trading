@@ -60,8 +60,9 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: (id: string) => {
-            if (/node_modules\/(react|react-dom|react-router)\//.test(id)) return "vendor-react";
-            if (/node_modules\/echarts\//.test(id)) return "vendor-charts";
+            if (!id.includes("node_modules")) return undefined;
+            if (/node_modules\/(react|react-dom|react-router|scheduler)\//.test(id)) return "vendor-react";
+            if (/node_modules\/(echarts|zrender)\//.test(id)) return "vendor-charts";
             return undefined;
           },
         },

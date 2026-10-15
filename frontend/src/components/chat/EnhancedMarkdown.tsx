@@ -1,6 +1,7 @@
 import ReactMarkdown, { type Options } from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
+import "highlight.js/styles/github-dark-dimmed.min.css";
 import "katex/dist/katex.min.css";
 
 const rehypePlugins: Options["rehypePlugins"] = [rehypeHighlight, rehypeKatex];

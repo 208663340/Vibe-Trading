@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import i18n from "@/i18n";
-import type { ExpiryCurve } from "@/lib/options";
-import { getChartTheme } from "@/lib/chart-theme";
-import { getPnlColors } from "@/lib/pnl-colors";
-import { abbreviateNum } from "@/lib/formatters";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
+import type { ExpiryCurve } from "@/features/options/model";
+import { getChartTheme } from "@/features/charts/theme";
+import { getPnlColors } from "@/features/charts/pnl";
+import { abbreviateNum } from "@/shared/format";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
 
 interface Props {
   curve: ExpiryCurve;

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import type { RunData } from "@/lib/api";
 import { StrategyResearchDashboard } from "../StrategyResearchDashboard";
-import { echarts } from "@/lib/echarts";
+import { echarts } from "@/features/charts/echarts";
 
 // Regression test for: a portfolio-construction / risk-snapshot run (only
 // risk_xray / rebalance_notes, no equity curve or trades) rendered the full
@@ -9,7 +9,7 @@ import { echarts } from "@/lib/echarts";
 // indistinguishable from a broken page. It should instead point to the
 // Studio tab, which is where that run's actual numbers render.
 
-vi.mock("@/lib/echarts", () => ({
+vi.mock("@/features/charts/echarts", () => ({
   echarts: { init: vi.fn() },
 }));
 

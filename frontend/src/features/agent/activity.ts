@@ -1,5 +1,5 @@
 import type { ActivityState, AgentActivity, AgentState, StoredAgentMessage } from '@/stores/agent';
-import { buildToolTimelineMessages } from '@/pages/agentToolTimeline';
+import { buildToolTimelineMessages } from '@/features/agent/timeline';
 
 export function activityRow(activity: AgentActivity, revision?: number): StoredAgentMessage {
   const [row]=buildToolTimelineMessages(activity.steps,{activity});

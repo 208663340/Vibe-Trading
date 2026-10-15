@@ -3,10 +3,10 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { fetchRunSectorMap, type RunData, type SectorMapResponse } from "@/lib/api";
-import { getChartTheme } from "@/lib/chart-theme";
-import { escapeHtml } from "@/lib/escapeHtml";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
-import { cn } from "@/lib/utils";
+import { getChartTheme } from "@/features/charts/theme";
+import { escapeHtml } from "@/shared/escapeHtml";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
+import { cn } from "@/shared/cn";
 import {
   CASH_SYMBOL,
   aggregateWeights,
@@ -16,7 +16,7 @@ import {
   parsePositionsPanel,
   withCashSlice,
   type AssetClass,
-} from "@/lib/positions";
+} from "@/features/runs/positions";
 
 const CASH_COLOR = "#9ca3af";
 const MAX_EVOLUTION_DATES = 500;

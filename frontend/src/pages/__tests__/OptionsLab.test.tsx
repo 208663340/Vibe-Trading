@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { api } from "@/lib/api";
-import type { OptionsLabParams, OptionsPayoffResponse } from "@/lib/options";
+import type { OptionsLabParams, OptionsPayoffResponse } from "@/features/options/model";
 import { clearAnalysisState } from "@/hooks/useAnalysisState";
 import { OptionsLab } from "../OptionsLab";
 vi.mock("@/lib/api", () => ({ api: { analyzeOptionsPayoff: vi.fn() } }));

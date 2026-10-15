@@ -1,7 +1,7 @@
 import {
   extractUploadedAttachments,
   prependUploadedAttachments,
-} from "@/lib/attachments";
+} from "@/features/agent/attachments";
 
 describe("attachment prompt envelope", () => {
   it("round-trips multiple attachments without exposing paths in display metadata", () => {

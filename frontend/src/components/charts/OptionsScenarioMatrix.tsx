@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import i18n from "@/i18n";
-import { downsampleIndices, ivLabel, type ScenarioGrid } from "@/lib/options";
-import { getChartTheme } from "@/lib/chart-theme";
-import { getPnlColors } from "@/lib/pnl-colors";
-import { useChartLifecycle } from "@/hooks/useChartLifecycle";
+import { downsampleIndices, ivLabel, type ScenarioGrid } from "@/features/options/model";
+import { getChartTheme } from "@/features/charts/theme";
+import { getPnlColors } from "@/features/charts/pnl";
+import { useChartLifecycle } from "@/features/charts/lifecycle";
 
 const MAX_DISPLAY_COLUMNS = 61;
 

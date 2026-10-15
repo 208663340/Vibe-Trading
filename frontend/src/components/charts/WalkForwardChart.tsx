@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import i18n from "@/i18n";
 import type { ValidationData } from "@/lib/api";
-import { getChartTheme } from "@/lib/chart-theme";
-import { echarts } from "@/lib/echarts";
-import { useThemeDark } from "@/lib/theme-store";
+import { getChartTheme } from "@/features/charts/theme";
+import { echarts } from "@/features/charts/echarts";
+import { useThemeDark } from "@/shared/theme";
 
 type WalkForwardWindow = NonNullable<ValidationData["walk_forward"]>["windows"][number];
 

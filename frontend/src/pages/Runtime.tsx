@@ -16,7 +16,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import { api, type LiveBrokerStatus, type LiveMandateLimits, type LiveStatus } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/cn";
 
 const RUNTIME_POLL_INTERVAL_MS = 15_000;
 const RUNTIME_CLOCK_INTERVAL_MS = 1_000;

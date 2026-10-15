@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarRange, Database, FlaskConical } from "lucide-react";
 import i18n from "@/i18n";
-import { echarts } from "@/lib/echarts";
-import { getChartTheme } from "@/lib/chart-theme";
-import { useThemeDark } from "@/lib/theme-store";
+import { echarts } from "@/features/charts/echarts";
+import { getChartTheme } from "@/features/charts/theme";
+import { useThemeDark } from "@/shared/theme";
 import type { RunData } from "@/lib/api";
 
 const BLUE = "#3676df";

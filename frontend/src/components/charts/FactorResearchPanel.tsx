@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BarChart3, Grid3x3, LineChart, Sigma } from "lucide-react";
-import { echarts } from "@/lib/echarts";
-import { getChartTheme } from "@/lib/chart-theme";
-import { useThemeDark } from "@/lib/theme-store";
-import { cn } from "@/lib/utils";
+import { echarts } from "@/features/charts/echarts";
+import { getChartTheme } from "@/features/charts/theme";
+import { useThemeDark } from "@/shared/theme";
+import { cn } from "@/shared/cn";
 import type { FactorReportPayload, FactorResult } from "@/lib/api";
 import { RunCardPanel, RunCardStat } from "@/components/run/RunCard";
 import { CorrelationMatrix } from "./CorrelationMatrix";

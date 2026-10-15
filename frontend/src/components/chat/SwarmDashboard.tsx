@@ -11,8 +11,8 @@ import {
 import {
   localizeStatus,
   type ManifestTranslation,
-} from "@/lib/swarmI18n";
-import { localizeToolName } from "@/lib/tools";
+} from "@/features/agent/swarmI18n";
+import { localizeToolName } from "@/features/agent/tools";
 import type {
   SwarmAgentDisplayStatus,
   SwarmAgentStatus,

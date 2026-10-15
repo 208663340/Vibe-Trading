@@ -7,7 +7,7 @@ import {
   applySwarmEvent,
   buildSwarmStatusFromStarted,
   buildSwarmStatusFromToolResultPreview,
-} from "@/lib/swarmStatus";
+} from "@/features/agent/swarmStatus";
 import type { SwarmRunStatus } from "@/types/agent";
 
 function makeStatus(overrides: Partial<SwarmRunStatus> = {}): SwarmRunStatus {

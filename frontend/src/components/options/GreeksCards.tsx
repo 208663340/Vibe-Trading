@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
-import type { OptionsGreeks } from "@/lib/options";
+import { cn } from "@/shared/cn";
+import type { OptionsGreeks } from "@/features/options/model";
 
 type Tone = "positive" | "negative" | "warning" | "neutral";
 

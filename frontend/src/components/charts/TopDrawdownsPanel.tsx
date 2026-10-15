@@ -1,5 +1,5 @@
 import i18n from "@/i18n";
-import type { DrawdownEpisode } from "@/lib/tearsheet";
+import type { DrawdownEpisode } from "@/features/runs/tearsheet";
 
 interface Props {
   episodes: DrawdownEpisode[];
