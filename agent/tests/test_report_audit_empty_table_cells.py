@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.tools.report_audit_tool import _parse_md_tables, extract_data_points
+from src.runtime.tools.report_audit_tool import _parse_md_tables, extract_data_points
 
 
 def test_parse_md_tables_keeps_empty_mid_cell_alignment() -> None:

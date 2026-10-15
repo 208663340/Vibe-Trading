@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.registry import (
+from src.research.factors.registry import (
     AlphaMeta,
     Registry,
     RegistryError,
@@ -72,7 +72,7 @@ def _write_alpha(zoo_dir: Path, short_id: str, zoo_id: str, *, body: str = GOOD_
 
 @pytest.fixture
 def mini_zoo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Build a fake zoo tree and make src.factors.zoo resolve into it."""
+    """Build a fake zoo tree and make src.research.factors.zoo resolve into it."""
     zoo_root = tmp_path / "factors" / "zoo"
     fake_zoo = zoo_root / "fakezoo"
     fake_zoo.mkdir(parents=True)
@@ -85,9 +85,9 @@ def mini_zoo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     _write_alpha(fake_zoo, "alpha_003", "fakezoo", body=BAD_COMPUTE_WRONG_TYPE)
     _write_alpha(fake_zoo, "alpha_004", "fakezoo", body=BAD_COMPUTE_INF)
 
-    # Make `src.factors.zoo.fakezoo.<id>` importable from tmp_path's tree by
+    # Make `src.research.factors.zoo.fakezoo.<id>` importable from tmp_path's tree by
     # monkey-patching sys.path to include tmp_path, then creating an `src`
-    # alias that points to `factors/`-as-`src.factors`.
+    # alias that points to `factors/`-as-`src.research.factors`.
     src_alias = tmp_path / "src"
     try:
         src_alias.symlink_to(tmp_path)
@@ -95,14 +95,14 @@ def mini_zoo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         # Symlinks need privileges on Windows (OSError 1314 even in an
         # otherwise healthy environment), so fall back to a real copy —
         # the same fallback the sandbox home in `core/runner.py` uses. The
-        # alias only has to present the same tree at `src/factors/...`, and
+        # alias only has to present the same tree at `src/research/factors/...`, and
         # a registry pointed at a custom zoo_root loads modules by file
         # path, so the copy never has to track later fixture writes.
         shutil.copytree(tmp_path / "factors", src_alias / "factors")
     monkeypatch.syspath_prepend(str(tmp_path))
     # Reset any cached modules from previous test
     for mod_name in list(sys.modules):
-        if mod_name.startswith("src.factors.zoo.fakezoo"):
+        if mod_name.startswith("src.research.factors.zoo.fakezoo"):
             del sys.modules[mod_name]
 
     return zoo_root
@@ -353,7 +353,7 @@ def test_custom_zoo_root_does_not_shadow_the_bundled_module(tmp_path: Path) -> N
     """A custom zoo_root must not replace a bundled alpha process-wide (#1465).
 
     Both roots derive the same ``module_path``
-    (``src.factors.zoo.<zoo>.<short>``), and the filesystem loader registered its
+    (``src.research.factors.zoo.<zoo>.<short>``), and the filesystem loader registered its
     module under that bare name in ``sys.modules``. The bundled registry's own
     ``importlib.import_module`` then returned the custom module, so a default
     ``Registry()`` silently computed the custom code.
@@ -373,7 +373,7 @@ def test_custom_zoo_root_does_not_shadow_the_bundled_module(tmp_path: Path) -> N
         """,
     )
 
-    module_path = "src.factors.zoo.qlib158.cntp5"
+    module_path = "src.research.factors.zoo.qlib158.cntp5"
     previous = sys.modules.get(module_path)
     try:
         panel = _wave_panel()

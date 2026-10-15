@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.providers.openai_codex import CodexAIMessage, _message_chunks_from_events
+from src.runtime.providers.openai_codex import CodexAIMessage, _message_chunks_from_events
 
 
 def test_completed_event_exposes_codex_token_usage() -> None:

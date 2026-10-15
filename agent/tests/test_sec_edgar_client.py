@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 import requests
 
-from backtest.loaders import sec_edgar_client as sec
+from src.backtest.loaders import sec_edgar_client as sec
 
 
 _TICKERS_PAYLOAD = {

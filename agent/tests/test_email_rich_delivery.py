@@ -8,10 +8,10 @@ from types import SimpleNamespace
 import pytest
 from pypdf import PdfReader
 
-from src.channels.bus.events import OutboundMessage
-from src.channels.bus.queue import MessageBus
-from src.channels.email import EmailChannel
-from src.channels.rich_text import render_email_html
+from src.interfaces.channels.bus.events import OutboundMessage
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.email import EmailChannel
+from src.interfaces.channels.rich_text import render_email_html
 
 
 def _channel(*, pdf_password: str = "") -> EmailChannel:
@@ -106,7 +106,7 @@ def test_per_message_pdf_keeps_report_out_of_body(monkeypatch):
             return _sample_pdf("Portfolio value: 123456")
 
     monkeypatch.setitem(sys.modules, "weasyprint", SimpleNamespace(HTML=FakeHTML))
-    monkeypatch.setattr("src.channels.rich_text._WEASYPRINT_HTML", None)
+    monkeypatch.setattr("src.interfaces.channels.rich_text._WEASYPRINT_HTML", None)
 
     asyncio.run(
         channel.send(
@@ -137,7 +137,7 @@ def test_per_message_pdf_keeps_report_out_of_body(monkeypatch):
 
 
 def test_pdf_delivery_encrypts_with_configured_password(monkeypatch):
-    monkeypatch.setattr("src.channels.rich_text.render_email_pdf", lambda _text: _sample_pdf("Protected report content"))
+    monkeypatch.setattr("src.interfaces.channels.rich_text.render_email_pdf", lambda _text: _sample_pdf("Protected report content"))
     channel = _channel(pdf_password="correct horse battery staple")
     sent = []
     monkeypatch.setattr(channel, "_smtp_send", lambda message: sent.append(message))
@@ -190,7 +190,7 @@ def test_pdf_protection_rejects_non_pdf_delivery():
 
 def test_pdf_failure_never_sends_report_as_plain_text(monkeypatch):
     import pytest
-    import src.channels.rich_text as rich_text
+    import src.interfaces.channels.rich_text as rich_text
 
     channel = _channel()
     sent = []
@@ -205,7 +205,7 @@ def test_pdf_failure_never_sends_report_as_plain_text(monkeypatch):
 
 def test_pdf_render_runs_outside_event_loop(monkeypatch):
     import threading
-    import src.channels.rich_text as rich_text
+    import src.interfaces.channels.rich_text as rich_text
 
     channel = _channel()
     main_thread = threading.get_ident()
@@ -222,10 +222,10 @@ def test_pdf_render_runs_outside_event_loop(monkeypatch):
 
 def test_packaged_fallback_generates_real_multilingual_pdf(monkeypatch):
     import pypdfium2 as pdfium
-    from src.channels.rich_text import render_email_pdf
+    from src.interfaces.channels.rich_text import render_email_pdf
 
     monkeypatch.setitem(sys.modules, "weasyprint", None)
-    monkeypatch.setattr("src.channels.rich_text._WEASYPRINT_HTML", None)
+    monkeypatch.setattr("src.interfaces.channels.rich_text._WEASYPRINT_HTML", None)
     data = render_email_pdf("# Daily report 每日报告\n\n中文报告 日本語 한국어\n\n| Asset | Weight |\n|---|---|\n| ABC | 12.5% |")
     assert data.startswith(b"%PDF")
     pdf = pdfium.PdfDocument(data)
@@ -236,8 +236,8 @@ def test_packaged_fallback_generates_real_multilingual_pdf(monkeypatch):
 
 def test_scheduled_delivery_forces_proactive_mail_but_requires_consent(monkeypatch):
     import pytest
-    import api_server
-    from src.api.scheduled_routes import _send_scheduled_briefing
+    import src.interfaces.api_server as api_server
+    from src.interfaces.api.scheduled_routes import _send_scheduled_briefing
 
     channel = _channel()
     channel.config.auto_reply_enabled = False

@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from src.session.models import Message, Session
-from src.session.store import SessionStore
+from src.runtime.session.models import Message, Session
+from src.runtime.session.store import SessionStore
 
 
 def _seed(store: SessionStore, session_id: str) -> Path:

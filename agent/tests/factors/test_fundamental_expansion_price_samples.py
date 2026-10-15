@@ -18,13 +18,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.base import zscore
-from src.factors.registry import AlphaMeta
-from src.factors.registry import get_default_registry
-from src.factors.zoo.fundamental import book_to_market
-from src.factors.zoo.fundamental import earnings_growth
-from src.factors.zoo.fundamental import fcf_yield
-from src.factors.zoo.fundamental import revenue_growth
+from src.research.factors.base import zscore
+from src.research.factors.registry import AlphaMeta
+from src.research.factors.registry import get_default_registry
+from src.research.factors.zoo.fundamental import book_to_market
+from src.research.factors.zoo.fundamental import earnings_growth
+from src.research.factors.zoo.fundamental import fcf_yield
+from src.research.factors.zoo.fundamental import revenue_growth
 
 _DATES = pd.to_datetime(["2024-01-02", "2024-01-03"])
 _CODES = ["A", "B", "C"]

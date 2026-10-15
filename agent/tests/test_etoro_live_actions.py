@@ -6,10 +6,10 @@ from contextlib import contextmanager, nullcontext
 
 import pytest
 
-from src.live import sdk_order_gate as gate
-from src.live.enforcement import OrderIntent
-from src.live.mandate.model import AssetClass, ConsentMeta, HardCaps, InstrumentType, Mandate, UniverseConstraint
-from src.trading import service
+from src.markets.live import sdk_order_gate as gate
+from src.markets.live.enforcement import OrderIntent
+from src.markets.live.mandate.model import AssetClass, ConsentMeta, HardCaps, InstrumentType, Mandate, UniverseConstraint
+from src.markets.trading import service
 
 pytestmark = pytest.mark.unit
 

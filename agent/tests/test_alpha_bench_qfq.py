@@ -16,7 +16,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from src.tools.alpha_bench_tool import _apply_qfq
+from src.runtime.tools.alpha_bench_tool import _apply_qfq
 
 _DATES = pd.to_datetime(["2023-04-24", "2023-04-25", "2023-04-26", "2023-04-27"])
 

@@ -21,11 +21,11 @@ import pytest
 import yaml
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import channels_config_routes as routes
-from src.api import state as api_state
-from src.channels import email_probe
-from src.channels.dingtalk import DINGTALK_AVAILABLE, DingTalkChannel
+import src.interfaces.api_server as api_server
+from src.interfaces.api import channels_config_routes as routes
+from src.interfaces.api import state as api_state
+from src.interfaces.channels import email_probe
+from src.interfaces.channels.dingtalk import DINGTALK_AVAILABLE, DingTalkChannel
 
 CLIENT_ID = "ding-client-id-1234567890"
 STORED_SECRET = "stored-secret-abcdefghij"

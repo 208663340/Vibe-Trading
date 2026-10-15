@@ -16,11 +16,11 @@ from pathlib import Path
 
 import pytest
 
-from src.config.limits import TOOL_RESULT_LIMIT
-from src.agent.skills import SkillsLoader
-from src.tools.load_skill_tool import LoadSkillTool
+from src.platform.config.limits import TOOL_RESULT_LIMIT
+from src.runtime.agent.skills import SkillsLoader
+from src.runtime.tools.load_skill_tool import LoadSkillTool
 
-_SKILL_ROOT = Path(__file__).resolve().parents[1] / "src" / "skills"
+_SKILL_ROOT = Path(__file__).resolve().parents[1] / "src" / "research" / "skills"
 
 
 def _skill_names() -> list[str]:

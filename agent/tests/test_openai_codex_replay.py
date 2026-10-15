@@ -16,10 +16,10 @@ import json
 
 import pytest
 
-import src.providers.openai_codex as codex_mod
-from src.agent.context import ContextBuilder
-from src.providers.chat import ChatLLM
-from src.providers.openai_codex import (
+import src.runtime.providers.openai_codex as codex_mod
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.providers.chat import ChatLLM
+from src.runtime.providers.openai_codex import (
     CodexToolCall,
     OpenAICodexLLM,
     _convert_messages,
@@ -27,7 +27,7 @@ from src.providers.openai_codex import (
     _message_chunks_from_events,
     _prompt_cache_key,
 )
-from src.providers.session_context import bind_llm_session_id, reset_llm_session_id
+from src.runtime.providers.session_context import bind_llm_session_id, reset_llm_session_id
 
 SYSTEM_PROMPT = "You are the research agent. " * 2000  # ~54K chars, like the real one
 

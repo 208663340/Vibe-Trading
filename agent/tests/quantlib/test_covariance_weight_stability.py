@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from src.quantlib.portfolio import hierarchical_risk_parity, inverse_variance_weights
+from src.research.quantlib.portfolio import hierarchical_risk_parity, inverse_variance_weights
 
 
 def test_inverse_weights_remain_finite_for_small_positive_variances() -> None:

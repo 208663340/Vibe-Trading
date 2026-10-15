@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 # The 13 alphas whose formula depends on an interior close.pct_change()
 # gap staying NaN (all fixed by the same one-keyword change).

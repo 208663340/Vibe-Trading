@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import json
 
-from src.providers.openai_codex import (
+from src.runtime.providers.openai_codex import (
     OpenAICodexLLM,
     _convert_tools,
     _events_from_lines,

@@ -1,6 +1,6 @@
 """Tests for alphavantage_loader: availability, payload parsing, error paths.
 
-All HTTP is mocked at :func:`backtest.loaders._http.throttled_get_json` (imported
+All HTTP is mocked at :func:`src.backtest.loaders._http.throttled_get_json` (imported
 into the loader module), so no test touches a live Alpha Vantage endpoint.
 """
 
@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from backtest.loaders import alphavantage_loader as av
+from src.backtest.loaders import alphavantage_loader as av
 from tests.loader_contract import assert_loader_contract
 
 

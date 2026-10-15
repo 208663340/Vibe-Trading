@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from src.tools.trade_journal_parsers import parse_eastmoney
+from src.runtime.tools.trade_journal_parsers import parse_eastmoney
 
 
 def test_parse_eastmoney_float_yyyymmdd_date() -> None:

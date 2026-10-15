@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-import api_server
+import src.interfaces.api_server as api_server
 
 
 class FakeSessionService:
@@ -20,8 +20,8 @@ def _client(
     *,
     channels_config: dict[str, object] | None = None,
 ) -> TestClient:
-    import src.channels.config as channel_config
-    import src.channels.pairing.store as pairing_store
+    import src.interfaces.channels.config as channel_config
+    import src.interfaces.channels.pairing.store as pairing_store
 
     config_path = tmp_path / "agent.json"
     config_path.write_text(

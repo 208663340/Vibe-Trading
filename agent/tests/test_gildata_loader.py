@@ -1,6 +1,6 @@
 """Tests for gildata_loader: auth gating, symbol mapping, parsing, batch resilience.
 
-All HTTP is mocked at :func:`backtest.loaders._http.throttled_post_json` (imported
+All HTTP is mocked at :func:`src.backtest.loaders._http.throttled_post_json` (imported
 into the loader module), so no test touches a live Gildata endpoint.
 """
 
@@ -10,9 +10,9 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from backtest.loaders import gildata_loader as gl
+from src.backtest.loaders import gildata_loader as gl
 from tests.loader_contract import assert_loader_contract
-from backtest.loaders.gildata_loader import (
+from src.backtest.loaders.gildata_loader import (
     DataLoader,
     _gildata_symbol,
     _parse_daily_rows,
@@ -47,7 +47,7 @@ class TestRegistration:
     """Loader self-registers with the expected metadata."""
 
     def test_registered_in_registry(self):
-        from backtest.loaders import registry
+        from src.backtest.loaders import registry
 
         registry._ensure_registered()
         assert registry.LOADER_REGISTRY.get("gildata") is DataLoader

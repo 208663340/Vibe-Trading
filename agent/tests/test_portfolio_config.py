@@ -5,15 +5,15 @@ import os
 
 import pytest
 
-from src.portfolio.config import (
+from src.markets.portfolio.config import (
     PortfolioSettingsStore,
     eligible_profiles,
     parse_settings,
     source_catalog,
 )
-from src.trading.connections import ConnectionStore
-from src.trading.profiles import profile_by_id
-from src.trading.types import TradingProfile
+from src.markets.trading.connections import ConnectionStore
+from src.markets.trading.profiles import profile_by_id
+from src.markets.trading.types import TradingProfile
 
 
 def test_portfolio_settings_round_trip_without_credentials(tmp_path):
@@ -93,8 +93,8 @@ def test_a_discovery_only_profile_cannot_back_a_portfolio_source(
     def lookup(profile_id):
         return profile if profile_id == profile.id else original_profile_by_id(profile_id)
 
-    monkeypatch.setattr("src.portfolio.config.profile_by_id", lookup)
-    monkeypatch.setattr("src.trading.connections.profile_by_id", lookup)
+    monkeypatch.setattr("src.markets.portfolio.config.profile_by_id", lookup)
+    monkeypatch.setattr("src.markets.trading.connections.profile_by_id", lookup)
     assert profile.readonly is True
     assert profile.capabilities == ("mcp.read.discovery",)
     assert profile not in eligible_profiles()

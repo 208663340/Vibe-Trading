@@ -9,8 +9,8 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from src.tools import shareholder_count_tool as sct
-from src.tools.shareholder_count_tool import ShareholderCountTool
+from src.runtime.tools import shareholder_count_tool as sct
+from src.runtime.tools.shareholder_count_tool import ShareholderCountTool
 
 # The per-period detail report: one row per disclosure, no avg/market-cap
 # columns (it never carries them).

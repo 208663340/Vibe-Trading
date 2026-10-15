@@ -9,13 +9,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest import runner
-from backtest.benchmark import _fetch_benchmark
-from backtest.engines._market_hooks import _interval_span_hours
-from backtest.loaders.base import resample_bars, source_interval
-from backtest.metrics import calc_bars_per_year
-from src.api.attribution_core import _attribution_bars_per_year
-from src.market_data import fetch_market_data
+from src.backtest import runner
+from src.backtest.benchmark import _fetch_benchmark
+from src.backtest.engines._market_hooks import _interval_span_hours
+from src.backtest.loaders.base import resample_bars, source_interval
+from src.backtest.metrics import calc_bars_per_year
+from src.interfaces.api.attribution_core import _attribution_bars_per_year
+from src.markets.market_data import fetch_market_data
 
 
 def _daily(start: str, end: str, *, freq: str = "B") -> pd.DataFrame:
@@ -194,7 +194,7 @@ class TestAnnualisation:
 
 
 def test_the_indicator_tool_fetches_whole_periods(monkeypatch):
-    import src.tools.technical_indicator_tool as mod
+    import src.runtime.tools.technical_indicator_tool as mod
 
     seen = {}
 

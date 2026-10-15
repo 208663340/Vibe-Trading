@@ -21,8 +21,8 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import alpha_routes
+import src.interfaces.api_server as api_server
+from src.interfaces.api import alpha_routes
 
 
 def _client() -> TestClient:
@@ -110,7 +110,7 @@ def test_compare_rejects_malformed_alpha_id() -> None:
 
 
 def test_compare_post_accepts_and_registers_job(monkeypatch) -> None:
-    monkeypatch.setattr("src.factors.compare_runner.compare_alphas", lambda *a, **k: dict(_OK_ENVELOPE))
+    monkeypatch.setattr("src.research.factors.compare_runner.compare_alphas", lambda *a, **k: dict(_OK_ENVELOPE))
     r = _client().post("/alpha/compare", json=_valid_body())
     assert r.status_code == 202
     body = r.json()
@@ -122,7 +122,7 @@ def test_compare_post_accepts_and_registers_job(monkeypatch) -> None:
 
 
 def test_worker_stores_ok_envelope(monkeypatch) -> None:
-    monkeypatch.setattr("src.factors.compare_runner.compare_alphas", lambda *a, **k: dict(_OK_ENVELOPE))
+    monkeypatch.setattr("src.research.factors.compare_runner.compare_alphas", lambda *a, **k: dict(_OK_ENVELOPE))
     _seed_job("aaaa1111")
     alpha_routes._run_compare_blocking("aaaa1111", ["alpha101_1", "alpha101_2"], "csi300", "2020-2025", "ir")
     job = alpha_routes.ALPHA_COMPARE_JOBS["aaaa1111"]
@@ -134,7 +134,7 @@ def test_worker_stores_ok_envelope(monkeypatch) -> None:
 def test_worker_marks_error_envelope(monkeypatch) -> None:
     err = {"status": "error", "error": "no requested alphas could be evaluated",
            "ranking": [], "skipped": [{"id": "x", "reason": "unknown"}]}
-    monkeypatch.setattr("src.factors.compare_runner.compare_alphas", lambda *a, **k: err)
+    monkeypatch.setattr("src.research.factors.compare_runner.compare_alphas", lambda *a, **k: err)
     _seed_job("bbbb2222")
     alpha_routes._run_compare_blocking("bbbb2222", ["x", "y"], "csi300", "2020-2025", "ir")
     job = alpha_routes.ALPHA_COMPARE_JOBS["bbbb2222"]
@@ -146,7 +146,7 @@ def test_worker_sanitises_unexpected_exception(monkeypatch) -> None:
     def _boom(*_a: Any, **_k: Any) -> dict[str, Any]:
         raise RuntimeError("leak: /etc/secret/path token=abc123")
 
-    monkeypatch.setattr("src.factors.compare_runner.compare_alphas", _boom)
+    monkeypatch.setattr("src.research.factors.compare_runner.compare_alphas", _boom)
     _seed_job("cccc3333")
     alpha_routes._run_compare_blocking("cccc3333", ["x", "y"], "csi300", "2020-2025", "ir")
     job = alpha_routes.ALPHA_COMPARE_JOBS["cccc3333"]

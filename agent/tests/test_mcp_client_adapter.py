@@ -20,9 +20,9 @@ from fastmcp.exceptions import McpError, ToolError
 from mcp import types as mcp_types
 from pydantic import BaseModel, field_serializer
 
-import src.tools.mcp as mcp_module
-from src.config.schema import MCPServerConfig
-from src.tools.mcp import (
+import src.runtime.tools.mcp as mcp_module
+from src.platform.config.schema import MCPServerConfig
+from src.runtime.tools.mcp import (
     MCPServerAdapter,
     build_mcp_tool_wrappers,
     format_mcp_server_name_collision_warning,
@@ -745,8 +745,8 @@ def test_build_client_uses_stdio_transport(monkeypatch) -> None:
         captured["client_kwargs"] = kwargs
         return _DummyClient()
 
-    monkeypatch.setattr("src.tools.mcp.StdioTransport", _fake_stdio_transport)
-    monkeypatch.setattr("src.tools.mcp.Client", _fake_client)
+    monkeypatch.setattr("src.runtime.tools.mcp.StdioTransport", _fake_stdio_transport)
+    monkeypatch.setattr("src.runtime.tools.mcp.Client", _fake_client)
 
     adapter = MCPServerAdapter("demo", _make_config(command="uvx", args=["demo-server"]))
     adapter._build_client()
@@ -772,8 +772,8 @@ def test_build_client_uses_sse_transport(monkeypatch) -> None:
         captured["client_kwargs"] = kwargs
         return _DummyClient()
 
-    monkeypatch.setattr("src.tools.mcp.SSETransport", _fake_sse_transport)
-    monkeypatch.setattr("src.tools.mcp.Client", _fake_client)
+    monkeypatch.setattr("src.runtime.tools.mcp.SSETransport", _fake_sse_transport)
+    monkeypatch.setattr("src.runtime.tools.mcp.Client", _fake_client)
 
     adapter = MCPServerAdapter(
         "demo",
@@ -802,8 +802,8 @@ def test_build_client_uses_streamable_http_transport(monkeypatch) -> None:
         captured["client_kwargs"] = kwargs
         return _DummyClient()
 
-    monkeypatch.setattr("src.tools.mcp.StreamableHttpTransport", _fake_http_transport)
-    monkeypatch.setattr("src.tools.mcp.Client", _fake_client)
+    monkeypatch.setattr("src.runtime.tools.mcp.StreamableHttpTransport", _fake_http_transport)
+    monkeypatch.setattr("src.runtime.tools.mcp.Client", _fake_client)
 
     adapter = MCPServerAdapter(
         "demo",

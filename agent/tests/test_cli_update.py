@@ -7,8 +7,8 @@ import json
 import pytest
 import requests
 
-from cli import _legacy
-from cli.commands import update as update_mod
+from src.interfaces.cli import _legacy
+from src.interfaces.cli.commands import update as update_mod
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +132,7 @@ def test_detect_install_kind_wheel_without_any_marker(monkeypatch) -> None:
 def test_detect_install_kind_legacy_editable_egg_info(monkeypatch) -> None:
     """Metadata without direct_url.json but an egg-info in the source tree.
 
-    Covers the case that bit us live: running ``python -m cli`` from ``agent/``
+    Covers the case that bit us live: running ``python -m src.interfaces.cli`` from ``agent/``
     resolves the distribution to ``agent/vibe_trading_ai.egg-info`` (left by
     ``pip install -e .``), which has no ``direct_url.json``.
     """

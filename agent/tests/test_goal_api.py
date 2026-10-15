@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-import api_server
-from src.session.models import Message
+import src.interfaces.api_server as api_server
+from src.runtime.session.models import Message
 
 
 def _client(tmp_path: Path, monkeypatch) -> TestClient:
@@ -153,7 +153,7 @@ def test_auto_title_closes_chat_client(tmp_path: Path, monkeypatch) -> None:
     _add_user_message(sid)
     response = MagicMock(content="NVDA Momentum Review")
 
-    with patch("src.providers.chat.ChatLLM") as chat_cls:
+    with patch("src.runtime.providers.chat.ChatLLM") as chat_cls:
         chat_cls.return_value.chat.return_value = response
         result = client.post(f"/sessions/{sid}/title/auto")
 
@@ -170,7 +170,7 @@ def test_auto_title_closes_chat_client_when_model_returns_empty(
     _add_user_message(sid)
     response = MagicMock(content="")
 
-    with patch("src.providers.chat.ChatLLM") as chat_cls:
+    with patch("src.runtime.providers.chat.ChatLLM") as chat_cls:
         chat_cls.return_value.chat.return_value = response
         result = client.post(f"/sessions/{sid}/title/auto")
 
@@ -184,7 +184,7 @@ def test_auto_title_closes_chat_client_when_provider_fails(tmp_path: Path, monke
     sid = _session_id(client, title="")
     _add_user_message(sid)
 
-    with patch("src.providers.chat.ChatLLM") as chat_cls:
+    with patch("src.runtime.providers.chat.ChatLLM") as chat_cls:
         chat_cls.return_value.chat.side_effect = RuntimeError("provider unavailable")
         result = client.post(f"/sessions/{sid}/title/auto")
 

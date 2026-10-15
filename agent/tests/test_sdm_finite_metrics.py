@@ -5,17 +5,17 @@ import math
 
 import pytest
 
-from src.strategy_store.metrics import compute_decay_metrics
-from src.strategy_store.models import (
+from src.research.strategy_store.metrics import compute_decay_metrics
+from src.research.strategy_store.models import (
     Artifact,
     ArtifactStatus,
     ArtifactType,
     BenchResult,
 )
-from src.strategy_store.sqlite_store import SqliteStrategyStore
-from src.strategy_store.store import InMemoryStrategyStore
-from src.tools.sdm_decay_scan_tool import SdmDecayScanTool
-from src.tools.sdm_status_tool import SdmStatusTool
+from src.research.strategy_store.sqlite_store import SqliteStrategyStore
+from src.research.strategy_store.store import InMemoryStrategyStore
+from src.runtime.tools.sdm_decay_scan_tool import SdmDecayScanTool
+from src.runtime.tools.sdm_status_tool import SdmStatusTool
 
 
 @pytest.mark.parametrize("field", ["ic_mean", "sharpe"])
@@ -104,8 +104,8 @@ def test_tools_report_insufficient_data_without_changing_monitoring_state(
         if backend == "memory"
         else SqliteStrategyStore(db_path=tmp_path / "sdm.db")
     )
-    monkeypatch.setattr("src.tools.sdm_decay_scan_tool._get_store", lambda: store)
-    monkeypatch.setattr("src.tools.sdm_status_tool._get_store", lambda: store)
+    monkeypatch.setattr("src.runtime.tools.sdm_decay_scan_tool._get_store", lambda: store)
+    monkeypatch.setattr("src.runtime.tools.sdm_status_tool._get_store", lambda: store)
     artifact_id = store.register_artifact(
         Artifact(
             id="",

@@ -7,11 +7,11 @@ from typing import Any
 
 import pytest
 
-from src.live import registry
-from src.live.classification import ToolClass, classify_tool
-from src.trading import profiles, service
-from src.trading.connectors.etoro import sdk as etoro_sdk
-from src.trading.connectors.etoro.client import (
+from src.markets.live import registry
+from src.markets.live.classification import ToolClass, classify_tool
+from src.markets.trading import profiles, service
+from src.markets.trading.connectors.etoro import sdk as etoro_sdk
+from src.markets.trading.connectors.etoro.client import (
     EtoroClient,
     EtoroConfig,
     EtoroConfigError,
@@ -24,15 +24,15 @@ from src.trading.connectors.etoro.client import (
     positions_root,
     set_client_factory,
 )
-from src.trading.connectors.etoro.classification import ETORO_TOOL_CLASS
-from src.trading.connectors.etoro.profiles import ETORO_EXTENDED_CAPABILITIES, ETORO_PAPER_TRADE_CAPABILITIES
+from src.markets.trading.connectors.etoro.classification import ETORO_TOOL_CLASS
+from src.markets.trading.connectors.etoro.profiles import ETORO_EXTENDED_CAPABILITIES, ETORO_PAPER_TRADE_CAPABILITIES
 
 pytestmark = pytest.mark.unit
 
 
 @pytest.fixture(autouse=True)
 def _reset_etoro_client_factory() -> None:
-    from src.trading.connectors.etoro.instruments import reset_instrument_type_cache
+    from src.markets.trading.connectors.etoro.instruments import reset_instrument_type_cache
 
     reset_instrument_type_cache()
     yield
@@ -128,7 +128,7 @@ def test_shared_credentials_across_paper_and_live_profiles(monkeypatch, tmp_path
         json.dumps({"api_key": "shared-key", "user_key": "shared-user", "profile": "paper"}),
         encoding="utf-8",
     )
-    monkeypatch.setattr("src.trading.connectors.etoro.client.config_path", lambda: cfg_path)
+    monkeypatch.setattr("src.markets.trading.connectors.etoro.client.config_path", lambda: cfg_path)
     paper_cfg = build_config({"profile": "paper"}, None)
     live_cfg = build_config({"profile": "live"}, None)
     assert paper_cfg.api_key == "shared-key"
@@ -155,7 +155,7 @@ def test_every_request_has_unique_request_id() -> None:
 
 def test_credentials_redacted_in_public_config() -> None:
     cfg = EtoroConfig(profile="paper", api_key="secret-key", user_key="secret-user")
-    from src.trading.connectors.etoro.client import public_config
+    from src.markets.trading.connectors.etoro.client import public_config
 
     payload = public_config(cfg)
     assert "secret-key" not in json.dumps(payload)
@@ -257,7 +257,7 @@ def test_place_order_uses_demo_execution_path(monkeypatch) -> None:
         captured["json"] = kwargs.get("json")
         return _FakeResponse(200, {"orderID": 42})
 
-    monkeypatch.setattr("src.trading.connectors.etoro.trading.resolve_instrument_id", lambda symbol, c: 1001)
+    monkeypatch.setattr("src.markets.trading.connectors.etoro.trading.resolve_instrument_id", lambda symbol, c: 1001)
     client = EtoroClient(cfg, transport=_transport)
     set_client_factory(lambda c: client)
 
@@ -282,7 +282,7 @@ def test_limit_place_order_sets_trigger_rate(monkeypatch) -> None:
         captured["json"] = kwargs.get("json")
         return _FakeResponse(200, {"orderID": 7})
 
-    monkeypatch.setattr("src.trading.connectors.etoro.trading.resolve_instrument_id", lambda symbol, c: 100000)
+    monkeypatch.setattr("src.markets.trading.connectors.etoro.trading.resolve_instrument_id", lambda symbol, c: 100000)
     set_client_factory(lambda c: EtoroClient(cfg, transport=_transport))
 
     result = etoro_sdk.place_order(
@@ -308,7 +308,7 @@ def test_limit_without_limit_price_errors_before_sending(monkeypatch) -> None:
         sent.append(url)
         return _FakeResponse(200, {"orderID": 7})
 
-    monkeypatch.setattr("src.trading.connectors.etoro.trading.resolve_instrument_id", lambda symbol, c: 100000)
+    monkeypatch.setattr("src.markets.trading.connectors.etoro.trading.resolve_instrument_id", lambda symbol, c: 100000)
     set_client_factory(lambda c: EtoroClient(cfg, transport=_transport))
 
     result = etoro_sdk.place_order(
@@ -376,7 +376,7 @@ def test_resolve_btc_uses_internal_symbol_full(monkeypatch) -> None:
         raise AssertionError(f"unexpected request {method} {url}")
 
     set_client_factory(lambda c: EtoroClient(cfg, transport=_transport))
-    from src.trading.connectors.etoro.instruments import resolve_instrument_id
+    from src.markets.trading.connectors.etoro.instruments import resolve_instrument_id
 
     assert resolve_instrument_id("BTC", cfg) == 100000
     assert resolve_instrument_id("Bitcoin", cfg) == 100000
@@ -395,7 +395,7 @@ def test_fuzzy_search_filters_sentinel_ids(monkeypatch) -> None:
         return _FakeResponse(200, {"items": []})
 
     set_client_factory(lambda c: EtoroClient(cfg, transport=_transport))
-    from src.trading.connectors.etoro.instruments import search_instruments
+    from src.markets.trading.connectors.etoro.instruments import search_instruments
 
     result = search_instruments("bitcoin", cfg, limit=5, mode="discover")
     assert result["status"] == "ok"
@@ -438,7 +438,7 @@ def test_crypto_query_browses_instrument_type_catalog(monkeypatch) -> None:
         raise AssertionError(f"unexpected request {method} {url} {kwargs.get('params')}")
 
     set_client_factory(lambda c: EtoroClient(cfg, transport=_transport))
-    from src.trading.connectors.etoro.instruments import search_instruments
+    from src.markets.trading.connectors.etoro.instruments import search_instruments
 
     result = search_instruments("crypto", cfg, limit=5)
     assert result["status"] == "ok"
@@ -481,7 +481,7 @@ def test_stocks_query_uses_dynamic_type_catalog(monkeypatch) -> None:
         raise AssertionError(f"unexpected request {method} {url}")
 
     set_client_factory(lambda c: EtoroClient(cfg, transport=_transport))
-    from src.trading.connectors.etoro.instruments import search_instruments
+    from src.markets.trading.connectors.etoro.instruments import search_instruments
 
     result = search_instruments("equities", cfg, limit=5)
     assert result["status"] == "ok"
@@ -506,7 +506,7 @@ def test_get_instrument_types_reads_catalog(monkeypatch) -> None:
         raise AssertionError(f"unexpected request {method} {url}")
 
     set_client_factory(lambda c: EtoroClient(cfg, transport=_transport))
-    from src.trading.connectors.etoro.instruments import get_instrument_types
+    from src.markets.trading.connectors.etoro.instruments import get_instrument_types
 
     result = get_instrument_types(cfg)
     assert result["status"] == "ok"
@@ -548,7 +548,7 @@ def test_crypto_browse_can_attach_flat_market_data_rates(monkeypatch) -> None:
         raise AssertionError(f"unexpected request {method} {url}")
 
     set_client_factory(lambda c: EtoroClient(cfg, transport=_transport))
-    from src.trading.connectors.etoro.instruments import search_instruments
+    from src.markets.trading.connectors.etoro.instruments import search_instruments
 
     result = search_instruments("crypto", cfg, limit=5, include_rates=True)
     assert result["instruments"][0]["quote"] == {"bid": 1.0, "ask": 2.0, "last": 1.5}
@@ -785,7 +785,7 @@ def test_edit_position_stops_supports_clear_contract(monkeypatch) -> None:
 
 def test_copy_rejected_on_paper_account() -> None:
     cfg = EtoroConfig(profile="paper", api_key="k", user_key="u")
-    from src.trading.connectors.etoro.copy_trading import COPY_TRADING_PAPER_UNSUPPORTED
+    from src.markets.trading.connectors.etoro.copy_trading import COPY_TRADING_PAPER_UNSUPPORTED
 
     result = etoro_sdk.copy_precheck(cfg, parent_cid=123, amount=100.0)
     assert result["status"] == "error"
@@ -883,7 +883,7 @@ def test_copy_close_posts_close(monkeypatch) -> None:
 
 
 def test_normalize_candles_flattens_nested_instrument_buckets() -> None:
-    from src.trading.connectors.etoro.sdk import _normalize_candles
+    from src.markets.trading.connectors.etoro.sdk import _normalize_candles
 
     payload = {
         "interval": "OneDay",

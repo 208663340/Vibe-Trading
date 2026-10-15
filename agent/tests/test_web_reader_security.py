@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.tools import web_reader_tool
+from src.runtime.tools import web_reader_tool
 
 
 @pytest.mark.parametrize(

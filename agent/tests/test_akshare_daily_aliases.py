@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders.akshare_loader import _INTERVAL_MAP_DAILY
+from src.backtest.loaders.akshare_loader import _INTERVAL_MAP_DAILY
 
 
 def test_lowercase_1d_and_1w_map_like_project_tokens() -> None:

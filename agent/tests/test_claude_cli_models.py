@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.providers import claude_cli, claude_cli_models
+from src.runtime.providers import claude_cli, claude_cli_models
 from tests.claude_cli_helpers import (
     install_fake_cli,
     install_fake_init_cli,
@@ -156,7 +156,7 @@ def test_malformed_control_response_is_reported_not_crashed(monkeypatch) -> None
 
 @pytest.mark.parametrize("raw", ["High", " high "])
 def test_build_llm_normalises_reasoning_effort(monkeypatch, raw) -> None:
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
     use_provider(monkeypatch)
     monkeypatch.setenv("LANGCHAIN_REASONING_EFFORT", raw)
@@ -165,7 +165,7 @@ def test_build_llm_normalises_reasoning_effort(monkeypatch, raw) -> None:
 
 
 def test_build_llm_passes_reasoning_effort_through_bind_tools(monkeypatch) -> None:
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
     use_provider(monkeypatch)
     monkeypatch.setenv("LANGCHAIN_REASONING_EFFORT", "xhigh")

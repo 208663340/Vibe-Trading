@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from backtest.loaders import okx as okx_mod
+from src.backtest.loaders import okx as okx_mod
 
 
 def _fetch_with_interval(interval: str) -> list[str]:

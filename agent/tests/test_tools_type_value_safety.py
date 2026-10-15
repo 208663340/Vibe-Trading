@@ -21,31 +21,31 @@ from typing import Any
 
 import pytest
 
-from src.tools import qveris_tool as qt
-from src.tools import shadow_account_tool as sat
-from src.tools.alpha_zoo_tool import run_alpha_zoo
-from src.tools.block_trades_tool import _clamp_days as block_trades_clamp_days
-from src.tools.fred_macro_tool import _clamp_limit as fred_clamp_limit
-from src.tools.iwencai_tool import _coerce_limit as iwencai_coerce_limit
-from src.tools.lockup_expiry_tool import _clamp_horizon as lockup_clamp_horizon
-from src.tools.margin_trading_tool import _clamp_days as margin_clamp_days
-from src.tools.northbound_tool import _clamp_lookback
-from src.tools.options_chain_tool import _coerce_expiration
-from src.tools.options_pricing_tool import OptionsPricingTool
-from src.tools.report_audit_tool import ReportAuditTool
-from src.tools.research_reports_tool import _clamp_limit as research_clamp_limit
-from src.tools.sec_filings_tool import _clamp_limit as sec_clamp_limit
-from src.tools.session_search_tool import SessionSearchTool
-from src.tools.shareholder_count_tool import _clamp_periods as shareholder_clamp_periods
-from src.tools.stock_news_tool import _clamp_limit as stock_news_clamp_limit
-from src.tools.symbol_search_tool import _clamp_limit as symbol_clamp_limit
-from src.tools.trading_connector_tool import (
+from src.runtime.tools import qveris_tool as qt
+from src.runtime.tools import shadow_account_tool as sat
+from src.runtime.tools.alpha_zoo_tool import run_alpha_zoo
+from src.runtime.tools.block_trades_tool import _clamp_days as block_trades_clamp_days
+from src.runtime.tools.fred_macro_tool import _clamp_limit as fred_clamp_limit
+from src.runtime.tools.iwencai_tool import _coerce_limit as iwencai_coerce_limit
+from src.runtime.tools.lockup_expiry_tool import _clamp_horizon as lockup_clamp_horizon
+from src.runtime.tools.margin_trading_tool import _clamp_days as margin_clamp_days
+from src.runtime.tools.northbound_tool import _clamp_lookback
+from src.runtime.tools.options_chain_tool import _coerce_expiration
+from src.runtime.tools.options_pricing_tool import OptionsPricingTool
+from src.runtime.tools.report_audit_tool import ReportAuditTool
+from src.runtime.tools.research_reports_tool import _clamp_limit as research_clamp_limit
+from src.runtime.tools.sec_filings_tool import _clamp_limit as sec_clamp_limit
+from src.runtime.tools.session_search_tool import SessionSearchTool
+from src.runtime.tools.shareholder_count_tool import _clamp_periods as shareholder_clamp_periods
+from src.runtime.tools.stock_news_tool import _clamp_limit as stock_news_clamp_limit
+from src.runtime.tools.symbol_search_tool import _clamp_limit as symbol_clamp_limit
+from src.runtime.tools.trading_connector_tool import (
     InvalidTradingArgument,
     TradingPlaceOrderTool,
     _int_or_none,
     _num_or_none,
 )
-from src.tools.web_search_tool import WebSearchTool
+from src.runtime.tools.web_search_tool import WebSearchTool
 
 pytestmark = pytest.mark.unit
 
@@ -142,7 +142,7 @@ def test_place_order_never_reaches_service_with_malformed_arguments(
         calls.append(kwargs)
         raise AssertionError("place_order must not be called for malformed input")
 
-    monkeypatch.setattr("src.tools.trading_connector_tool.place_order", fail_place_order)
+    monkeypatch.setattr("src.runtime.tools.trading_connector_tool.place_order", fail_place_order)
 
     payload = json.loads(
         TradingPlaceOrderTool().execute(
@@ -163,7 +163,7 @@ def test_place_order_still_forwards_valid_arguments(monkeypatch: pytest.MonkeyPa
         seen.update({"symbol": symbol, "connection": connection, **kwargs})
         return {"status": "ok"}
 
-    monkeypatch.setattr("src.tools.trading_connector_tool.place_order", fake_place_order)
+    monkeypatch.setattr("src.runtime.tools.trading_connector_tool.place_order", fake_place_order)
 
     payload = json.loads(
         TradingPlaceOrderTool().execute(
@@ -348,7 +348,7 @@ def test_session_search_rejects_malformed_max_results(monkeypatch: pytest.Monkey
     def fail_get_shared_index() -> Any:
         raise AssertionError("the shared session index must not be opened")
 
-    monkeypatch.setattr("src.session.search.get_shared_index", fail_get_shared_index)
+    monkeypatch.setattr("src.runtime.session.search.get_shared_index", fail_get_shared_index)
 
     for bad in (float("nan"), float("inf"), "lots", {}, []):
         payload = json.loads(SessionSearchTool().execute(query="btc", max_results=bad))
@@ -365,7 +365,7 @@ def test_session_search_absent_max_results_defaults_to_three(monkeypatch: pytest
             seen.update({"query": query, "max_sessions": max_sessions})
             return []
 
-    monkeypatch.setattr("src.session.search.get_shared_index", lambda: FakeIndex())
+    monkeypatch.setattr("src.runtime.session.search.get_shared_index", lambda: FakeIndex())
 
     payload = json.loads(SessionSearchTool().execute(query="btc"))
 

@@ -28,8 +28,8 @@ from pathlib import Path
 
 import pytest
 
-from src.config import AgentConfig
-from src.config.loader import (
+from src.platform.config import AgentConfig
+from src.platform.config.loader import (
     _resolve_swarm_agent_config_path,
     load_swarm_agent_config,
 )

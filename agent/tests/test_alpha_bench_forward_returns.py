@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.tools.alpha_bench_tool import _compute_forward_returns
+from src.runtime.tools.alpha_bench_tool import _compute_forward_returns
 
 
 def test_forward_returns_preserve_missing_close_boundaries() -> None:

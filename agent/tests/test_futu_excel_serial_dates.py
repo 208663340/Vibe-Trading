@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from src.tools.trade_journal_parsers import parse_futu
+from src.runtime.tools.trade_journal_parsers import parse_futu
 
 
 def test_parse_futu_excel_serial_date_and_time() -> None:

@@ -18,7 +18,7 @@ from typing import Any, Callable
 
 import pytest
 
-from src.providers.chat import LLMResponse, ToolCallRequest
+from src.runtime.providers.chat import LLMResponse, ToolCallRequest
 
 
 # ---------------------------------------------------------------------------
@@ -128,9 +128,9 @@ def _run(
     max_iterations: int = 5,
 ) -> dict[str, Any]:
     """Build an AgentLoop, wire up a scratch run_dir, and execute."""
-    from src.agent.loop import AgentLoop
-    from src.memory.persistent import PersistentMemory
-    from src.tools import build_registry
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
 
     pm = PersistentMemory()
     agent = AgentLoop(
@@ -147,7 +147,7 @@ def _run(
 
 def _read_trace(run_dir: str) -> list[dict[str, Any]]:
     """Read trace.jsonl entries from a run directory."""
-    from src.agent.trace import TraceWriter
+    from src.runtime.agent.trace import TraceWriter
 
     return TraceWriter.read(Path(run_dir))
 

@@ -15,9 +15,9 @@ import pandas as pd
 import pytest
 import requests
 
-import backtest.loaders.okx as okx
-from backtest.loaders.base import DEFAULT_MAX_RETRIES
-from backtest.loaders.okx import DataLoader
+import src.backtest.loaders.okx as okx
+from src.backtest.loaders.base import DEFAULT_MAX_RETRIES
+from src.backtest.loaders.okx import DataLoader
 from tests.loader_contract import assert_loader_contract
 
 S = int(pd.Timestamp("2026-05-01").timestamp() * 1000)
@@ -160,7 +160,7 @@ def test_invalid_timeout_env_values_fall_back_on_reload(monkeypatch, caplog):
     monkeypatch.setenv("OKX_TIMEOUT_S", "abc")
     monkeypatch.setenv("OKX_FETCH_BUDGET_S", "nope")
     try:
-        with caplog.at_level("WARNING", logger="backtest.loaders.base"):
+        with caplog.at_level("WARNING", logger="src.backtest.loaders.base"):
             module = importlib.reload(okx)
 
         assert module._OKX_TIMEOUT in {15, 20}  # 15 was original, 20 is new default

@@ -1,6 +1,6 @@
 """Tests for GET /runs/{run_id}/positions/sectors and resolve_industry_board.
 
-All Eastmoney HTTP is mocked at the import sites in ``src.tools.sector_tool``
+All Eastmoney HTTP is mocked at the import sites in ``src.runtime.tools.sector_tool``
 (:func:`get_json` / :func:`resolve_secid`), so no test touches a live endpoint.
 Run directories are fabricated under ``tmp_path`` mirroring the layout the
 run-detail handler expects (``RUNS_DIR/<run_id>/artifacts/positions.csv``).
@@ -24,9 +24,9 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import runs_routes
-from src.tools.sector_tool import resolve_industry_board
+import src.interfaces.api_server as api_server
+from src.interfaces.api import runs_routes
+from src.runtime.tools.sector_tool import resolve_industry_board
 
 RUN_ID = "run_20260801_120000"
 
@@ -104,8 +104,8 @@ def test_positions_sectors_happy_path(tmp_path: Path, monkeypatch) -> None:
     client = _client(tmp_path, monkeypatch)
 
     with patch(
-        "src.tools.sector_tool.resolve_secid", side_effect=_fake_resolve_secid
-    ) as resolve, patch("src.tools.sector_tool.get_json", side_effect=_fake_get_json) as get:
+        "src.runtime.tools.sector_tool.resolve_secid", side_effect=_fake_resolve_secid
+    ) as resolve, patch("src.runtime.tools.sector_tool.get_json", side_effect=_fake_get_json) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
     assert response.status_code == 200
@@ -150,8 +150,8 @@ def test_non_a_share_symbols_never_call_eastmoney(tmp_path: Path, monkeypatch) -
     )
     client = _client(tmp_path, monkeypatch)
 
-    with patch("src.tools.sector_tool.resolve_secid") as resolve, patch(
-        "src.tools.sector_tool.get_json"
+    with patch("src.runtime.tools.sector_tool.resolve_secid") as resolve, patch(
+        "src.runtime.tools.sector_tool.get_json"
     ) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
@@ -179,14 +179,14 @@ def test_positions_sectors_cache_hit_makes_zero_network_calls(tmp_path: Path, mo
     client = _client(tmp_path, monkeypatch)
 
     with patch(
-        "src.tools.sector_tool.resolve_secid", side_effect=_fake_resolve_secid
-    ), patch("src.tools.sector_tool.get_json", side_effect=_fake_get_json):
+        "src.runtime.tools.sector_tool.resolve_secid", side_effect=_fake_resolve_secid
+    ), patch("src.runtime.tools.sector_tool.get_json", side_effect=_fake_get_json):
         first = client.get(f"/runs/{RUN_ID}/positions/sectors")
     assert first.status_code == 200
     assert first.json()["cached"] is False
 
-    with patch("src.tools.sector_tool.resolve_secid") as resolve, patch(
-        "src.tools.sector_tool.get_json"
+    with patch("src.runtime.tools.sector_tool.resolve_secid") as resolve, patch(
+        "src.runtime.tools.sector_tool.get_json"
     ) as get:
         second = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
@@ -204,8 +204,8 @@ def test_positions_sectors_refresh_bypasses_cache(tmp_path: Path, monkeypatch) -
     client = _client(tmp_path, monkeypatch)
 
     with patch(
-        "src.tools.sector_tool.resolve_secid", side_effect=_fake_resolve_secid
-    ), patch("src.tools.sector_tool.get_json", side_effect=_fake_get_json) as get:
+        "src.runtime.tools.sector_tool.resolve_secid", side_effect=_fake_resolve_secid
+    ), patch("src.runtime.tools.sector_tool.get_json", side_effect=_fake_get_json) as get:
         first = client.get(f"/runs/{RUN_ID}/positions/sectors")
         second = client.get(f"/runs/{RUN_ID}/positions/sectors?refresh=1")
 
@@ -221,8 +221,8 @@ def test_positions_sectors_corrupt_cache_recomputes(tmp_path: Path, monkeypatch)
     client = _client(tmp_path, monkeypatch)
 
     with patch(
-        "src.tools.sector_tool.resolve_secid", side_effect=_fake_resolve_secid
-    ), patch("src.tools.sector_tool.get_json", side_effect=_fake_get_json) as get:
+        "src.runtime.tools.sector_tool.resolve_secid", side_effect=_fake_resolve_secid
+    ), patch("src.runtime.tools.sector_tool.get_json", side_effect=_fake_get_json) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
     assert response.status_code == 200
@@ -287,8 +287,8 @@ def test_symlinked_artifacts_dir_returns_no_positions_note(tmp_path: Path, monke
     _symlink_or_skip(run_dir / "artifacts", real_artifacts, target_is_directory=True)
     client = _client(tmp_path, monkeypatch)
 
-    with patch("src.tools.sector_tool.resolve_secid") as resolve, patch(
-        "src.tools.sector_tool.get_json"
+    with patch("src.runtime.tools.sector_tool.resolve_secid") as resolve, patch(
+        "src.runtime.tools.sector_tool.get_json"
     ) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
@@ -316,8 +316,8 @@ def test_symlinked_cache_file_rejected_without_write_through(tmp_path: Path, mon
     _symlink_or_skip(run_dir / "artifacts" / "sector_map.json", target)
     client = _client(tmp_path, monkeypatch)
 
-    with patch("src.tools.sector_tool.resolve_secid") as resolve, patch(
-        "src.tools.sector_tool.get_json"
+    with patch("src.runtime.tools.sector_tool.resolve_secid") as resolve, patch(
+        "src.runtime.tools.sector_tool.get_json"
     ) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
@@ -347,8 +347,8 @@ def test_symlinked_positions_csv_rejected_without_read(tmp_path: Path, monkeypat
     _symlink_or_skip(run_dir / "artifacts" / "positions.csv", target)
     client = _client(tmp_path, monkeypatch)
 
-    with patch("src.tools.sector_tool.resolve_secid") as resolve, patch(
-        "src.tools.sector_tool.get_json"
+    with patch("src.runtime.tools.sector_tool.resolve_secid") as resolve, patch(
+        "src.runtime.tools.sector_tool.get_json"
     ) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
@@ -394,8 +394,8 @@ def test_large_symbol_list_caps_network_lookups(tmp_path: Path, monkeypatch) -> 
         }
 
     with patch(
-        "src.tools.sector_tool.resolve_secid", side_effect=any_secid
-    ), patch("src.tools.sector_tool.get_json", side_effect=any_get_json) as get:
+        "src.runtime.tools.sector_tool.resolve_secid", side_effect=any_secid
+    ), patch("src.runtime.tools.sector_tool.get_json", side_effect=any_get_json) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
     assert response.status_code == 200
@@ -451,8 +451,8 @@ def test_mixed_book_resolves_a_shares_after_non_a_share_prefix(tmp_path: Path, m
     client = _client(tmp_path, monkeypatch)
 
     with patch(
-        "src.tools.sector_tool.resolve_secid", side_effect=_any_secid
-    ), patch("src.tools.sector_tool.get_json", side_effect=_any_get_json) as get:
+        "src.runtime.tools.sector_tool.resolve_secid", side_effect=_any_secid
+    ), patch("src.runtime.tools.sector_tool.get_json", side_effect=_any_get_json) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
     assert response.status_code == 200
@@ -480,8 +480,8 @@ def test_mixed_book_cap_still_bounds_a_share_lookups(tmp_path: Path, monkeypatch
     client = _client(tmp_path, monkeypatch)
 
     with patch(
-        "src.tools.sector_tool.resolve_secid", side_effect=_any_secid
-    ), patch("src.tools.sector_tool.get_json", side_effect=_any_get_json) as get:
+        "src.runtime.tools.sector_tool.resolve_secid", side_effect=_any_secid
+    ), patch("src.runtime.tools.sector_tool.get_json", side_effect=_any_get_json) as get:
         response = client.get(f"/runs/{RUN_ID}/positions/sectors")
 
     assert response.status_code == 200
@@ -536,8 +536,8 @@ def test_shared_executor_created_once_and_bounded(tmp_path: Path, monkeypatch) -
         }
 
     with patch(
-        "src.tools.sector_tool.resolve_secid", side_effect=any_secid
-    ), patch("src.tools.sector_tool.get_json", side_effect=any_get_json) as get:
+        "src.runtime.tools.sector_tool.resolve_secid", side_effect=any_secid
+    ), patch("src.runtime.tools.sector_tool.get_json", side_effect=any_get_json) as get:
         first = client.get(f"/runs/{RUN_ID}/positions/sectors")
         second = client.get(f"/runs/{RUN_ID}/positions/sectors?refresh=1")
 
@@ -567,8 +567,8 @@ class TestResolveIndustryBoard:
 
     def test_returns_board_row_name_with_spt_1(self) -> None:
         with patch(
-            "src.tools.sector_tool.resolve_secid", return_value="1.600519"
-        ), patch("src.tools.sector_tool.get_json", return_value=_SLIST_600519) as get:
+            "src.runtime.tools.sector_tool.resolve_secid", return_value="1.600519"
+        ), patch("src.runtime.tools.sector_tool.get_json", return_value=_SLIST_600519) as get:
             assert resolve_industry_board("600519.SH") == "白酒Ⅱ"
 
         params = get.call_args.kwargs["params"]
@@ -577,8 +577,8 @@ class TestResolveIndustryBoard:
         assert params["fltt"] == "2"
 
     def test_non_a_share_returns_none_without_any_call(self) -> None:
-        with patch("src.tools.sector_tool.resolve_secid") as resolve, patch(
-            "src.tools.sector_tool.get_json"
+        with patch("src.runtime.tools.sector_tool.resolve_secid") as resolve, patch(
+            "src.runtime.tools.sector_tool.get_json"
         ) as get:
             assert resolve_industry_board("AAPL.US") is None
 
@@ -587,12 +587,12 @@ class TestResolveIndustryBoard:
 
     def test_request_failure_returns_none(self) -> None:
         with patch(
-            "src.tools.sector_tool.resolve_secid", return_value="1.600519"
-        ), patch("src.tools.sector_tool.get_json", side_effect=RuntimeError("HTTP 429")):
+            "src.runtime.tools.sector_tool.resolve_secid", return_value="1.600519"
+        ), patch("src.runtime.tools.sector_tool.get_json", side_effect=RuntimeError("HTTP 429")):
             assert resolve_industry_board("600519.SH") is None
 
     def test_missing_board_row_returns_none(self) -> None:
         with patch(
-            "src.tools.sector_tool.resolve_secid", return_value="0.159913"
-        ), patch("src.tools.sector_tool.get_json", return_value=_SLIST_159913_NO_BOARD):
+            "src.runtime.tools.sector_tool.resolve_secid", return_value="0.159913"
+        ), patch("src.runtime.tools.sector_tool.get_json", return_value=_SLIST_159913_NO_BOARD):
             assert resolve_industry_board("159913.SZ") is None

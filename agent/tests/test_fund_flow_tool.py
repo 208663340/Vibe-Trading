@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from src.tools.fund_flow_tool import FundFlowTool
+from src.runtime.tools.fund_flow_tool import FundFlowTool
 
 _DAILY_PAYLOAD = {
     "data": {
@@ -27,9 +27,9 @@ class TestSuccessEnvelope:
 
     def test_daily_flow_parses_into_buckets(self):
         with patch(
-            "src.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
+            "src.runtime.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
         ), patch(
-            "src.tools.fund_flow_tool.get_json", return_value=_DAILY_PAYLOAD
+            "src.runtime.tools.fund_flow_tool.get_json", return_value=_DAILY_PAYLOAD
         ):
             text = FundFlowTool().execute(codes=["600519.SH"], period="daily", days=30)
 
@@ -53,9 +53,9 @@ class TestSuccessEnvelope:
 
     def test_days_cap_keeps_most_recent_rows(self):
         with patch(
-            "src.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
+            "src.runtime.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
         ), patch(
-            "src.tools.fund_flow_tool.get_json", return_value=_DAILY_PAYLOAD
+            "src.runtime.tools.fund_flow_tool.get_json", return_value=_DAILY_PAYLOAD
         ):
             text = FundFlowTool().execute(codes=["600519.SH"], period="daily", days=1)
 
@@ -66,9 +66,9 @@ class TestSuccessEnvelope:
     def test_minute_period_uses_minute_url(self):
         minute_payload = {"data": {"klines": ["2024-01-02 09:31,1.0,2.0,3.0,4.0,5.0"]}}
         with patch(
-            "src.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
+            "src.runtime.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
         ), patch(
-            "src.tools.fund_flow_tool.get_json", return_value=minute_payload
+            "src.runtime.tools.fund_flow_tool.get_json", return_value=minute_payload
         ) as mock_get:
             text = FundFlowTool().execute(codes=["600519.SH"], period="min")
 
@@ -87,9 +87,9 @@ class TestPerSymbolIsolation:
             return None if symbol == "BAD" else "1.600519"
 
         with patch(
-            "src.tools.fund_flow_tool.resolve_secid", side_effect=fake_resolve
+            "src.runtime.tools.fund_flow_tool.resolve_secid", side_effect=fake_resolve
         ), patch(
-            "src.tools.fund_flow_tool.get_json", return_value=_DAILY_PAYLOAD
+            "src.runtime.tools.fund_flow_tool.get_json", return_value=_DAILY_PAYLOAD
         ):
             text = FundFlowTool().execute(codes=["BAD", "600519.SH"])
 
@@ -100,11 +100,11 @@ class TestPerSymbolIsolation:
 
     def test_http_failure_on_one_symbol_is_captured(self):
         with patch(
-            "src.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
+            "src.runtime.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
         ), patch(
-            "src.tools.fund_flow_tool.get_json", side_effect=RuntimeError("HTTP 429")
+            "src.runtime.tools.fund_flow_tool.get_json", side_effect=RuntimeError("HTTP 429")
         ), patch(
-            "src.tools.fund_flow_tool.tushare_fallbacks.fetch_fund_flow",
+            "src.runtime.tools.fund_flow_tool.tushare_fallbacks.fetch_fund_flow",
             side_effect=RuntimeError("no fallback"),
         ):
             text = FundFlowTool().execute(codes=["600519.SH"])
@@ -121,11 +121,11 @@ class TestPerSymbolIsolation:
             "rows": [{"timestamp": "2024-01-03", "main": 100.0}],
         }
         with patch(
-            "src.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
+            "src.runtime.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
         ), patch(
-            "src.tools.fund_flow_tool.get_json", side_effect=RuntimeError("HTTP 429")
+            "src.runtime.tools.fund_flow_tool.get_json", side_effect=RuntimeError("HTTP 429")
         ), patch(
-            "src.tools.fund_flow_tool.tushare_fallbacks.fetch_fund_flow",
+            "src.runtime.tools.fund_flow_tool.tushare_fallbacks.fetch_fund_flow",
             return_value=fallback,
         ) as fallback_fetch:
             text = FundFlowTool().execute(codes=["600519.SH"], period="daily", days=5)
@@ -140,8 +140,8 @@ class TestPerSymbolIsolation:
     def test_malformed_row_skipped(self):
         bad = {"data": {"klines": ["garbage", "2024-01-03,-50.0,20.0,-5.0,-30.0,-20.0"]}}
         with patch(
-            "src.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
-        ), patch("src.tools.fund_flow_tool.get_json", return_value=bad):
+            "src.runtime.tools.fund_flow_tool.resolve_secid", return_value="1.600519"
+        ), patch("src.runtime.tools.fund_flow_tool.get_json", return_value=bad):
             text = FundFlowTool().execute(codes=["600519.SH"])
 
         rows = json.loads(text)["data"]["600519.SH"]["rows"]

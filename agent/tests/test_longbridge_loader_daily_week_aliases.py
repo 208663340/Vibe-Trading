@@ -6,8 +6,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from backtest.loaders import longbridge as loader_mod
-from backtest.loaders.base import NoAvailableSourceError
+from src.backtest.loaders import longbridge as loader_mod
+from src.backtest.loaders.base import NoAvailableSourceError
 
 
 def test_lowercase_1d_and_1w_map_like_project_tokens() -> None:

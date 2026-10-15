@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from src.session.models import Session
-from src.session.store import SessionStore
+from src.runtime.session.models import Session
+from src.runtime.session.store import SessionStore
 
 
 def test_list_sessions_skips_invalid_status_and_keeps_siblings(tmp_path: Path) -> None:

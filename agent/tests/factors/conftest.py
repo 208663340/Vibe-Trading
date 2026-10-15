@@ -6,8 +6,8 @@ Two responsibilities:
    We disable all sockets during factor tests via ``pytest-socket``. If the
    package is not installed we skip silently (CI installs it from the
    ``dev`` extra in ``pyproject.toml``).
-2. **Import root** — the bundled zoo modules live at ``agent/src/factors/zoo``
-   and import each other via the ``src.factors.*`` package path. The pytest
+2. **Import root** — the bundled zoo modules live at ``agent/src/research/factors/zoo``
+   and import each other via the ``src.research.factors.*`` package path. The pytest
    config in ``pyproject.toml`` already sets ``pythonpath = ["agent"]`` so no
    action is needed here, but we keep this file in the test directory so the
    socket hook is scoped to factors-only.

@@ -6,7 +6,7 @@ index was non-datetime (e.g. RangeIndex or Int64Index).
 """
 
 import pandas as pd
-from backtest.metrics import calc_metrics
+from src.backtest.metrics import calc_metrics
 
 
 def test_calc_metrics_auto_detect_bars_per_year_with_integer_index():

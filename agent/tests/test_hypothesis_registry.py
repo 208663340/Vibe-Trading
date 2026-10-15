@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from src.hypotheses import HypothesisRegistry, default_hypotheses_path
-from src.tools.hypothesis_tool import (
+from src.research.hypotheses import HypothesisRegistry, default_hypotheses_path
+from src.runtime.tools.hypothesis_tool import (
     CreateHypothesisTool,
     LinkBacktestTool,
     SearchHypothesesTool,

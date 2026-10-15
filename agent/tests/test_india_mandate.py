@@ -9,13 +9,13 @@ Confirms the ``in_equity`` asset class flows through the live mandate gate:
 
 from __future__ import annotations
 
-from src.live.enforcement import (
+from src.markets.live.enforcement import (
     BREACH_KIND_UNIVERSE,
     OrderIntent,
     _resolve_loader,
     check_mandate,
 )
-from src.live.mandate.model import (
+from src.markets.live.mandate.model import (
     MANDATE_SCHEMA_VERSION,
     AssetClass,
     ConsentMeta,

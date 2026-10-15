@@ -1,4 +1,4 @@
-"""Tests for live-runtime runner liveness (src/live/runtime/liveness.py,
+"""Tests for live-runtime runner liveness (src/markets/live/runtime/liveness.py,
 SPEC.md §7.5 #3).
 
 Heartbeat write/read, the alive predicate against a staleness threshold, and
@@ -13,9 +13,9 @@ from pathlib import Path
 
 import pytest
 
-from src.live import paths
-from src.live.runtime import liveness
-from src.live.runtime.liveness import (
+from src.markets.live import paths
+from src.markets.live.runtime import liveness
+from src.markets.live.runtime.liveness import (
     DEFAULT_STALENESS_MS,
     heartbeats_dir,
     is_runner_alive,

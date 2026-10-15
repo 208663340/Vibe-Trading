@@ -26,8 +26,8 @@ from tests.slack_stubs import install_slack_stubs
 
 install_slack_stubs()
 
-from src.channels.bus.queue import MessageBus  # noqa: E402
-from src.channels.slack import SlackChannel  # noqa: E402
+from src.interfaces.channels.bus.queue import MessageBus  # noqa: E402
+from src.interfaces.channels.slack import SlackChannel  # noqa: E402
 
 AUTH_TEST_URL = "https://slack.com/api/auth.test"
 CONNECTIONS_OPEN_URL = "https://slack.com/api/apps.connections.open"

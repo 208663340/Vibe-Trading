@@ -29,9 +29,9 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-import src.providers.llm as llm_mod
-from src.providers.llm import build_llm, uses_responses_api
+import src.interfaces.api_server as api_server
+import src.runtime.providers.llm as llm_mod
+from src.runtime.providers.llm import build_llm, uses_responses_api
 
 
 @pytest.fixture(autouse=True)
@@ -276,7 +276,7 @@ class TestUnsupportedProviders:
         up by a broad predicate. If this fails, someone widened the allowlist —
         confirm a real request to that endpoint succeeded before updating it.
         """
-        from src.providers.capabilities import _PROVIDERS
+        from src.runtime.providers.capabilities import _PROVIDERS
 
         allowlisted = {
             name for name, caps in _PROVIDERS.items() if caps.top_level_reasoning_effort
@@ -728,7 +728,7 @@ class TestSettingsAllowlist:
     """The settings API admits the explicit 'none' value and says so."""
 
     def test_none_is_a_valid_reasoning_effort(self) -> None:
-        from src.api.settings_routes import LLM_PROVIDER_BY_NAME
+        from src.interfaces.api.settings_routes import LLM_PROVIDER_BY_NAME
 
         # Levels are per provider now; every provider without its own list
         # inherits the default one, which keeps the explicit "none".

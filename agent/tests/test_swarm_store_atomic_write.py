@@ -20,9 +20,9 @@ import threading
 
 import pytest
 
-import src.swarm.store as store_mod
-from src.swarm.models import SwarmRun
-from src.swarm.store import SwarmStore
+import src.runtime.swarm.store as store_mod
+from src.runtime.swarm.models import SwarmRun
+from src.runtime.swarm.store import SwarmStore
 from tests.module_os_helpers import patch_module_os
 
 
@@ -126,7 +126,7 @@ def test_load_run_missing_is_fast_none(tmp_path, monkeypatch):
 
 
 def test_concurrent_stores_writing_same_run_do_not_crash_or_clobber(tmp_path):
-    """mcp_server._get_swarm_store() builds a fresh SwarmStore per tool call,
+    """src.interfaces.mcp_server._get_swarm_store() builds a fresh SwarmStore per tool call,
     so two pollers of the same run each hold their own _write_lock. A shared
     ".tmp" name let one writer's rename consume the other's unwritten temp
     file, raising FileNotFoundError for the loser (or silently discarding
@@ -167,8 +167,8 @@ def test_concurrent_task_stores_saving_one_task_do_not_crash(tmp_path):
     """The TaskStore sibling of the SwarmStore race (#1536): two workers writing
     the same task file each used ``task-<id>.tmp``, so one rename could consume
     the other's temp file and raise FileNotFoundError."""
-    from src.swarm.models import SwarmTask
-    from src.swarm.task_store import TaskStore
+    from src.runtime.swarm.models import SwarmTask
+    from src.runtime.swarm.task_store import TaskStore
 
     errors: list[Exception] = []
 
@@ -199,7 +199,7 @@ def test_concurrent_task_stores_saving_one_task_do_not_crash(tmp_path):
 def test_posix_oserror_is_not_treated_transient():
     """POSIX no-op guard: a plain OSError (no winerror) is never transient,
     so off-Windows the retry loop runs exactly once — no behavior change."""
-    from src.swarm.store import _is_transient_windows_error
+    from src.runtime.swarm.store import _is_transient_windows_error
 
     assert _is_transient_windows_error(OSError("posix")) is False
     assert _is_transient_windows_error(_winerr(13)) is False

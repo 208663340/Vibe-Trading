@@ -18,11 +18,11 @@ from unittest.mock import patch
 import pytest
 from pydantic import ValidationError
 
-import src.agent.loop as loop_mod
-import src.agent.tuning as tuning_mod
-import src.swarm.worker as worker_mod
-from src.config.env_schema import AgentTuningConfig, SwarmConfig
-from src.providers.chat import LLMResponse, ProviderStreamError, ToolCallRequest
+import src.runtime.agent.loop as loop_mod
+import src.runtime.agent.tuning as tuning_mod
+import src.runtime.swarm.worker as worker_mod
+from src.platform.config.env_schema import AgentTuningConfig, SwarmConfig
+from src.runtime.providers.chat import LLMResponse, ProviderStreamError, ToolCallRequest
 
 # Substantive prose so _classify_deliverable accepts the tool-less worker.
 FINAL_TEXT = (
@@ -354,9 +354,9 @@ def _run_loop(
     Returns:
         Tuple of ``(result, sleeps)``.
     """
-    from src.agent.loop import AgentLoop
-    from src.memory.persistent import PersistentMemory
-    from src.tools import build_registry
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
 
     sleeps: list[float] = []
     monkeypatch.setattr(loop_mod._time, "sleep", lambda s: sleeps.append(s))
@@ -492,9 +492,9 @@ def test_loop_cancel_during_retry_delay_returns_without_waiting_it_out(
     """
     llm = _FlakyLoopLLM([_transient_error()], "Final answer.")
 
-    from src.agent.loop import AgentLoop
-    from src.memory.persistent import PersistentMemory
-    from src.tools import build_registry
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
 
     monkeypatch.setattr(tuning_mod, "STREAM_RETRY_DELAY_S", 30.0, raising=False)
     monkeypatch.setattr(tuning_mod, "STREAM_RETRY_MAX_DELAY_S", 30.0, raising=False)

@@ -30,9 +30,9 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.grounding import GroundingLedger
-from src.agent.grounding.evidence import ARCHIVE_MANIFEST
-from src.agent.tool_results import _archive_backtest_result
+from src.runtime.agent.grounding import GroundingLedger
+from src.runtime.agent.grounding.evidence import ARCHIVE_MANIFEST
+from src.runtime.agent.tool_results import _archive_backtest_result
 
 RP = {
     "final_value": 1129817.32,
@@ -786,7 +786,7 @@ def test_a_fraction_or_a_multiple_is_a_readable_declaration(two_runs: GroundingL
 
 def test_only_a_literal_square_or_cube_is_evaluated() -> None:
     """``9^9^9`` would take the process down computing a number of 370 million digits."""
-    from src.agent.grounding.policies import _formula_in_note
+    from src.runtime.agent.grounding.policies import _formula_in_note
 
     assert _formula_in_note("9^9^9") is None
     assert _formula_in_note("2^10 + 1") is None
@@ -843,7 +843,7 @@ def test_the_correction_asks_for_the_answer_alone(two_runs: GroundingLedger) -> 
 def test_structured_artifact_reader_grounds_only_shown_rows(
     two_runs: GroundingLedger, monkeypatch: pytest.MonkeyPatch, mode: str
 ) -> None:
-    from src.tools.run_artifact_tool import read_run_artifact
+    from src.runtime.tools.run_artifact_tool import read_run_artifact
 
     monkeypatch.setenv("VIBE_TRADING_ALLOWED_RUN_ROOTS", str(two_runs.run_dir))
     result = read_run_artifact(
@@ -869,7 +869,7 @@ def test_structured_artifact_reader_grounds_only_shown_rows(
 def test_structured_reader_never_grounds_model_written_table(
     two_runs: GroundingLedger, monkeypatch: pytest.MonkeyPatch, changed: str
 ) -> None:
-    from src.tools.run_artifact_tool import read_run_artifact
+    from src.runtime.tools.run_artifact_tool import read_run_artifact
 
     monkeypatch.setenv("VIBE_TRADING_ALLOWED_RUN_ROOTS", str(two_runs.run_dir))
     table = two_runs.run_dir / "rp" / "artifacts" / "target_positions.csv"
@@ -891,7 +891,7 @@ def test_structured_reader_never_grounds_model_written_table(
 def test_structured_reader_checks_engine_hash_and_scope(
     two_runs: GroundingLedger, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from src.tools.run_artifact_tool import read_run_artifact
+    from src.runtime.tools.run_artifact_tool import read_run_artifact
 
     monkeypatch.setenv("VIBE_TRADING_ALLOWED_RUN_ROOTS", str(two_runs.run_dir))
     table = two_runs.run_dir / "rp" / "artifacts" / "target_positions.csv"

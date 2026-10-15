@@ -12,7 +12,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-from backtest.loaders.rsshub_events import EVENT_COLUMNS, enrich_price_frames_with_events
+from src.backtest.loaders.rsshub_events import EVENT_COLUMNS, enrich_price_frames_with_events
 
 
 class _StubProvider:

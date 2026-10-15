@@ -11,8 +11,8 @@ import pypdfium2 as pdfium
 import pytest
 from reportlab.pdfbase import pdfmetrics
 
-from src.shadow_account.pdf_fallback import _ensure_font
-from src.tools import pdf_report
+from src.markets.shadow_account.pdf_fallback import _ensure_font
+from src.runtime.tools import pdf_report
 
 
 def _text(path):

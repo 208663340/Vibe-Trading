@@ -12,11 +12,11 @@ from __future__ import annotations
 
 import pytest
 
-import src.providers.llm as llm_mod
-from src.config.accessor import reset_env_config
-from src.swarm.models import SwarmRun, public_model_metadata, public_provider_metadata
-from src.swarm.runtime import SwarmRuntime
-from src.swarm.store import SwarmStore
+import src.runtime.providers.llm as llm_mod
+from src.platform.config.accessor import reset_env_config
+from src.runtime.swarm.models import SwarmRun, public_model_metadata, public_provider_metadata
+from src.runtime.swarm.runtime import SwarmRuntime
+from src.runtime.swarm.store import SwarmStore
 
 
 def _base_kwargs() -> dict:
@@ -344,7 +344,7 @@ def test_accepts_other_providers(provider: str, model: str) -> None:
 
 def test_claude_cli_xhigh_effort_is_public_metadata() -> None:
     """``xhigh`` is a real claude-cli level, so run records must show it."""
-    from src.swarm.models import public_reasoning_effort
+    from src.runtime.swarm.models import public_reasoning_effort
 
     assert public_reasoning_effort("xhigh") == "xhigh"
     assert public_reasoning_effort("XHIGH") == "xhigh"

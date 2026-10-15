@@ -1,10 +1,10 @@
-"""AST-based purity gate over ``agent/src/factors/zoo/**/*.py``.
+"""AST-based purity gate over ``agent/src/research/factors/zoo/**/*.py``.
 
 Enforces the Alpha-Zoo pure-function contract (see
 ``docs/alpha-zoo/spec.md`` §"Alpha 纯函数契约"):
 
 * Allowed imports (whitelist): ``pandas``, ``numpy``, ``scipy[.*]``,
-  ``src.factors.base``, ``__future__``, ``typing``, ``math``, ``dataclasses``.
+  ``src.research.factors.base``, ``__future__``, ``typing``, ``math``, ``dataclasses``.
 * Forbidden names (anywhere in the module — load, attribute access, string
   argument of ``getattr``): ``os``, ``sys``, ``subprocess``, ``socket``,
   ``urllib``, ``requests``, ``httpx``, ``aiohttp``, ``pathlib``, ``Path``,
@@ -30,7 +30,7 @@ import pytest
 # ---------------------------------------------------------------- constants
 
 
-ZOO_ROOT = Path(__file__).resolve().parents[2] / "src" / "factors" / "zoo"
+ZOO_ROOT = Path(__file__).resolve().parents[2] / "src" / "research" / "factors" / "zoo"
 
 _ALLOWED_IMPORT_ROOTS: frozenset[str] = frozenset(
     {
@@ -43,8 +43,8 @@ _ALLOWED_IMPORT_ROOTS: frozenset[str] = frozenset(
         "dataclasses",
     }
 )
-# ``src.factors.base`` is the only operator import accepted from this repo.
-_ALLOWED_REPO_IMPORT = "src.factors.base"
+# ``src.research.factors.base`` is the only operator import accepted from this repo.
+_ALLOWED_REPO_IMPORT = "src.research.factors.base"
 
 _FORBIDDEN_NAMES: frozenset[str] = frozenset(
     {

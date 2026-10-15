@@ -8,8 +8,8 @@ hash; a different window deliberately misses.
 
 from __future__ import annotations
 
-from src.shadow_account.backtester import _cache_key, _cache_result, load_cached_result
-from src.shadow_account.models import (
+from src.markets.shadow_account.backtester import _cache_key, _cache_result, load_cached_result
+from src.markets.shadow_account.models import (
     AttributionBreakdown,
     ShadowBacktestResult,
     ShadowProfile,
@@ -66,7 +66,7 @@ def _result() -> ShadowBacktestResult:
 def test_cache_hits_only_on_exact_window_and_journal(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
     profile = _profile()
-    from src.shadow_account.storage import runs_dir
+    from src.markets.shadow_account.storage import runs_dir
 
     _cache_result(
         runs_dir(profile.shadow_id), _result(),

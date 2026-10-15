@@ -16,7 +16,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.china_futures import (
+from src.backtest.engines.china_futures import (
     ChinaFuturesEngine,
     _extract_product,
     _MULTIPLIER,
@@ -25,7 +25,7 @@ from backtest.engines.china_futures import (
     _PRICE_LIMIT,
     _DEFAULT_PRICE_LIMIT,
 )
-from backtest.models import Position
+from src.backtest.models import Position
 
 
 # ---------------------------------------------------------------------------
@@ -403,7 +403,7 @@ class TestLeverageFromMargin:
         assert second_order.leverage == pytest.approx(1 / 0.12)
 
     def test_composite_delegates_symbol_leverage(self) -> None:
-        from backtest.engines.composite import CompositeEngine
+        from src.backtest.engines.composite import CompositeEngine
 
         engine = CompositeEngine(
             {"initial_cash": 1_000_000, "codes": ["AAPL.US", "IF2406.CFFEX"]},

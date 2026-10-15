@@ -8,15 +8,15 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.agent.context import ContextBuilder
-from src.agent.loop import AgentLoop
-from src.agent.tools import ToolRegistry
-from src.agent.trace import TraceWriter
-from src.tools.fund_flow_tool import FundFlowTool
-from src.tools.get_fundamentals_tool import GetFundamentalsTool
-from src.tools.market_data_tool import MarketDataTool
-from src.tools.market_screener_tool import MarketScreenerTool
-from src.tools.symbol_search_tool import SymbolSearchTool
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.tools import ToolRegistry
+from src.runtime.agent.trace import TraceWriter
+from src.runtime.tools.fund_flow_tool import FundFlowTool
+from src.runtime.tools.get_fundamentals_tool import GetFundamentalsTool
+from src.runtime.tools.market_data_tool import MarketDataTool
+from src.runtime.tools.market_screener_tool import MarketScreenerTool
+from src.runtime.tools.symbol_search_tool import SymbolSearchTool
 
 
 @pytest.mark.parametrize(
@@ -128,7 +128,7 @@ def test_cleared_result_replays_run_scoped_readonly_cache(monkeypatch, tmp_path:
     back without another external fetch and without weakening write-tool
     deduplication.
     """
-    from src.agent.loop import KEEP_RECENT
+    from src.runtime.agent.loop import KEEP_RECENT
 
     calls: list[dict[str, object]] = []
     tool = FundFlowTool()

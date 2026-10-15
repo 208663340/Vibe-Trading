@@ -2,8 +2,8 @@
 
 import pandas as pd
 
-from backtest.loaders.fmp_loader import _parse_historical
-from backtest.loaders.base import NoAvailableSourceError
+from src.backtest.loaders.fmp_loader import _parse_historical
+from src.backtest.loaders.base import NoAvailableSourceError
 
 
 def _stable_bars():
@@ -28,7 +28,7 @@ def test_parse_stable_empty_array_returns_none():
 
 def test_explicit_fmp_does_not_fallback_to_yahoo(monkeypatch):
     """Explicit source=fmp must not silently return yahoo data when FMP 403s."""
-    from src.market_data import fetch_market_data
+    from src.markets.market_data import fetch_market_data
 
     class FailFMP:
         name = "fmp"
@@ -79,8 +79,8 @@ def test_explicit_fmp_does_not_fallback_to_yahoo(monkeypatch):
 
 def test_explicit_fmp_unavailable_raises_no_fallback(monkeypatch):
     """registry: explicit fmp unavailable must raise, not fallback to yahoo."""
-    from backtest.loaders.registry import get_loader_cls_with_fallback
-    from backtest.loaders import registry
+    from src.backtest.loaders.registry import get_loader_cls_with_fallback
+    from src.backtest.loaders import registry
 
     fmp_cls = registry.LOADER_REGISTRY["fmp"]
     monkeypatch.setattr(fmp_cls, "is_available", lambda self: False)
@@ -98,8 +98,8 @@ def test_explicit_fmp_unavailable_names_the_missing_credential(monkeypatch):
     beside it, so the user got "unavailable and does not fall back" with no
     remedy — the one thing that error exists to deliver.
     """
-    from backtest.loaders.registry import get_loader_cls_with_fallback
-    from backtest.loaders import registry
+    from src.backtest.loaders.registry import get_loader_cls_with_fallback
+    from src.backtest.loaders import registry
 
     fmp_cls = registry.LOADER_REGISTRY["fmp"]
     monkeypatch.setattr(fmp_cls, "is_available", lambda self: False)
@@ -122,7 +122,7 @@ def test_auto_chain_still_walks_past_an_unavailable_fmp():
     ahead of the source that actually serves — because a chain that reaches
     fmp only after something already succeeded proves nothing.
     """
-    from src.market_data import fetch_market_data
+    from src.markets.market_data import fetch_market_data
 
     served = pd.DataFrame(
         [{"trade_date": pd.Timestamp("2024-01-03"), "open": 1, "high": 1,

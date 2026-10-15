@@ -13,8 +13,8 @@ from datetime import date
 
 import pytest
 
-from src.entities.cashflow import CashFlow, CashFlowSeries
-from src.quantlib.performance import (
+from src.platform.entities.cashflow import CashFlow, CashFlowSeries
+from src.research.quantlib.performance import (
     DEFAULT_EXTERNAL_KINDS,
     FLOW_TIMING_END,
     FLOW_TIMING_START,

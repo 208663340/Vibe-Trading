@@ -9,7 +9,7 @@ fields.
 
 from __future__ import annotations
 
-from src.security.scanner import (
+from src.platform.security.scanner import (
     neutralize_special_tokens,
     with_security_warnings,
 )

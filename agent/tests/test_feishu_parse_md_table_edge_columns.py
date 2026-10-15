@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.channels.feishu import FeishuChannel
+from src.interfaces.channels.feishu import FeishuChannel
 
 
 def test_parse_md_table_keeps_trailing_empty_header_column() -> None:

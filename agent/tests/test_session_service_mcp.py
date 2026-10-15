@@ -6,10 +6,10 @@ import asyncio
 import time
 from pathlib import Path
 
-from src.session.events import EventBus
-from src.session.models import Attempt
-from src.session.service import SessionService
-from src.session.store import SessionStore
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import Attempt
+from src.runtime.session.service import SessionService
+from src.runtime.session.store import SessionStore
 
 
 class _DummyIndex:
@@ -38,13 +38,13 @@ def test_run_with_agent_keeps_event_loop_responsive_during_registry_build(
         time.sleep(0.25)
         return object()
 
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: _DummyIndex())
-    monkeypatch.setattr("src.tools.build_registry", _slow_build_registry)
-    monkeypatch.setattr("src.providers.chat.ChatLLM", lambda: object())
-    monkeypatch.setattr("src.memory.persistent.PersistentMemory", lambda: object())
-    monkeypatch.setattr("src.agent.loop.AgentLoop", _DummyAgentLoop)
-    monkeypatch.setattr("src.config.loader.load_runtime_agent_config", lambda overrides=None: object())
-    monkeypatch.setattr("src.config.loader.sanitize_session_overrides", lambda overrides: dict(overrides))
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: _DummyIndex())
+    monkeypatch.setattr("src.runtime.tools.build_registry", _slow_build_registry)
+    monkeypatch.setattr("src.runtime.providers.chat.ChatLLM", lambda: object())
+    monkeypatch.setattr("src.runtime.memory.persistent.PersistentMemory", lambda: object())
+    monkeypatch.setattr("src.runtime.agent.loop.AgentLoop", _DummyAgentLoop)
+    monkeypatch.setattr("src.platform.config.loader.load_runtime_agent_config", lambda overrides=None: object())
+    monkeypatch.setattr("src.platform.config.loader.sanitize_session_overrides", lambda overrides: dict(overrides))
 
     service = SessionService(
         store=SessionStore(tmp_path / "sessions"),

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.engines.options_portfolio import bs_greeks, bs_price
+from src.backtest.engines.options_portfolio import bs_greeks, bs_price
 
 
 def test_bs_price_zero_strike_returns_intrinsic() -> None:

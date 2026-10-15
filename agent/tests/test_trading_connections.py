@@ -7,9 +7,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.trading import profiles, service
-from src.tools import build_registry
-from src.tools.trading_connector_tool import TradingPlaceOrderTool, TradingSelectConnectionTool
+from src.markets.trading import profiles, service
+from src.runtime.tools import build_registry
+from src.runtime.tools.trading_connector_tool import TradingPlaceOrderTool, TradingSelectConnectionTool
 
 pytestmark = pytest.mark.unit
 
@@ -25,8 +25,8 @@ def test_remote_call_requires_enabled_tool(monkeypatch: pytest.MonkeyPatch) -> N
         enabled_tools=["get_portfolio"],
         auth=SimpleNamespace(cache_dir="/tmp/vibe-no-token"),
     )
-    monkeypatch.setattr("src.config.loader.load_agent_config", lambda: _agent_config(server))
-    monkeypatch.setattr("src.live.registry.has_cached_oauth_token", lambda *_: True)
+    monkeypatch.setattr("src.platform.config.loader.load_agent_config", lambda: _agent_config(server))
+    monkeypatch.setattr("src.markets.live.registry.has_cached_oauth_token", lambda *_: True)
 
     result = service.get_positions("robinhood-live-mcp")
 
@@ -41,8 +41,8 @@ def test_remote_call_requires_cached_oauth(monkeypatch: pytest.MonkeyPatch) -> N
         enabled_tools=["get_equity_positions"],
         auth=SimpleNamespace(cache_dir="/tmp/vibe-no-token"),
     )
-    monkeypatch.setattr("src.config.loader.load_agent_config", lambda: _agent_config(server))
-    monkeypatch.setattr("src.live.registry.has_cached_oauth_token", lambda *_: False)
+    monkeypatch.setattr("src.platform.config.loader.load_agent_config", lambda: _agent_config(server))
+    monkeypatch.setattr("src.markets.live.registry.has_cached_oauth_token", lambda *_: False)
 
     result = service.get_positions("robinhood-live-mcp")
 
@@ -79,11 +79,11 @@ def test_ibkr_official_profile_advertises_verified_portfolio_reads(
             }
 
     monkeypatch.setattr(
-        "src.config.loader.load_agent_config",
+        "src.platform.config.loader.load_agent_config",
         lambda: SimpleNamespace(mcp_servers={"ibkr": server}),
     )
-    monkeypatch.setattr("src.live.registry.has_cached_oauth_token", lambda *_: True)
-    monkeypatch.setattr("src.tools.mcp.MCPServerAdapter", _Adapter)
+    monkeypatch.setattr("src.markets.live.registry.has_cached_oauth_token", lambda *_: True)
+    monkeypatch.setattr("src.runtime.tools.mcp.MCPServerAdapter", _Adapter)
 
     assert profile.capabilities == ("account.read", "positions.read")
     assert service.get_account(profile.id)["summary"][0]["tag"] == "NetLiquidation"
@@ -126,7 +126,7 @@ def test_place_order_tool_treats_zero_unused_sizing_field_as_absent(
         calls.append({"symbol": symbol, "connection": connection, **kwargs})
         return {"status": "ok", "echo": kwargs}
 
-    monkeypatch.setattr("src.tools.trading_connector_tool.place_order", fake_place_order)
+    monkeypatch.setattr("src.runtime.tools.trading_connector_tool.place_order", fake_place_order)
 
     quantity_result = json.loads(
         TradingPlaceOrderTool().execute(
@@ -163,13 +163,13 @@ def test_live_broker_mcp_wrappers_are_hidden_from_agent_registry(monkeypatch: py
         auth=SimpleNamespace(cache_dir="/tmp/vibe-token"),
     )
     agent_config = SimpleNamespace(mcp_servers={"robinhood": server})
-    monkeypatch.setattr("src.live.registry.is_live_broker", lambda *_: True)
-    monkeypatch.setattr("src.live.registry.should_register_live_channel", lambda **_: True)
+    monkeypatch.setattr("src.markets.live.registry.is_live_broker", lambda *_: True)
+    monkeypatch.setattr("src.markets.live.registry.should_register_live_channel", lambda **_: True)
 
     def fail_build_wrappers(*_, **__):
         raise AssertionError("live broker wrappers should not be registered directly")
 
-    monkeypatch.setattr("src.tools.mcp.build_mcp_tool_wrappers", fail_build_wrappers)
+    monkeypatch.setattr("src.runtime.tools.mcp.build_mcp_tool_wrappers", fail_build_wrappers)
 
     registry = build_registry(agent_config=agent_config, include_shell_tools=False)
 
@@ -202,9 +202,9 @@ def test_robinhood_generic_reads_use_current_agentic_mcp_tool_names(
             calls.append((remote_name, dict(arguments)))
             return {"status": "ok"}
 
-    monkeypatch.setattr("src.config.loader.load_agent_config", lambda: _agent_config(server))
-    monkeypatch.setattr("src.live.registry.has_cached_oauth_token", lambda *_: True)
-    monkeypatch.setattr("src.tools.mcp.MCPServerAdapter", _Adapter)
+    monkeypatch.setattr("src.platform.config.loader.load_agent_config", lambda: _agent_config(server))
+    monkeypatch.setattr("src.markets.live.registry.has_cached_oauth_token", lambda *_: True)
+    monkeypatch.setattr("src.runtime.tools.mcp.MCPServerAdapter", _Adapter)
 
     assert service.get_account("robinhood-live-mcp")["status"] == "ok"
     assert service.get_positions("robinhood-live-mcp")["status"] == "ok"

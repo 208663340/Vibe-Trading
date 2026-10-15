@@ -18,8 +18,8 @@ from typing import Any, Callable
 
 import pytest
 
-from src.agent.loop import AgentLoop
-from src.providers.chat import ProviderStreamError
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.providers.chat import ProviderStreamError
 
 
 class _StubLLMResponse:
@@ -134,8 +134,8 @@ class _StubLLMCancelMidStream:
 
 def _build_agent(llm: Any, max_iter: int = 3, tmp_run_dir: Path | None = None) -> AgentLoop:
     """Build an AgentLoop with a real (but empty) registry and a stub LLM."""
-    from src.tools import build_registry
-    from src.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
+    from src.runtime.memory.persistent import PersistentMemory
 
     pm = PersistentMemory()
     agent = AgentLoop(

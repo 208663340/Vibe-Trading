@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from src.session.service import SessionService
+from src.runtime.session.service import SessionService
 
 
 def _write_metrics_csv(run_dir: Path, header: str, row: str) -> None:

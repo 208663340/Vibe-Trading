@@ -7,7 +7,7 @@ import threading
 
 import pytest
 
-from src.session.events import EventBus
+from src.runtime.session.events import EventBus
 
 
 async def subscribed(bus):

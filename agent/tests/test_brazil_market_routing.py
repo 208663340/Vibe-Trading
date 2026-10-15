@@ -7,17 +7,17 @@ from __future__ import annotations
 
 import pytest
 
-from backtest.benchmark import MARKET_BENCHMARKS, _infer_market
-from backtest.engines._market_hooks import _detect_market, code_currency
-from backtest.engines.brazil_equity import BrazilEquityEngine
-from backtest.engines.composite import _build_rule_engines
-from backtest.loaders.base import normalize_declared_quote_currency
-from backtest.loaders.registry import FALLBACK_CHAINS, price_caliber
-from backtest.loaders.yahoo_loader import _is_supported as yahoo_is_supported
-from backtest.loaders.yfinance_loader import _to_yfinance_symbol
-from backtest.runner import _create_market_engine, _detect_source
-from src.market_data import detect_source
-from src.tools.stock_profile_tool import _market_for
+from src.backtest.benchmark import MARKET_BENCHMARKS, _infer_market
+from src.backtest.engines._market_hooks import _detect_market, code_currency
+from src.backtest.engines.brazil_equity import BrazilEquityEngine
+from src.backtest.engines.composite import _build_rule_engines
+from src.backtest.loaders.base import normalize_declared_quote_currency
+from src.backtest.loaders.registry import FALLBACK_CHAINS, price_caliber
+from src.backtest.loaders.yahoo_loader import _is_supported as yahoo_is_supported
+from src.backtest.loaders.yfinance_loader import _to_yfinance_symbol
+from src.backtest.runner import _create_market_engine, _detect_source
+from src.markets.market_data import detect_source
+from src.runtime.tools.stock_profile_tool import _market_for
 
 
 @pytest.mark.parametrize("symbol", ["PETR4.SA", "VALE3.SA", "BOVA11.SA", "HGLG11.SA", "AAPL34.SA", "PETR4F.SA"])

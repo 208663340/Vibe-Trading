@@ -21,11 +21,11 @@ import json
 
 from fastmcp import Client
 
-import mcp_server as ms
+import src.interfaces.mcp_server as ms
 
 
 def test_two_concurrent_clients_do_not_share_a_goal_session(tmp_path, monkeypatch):
-    from src.goal import GoalStore
+    from src.runtime.goal import GoalStore
 
     monkeypatch.setattr(ms, "_goal_store", GoalStore(db_path=tmp_path / "g.db"))
     monkeypatch.setattr(ms, "_mcp_session_id", None)

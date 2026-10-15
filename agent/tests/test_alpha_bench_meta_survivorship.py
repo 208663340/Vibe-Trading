@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from src.factors import cli_handlers
+from src.research.factors import cli_handlers
 
 
 def _ns(**overrides):
@@ -98,7 +98,7 @@ def _reg(monkeypatch):
 @pytest.fixture()
 def _captured_html_context(monkeypatch):
     """Capture the context dict handed to the HTML renderer, write nothing."""
-    import src.tools.alpha_bench_tool as tool
+    import src.runtime.tools.alpha_bench_tool as tool
 
     captured = {}
 
@@ -111,7 +111,7 @@ def _captured_html_context(monkeypatch):
 
 
 def _run(monkeypatch, capsys, args, result):
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     monkeypatch.setattr(legacy_mod, "run_bench", lambda **kw: result)
     rc = cli_handlers.cmd_alpha_bench(args)
@@ -149,7 +149,7 @@ def test_meta_key_absent_from_envelope_and_context_when_loader_has_none(capsys, 
 # above stayed green. These tests assert on the rendered HTML string instead.
 # ---------------------------------------------------------------------------
 
-import src.tools.alpha_bench_tool as tool
+import src.runtime.tools.alpha_bench_tool as tool
 
 _RENDER_CTX = {
     "csp": tool._CSP,

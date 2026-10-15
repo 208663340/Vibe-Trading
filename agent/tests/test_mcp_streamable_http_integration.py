@@ -46,8 +46,8 @@ def _make_agent_json(tmp_path: Path, server_name: str, *, port: int, **server_kw
 
 
 def test_remote_streamable_http_tool_appears_in_registry(tmp_path: Path) -> None:
-    from src.config.loader import load_agent_config
-    from src.tools import build_registry
+    from src.platform.config.loader import load_agent_config
+    from src.runtime.tools import build_registry
 
     with running_http_mcp_server_on_random_port(
         _FIXTURE_SERVER,
@@ -64,8 +64,8 @@ def test_remote_streamable_http_tool_appears_in_registry(tmp_path: Path) -> None
 
 
 def test_remote_streamable_http_tool_is_callable_and_returns_expected_result(tmp_path: Path) -> None:
-    from src.config.loader import load_agent_config
-    from src.tools import build_registry
+    from src.platform.config.loader import load_agent_config
+    from src.runtime.tools import build_registry
 
     with running_http_mcp_server_on_random_port(
         _FIXTURE_SERVER,
@@ -86,8 +86,8 @@ def test_remote_streamable_http_tool_is_callable_and_returns_expected_result(tmp
 
 
 def test_enabled_tools_filter_limits_remote_streamable_http_tools(tmp_path: Path) -> None:
-    from src.config.loader import load_agent_config
-    from src.tools import build_registry
+    from src.platform.config.loader import load_agent_config
+    from src.runtime.tools import build_registry
 
     with running_http_mcp_server_on_random_port(
         _FIXTURE_SERVER,
@@ -109,8 +109,8 @@ def test_enabled_tools_filter_limits_remote_streamable_http_tools(tmp_path: Path
 
 def test_unreachable_streamable_http_server_does_not_block_local_tools(tmp_path: Path) -> None:
     """An unreachable streamable HTTP server must be skipped with a warning."""
-    from src.config.loader import load_agent_config
-    from src.tools import build_registry
+    from src.platform.config.loader import load_agent_config
+    from src.runtime.tools import build_registry
 
     with reserved_local_port() as unused_port:
         bad_url = f"http://127.0.0.1:{unused_port}{HTTP_PATH}"

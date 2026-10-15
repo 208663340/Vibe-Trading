@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.session.models import Attempt, Message, Session
+from src.runtime.session.models import Attempt, Message, Session
 
 
 def test_session_models_emit_timezone_aware_iso_timestamps() -> None:

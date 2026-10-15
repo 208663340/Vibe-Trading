@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 N_ROWS = 60
 GAP_ROW = 20  # past both alphas' min_warmup_bars (7 and 22)

@@ -7,11 +7,11 @@ import tempfile
 
 import pytest
 
-from backtest import validation
+from src.backtest import validation
 
 
 def test_rejects_missing_run_dir_argument() -> None:
-    with pytest.raises(SystemExit, match="Usage: python -m backtest.validation <run_dir>"):
+    with pytest.raises(SystemExit, match="Usage: python -m src.backtest.validation <run_dir>"):
         validation._parse_run_dir(["validation"])
 
 

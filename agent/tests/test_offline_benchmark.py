@@ -17,7 +17,7 @@ from types import SimpleNamespace
 import pandas as pd
 import pytest
 
-import backtest.runner as runner
+import src.backtest.runner as runner
 
 _DATES = pd.bdate_range("2026-01-05", periods=5)
 _STOCK_CLOSE = [100.0, 110.0, 120.0, 130.0, 140.0]
@@ -114,7 +114,7 @@ def _run_main(
         def fetch(self, *args, **kwargs):
             return {}
 
-    monkeypatch.setattr("backtest.benchmark.YfinanceLoader", _NoNetwork)
+    monkeypatch.setattr("src.backtest.benchmark.YfinanceLoader", _NoNetwork)
 
     runner.main(run_dir)
     card = json.loads((run_dir / "run_card.json").read_text(encoding="utf-8"))
@@ -189,7 +189,7 @@ def test_inner_loader_frames_are_sanitised_like_the_snapshot() -> None:
 @pytest.mark.parametrize("source", ["local", "qveris", "tickerall", "fmp", "nobitex", "wallex"])
 @pytest.mark.parametrize("loader_name", ["same", "yahoo"])
 def test_source_bound_benchmark_never_switches_provider(monkeypatch, source, loader_name):
-    from backtest.benchmark import resolve_benchmark
+    from src.backtest.benchmark import resolve_benchmark
 
     calls = []
     network_calls = []
@@ -201,7 +201,7 @@ def test_source_bound_benchmark_never_switches_provider(monkeypatch, source, loa
             network_calls.append(args)
             return {_BENCH: _bars(_BENCH_CLOSE)}
 
-    monkeypatch.setattr("backtest.benchmark.YfinanceLoader", NetworkLoader)
+    monkeypatch.setattr("src.backtest.benchmark.YfinanceLoader", NetworkLoader)
     result = resolve_benchmark(
         ["AAPL.US"], source, "2026-01-05", "2026-01-09", explicit=_BENCH, loader=loader
     )
@@ -214,7 +214,7 @@ def test_source_bound_benchmark_never_switches_provider(monkeypatch, source, loa
 @pytest.mark.parametrize("benchmark_available", [True, False])
 def test_real_local_csv_benchmark_reaches_run_metrics(tmp_path, monkeypatch, benchmark_available):
     """Exercise CSV -> actual loader -> runner -> run card with no network."""
-    from backtest.loaders import local_loader
+    from src.backtest.loaders import local_loader
 
     bridge = tmp_path / "bridge.json"
     symbols = [("AAPL.US", _STOCK_CLOSE)]
@@ -247,7 +247,7 @@ def test_real_local_csv_benchmark_reaches_run_metrics(tmp_path, monkeypatch, ben
             network_calls.append(args)
             return {_BENCH: _bars(_BENCH_CLOSE)}
 
-    monkeypatch.setattr("backtest.benchmark.YfinanceLoader", NetworkLoader)
+    monkeypatch.setattr("src.backtest.benchmark.YfinanceLoader", NetworkLoader)
     runner.main(run)
     card = json.loads((run / "run_card.json").read_text())
     assert network_calls == []

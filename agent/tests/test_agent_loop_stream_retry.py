@@ -14,8 +14,8 @@ from typing import Any, Callable
 
 import pytest
 
-import src.agent.tuning as tuning_mod
-from src.providers.chat import LLMResponse, ProviderStreamError
+import src.runtime.agent.tuning as tuning_mod
+from src.runtime.providers.chat import LLMResponse, ProviderStreamError
 
 
 class _FlakyLoopLLM:
@@ -123,9 +123,9 @@ def _run(
     Returns:
         The AgentLoop result dict.
     """
-    from src.agent.loop import AgentLoop
-    from src.memory.persistent import PersistentMemory
-    from src.tools import build_registry
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
 
     monkeypatch.setattr(tuning_mod, "STREAM_RETRY_DELAY_S", 0.0, raising=False)
     pm = PersistentMemory()

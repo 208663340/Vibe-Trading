@@ -11,16 +11,16 @@ from types import SimpleNamespace
 
 import pytest
 
-import api_server  # noqa: F401
-from src.api import settings_routes
-from src.providers import claude_cli
-from src.providers.capabilities import get_provider_capabilities
-from src.providers.chat import ChatLLM
-from src.swarm.models import public_provider_metadata
+import src.interfaces.api_server as api_server  # noqa: F401
+from src.interfaces.api import settings_routes
+from src.runtime.providers import claude_cli
+from src.runtime.providers.capabilities import get_provider_capabilities
+from src.runtime.providers.chat import ChatLLM
+from src.runtime.swarm.models import public_provider_metadata
 from tests.claude_cli_helpers import install_fake_cli, payload, tool, use_provider
 
 _PROVIDERS_JSON = (
-    Path(__file__).resolve().parents[1] / "src" / "providers" / "llm_providers.json"
+    Path(__file__).resolve().parents[1] / "src" / "runtime" / "providers" / "llm_providers.json"
 )
 
 
@@ -50,7 +50,7 @@ def test_claude_cli_label_survives_public_run_metadata() -> None:
 
 
 def test_sync_provider_env_clears_openai_transport(monkeypatch) -> None:
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
     use_provider(monkeypatch)
     monkeypatch.setenv("OPENAI_API_KEY", "sk-should-be-removed")
@@ -63,7 +63,7 @@ def test_sync_provider_env_clears_openai_transport(monkeypatch) -> None:
 
 
 def test_build_llm_returns_cli_wrapper(monkeypatch) -> None:
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
     use_provider(monkeypatch)
     model = llm.build_llm()
@@ -387,8 +387,8 @@ def test_settings_report_cli_login(monkeypatch) -> None:
 
 
 def test_preflight_uses_cli_login(monkeypatch) -> None:
-    import src.providers.llm as llm
-    from src import preflight
+    import src.runtime.providers.llm as llm
+    from src.platform import preflight
 
     monkeypatch.setenv("LANGCHAIN_PROVIDER", "claude-cli")
     monkeypatch.setenv("LANGCHAIN_MODEL_NAME", "claude-opus-5-5")

@@ -19,7 +19,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
+import src.interfaces.api_server as api_server
 
 pytestmark = pytest.mark.unit
 
@@ -279,7 +279,7 @@ def test_live_status_uses_registry_profile_id(tmp_path: Path, monkeypatch) -> No
         readonly=True,
     )
     monkeypatch.setattr(
-        "src.trading.profiles.list_profiles", lambda: [registry_profile]
+        "src.markets.trading.profiles.list_profiles", lambda: [registry_profile]
     )
     checked_profiles: list[str] = []
 
@@ -474,7 +474,7 @@ def test_live_status_normalizes_null_permission_metadata_from_safe_registry_prof
         readonly=True,
     )
     monkeypatch.setattr(
-        "src.trading.profiles.list_profiles", lambda: [registry_profile]
+        "src.markets.trading.profiles.list_profiles", lambda: [registry_profile]
     )
     monkeypatch.setattr(
         api_server,
@@ -510,7 +510,7 @@ def test_live_status_does_not_assert_readonly_without_complete_safe_capabilities
         readonly=True,
     )
     monkeypatch.setattr(
-        "src.trading.profiles.list_profiles", lambda: [registry_profile]
+        "src.markets.trading.profiles.list_profiles", lambda: [registry_profile]
     )
     monkeypatch.setattr(
         api_server,
@@ -641,7 +641,7 @@ def test_verify_rejects_non_live_and_remote_mcp_profiles(tmp_path: Path, monkeyp
             "profile_id": profile_id,
         }
 
-    monkeypatch.setattr("src.trading.service.check_connection", _spy_check_connection)
+    monkeypatch.setattr("src.markets.trading.service.check_connection", _spy_check_connection)
 
     # Paper profile → 400 (environment != live)
     r_paper = client.post("/live/connectors/longbridge-paper-sdk/verify")
@@ -686,7 +686,7 @@ def test_verify_cache_hit_and_expiry(tmp_path: Path, monkeypatch) -> None:
             "profile_id": profile_id,
         }
 
-    monkeypatch.setattr("src.trading.service.check_connection", _stub_check_connection)
+    monkeypatch.setattr("src.markets.trading.service.check_connection", _stub_check_connection)
 
     # First call — cache miss
     r1 = client.post("/live/connectors/longbridge-live-sdk-readonly/verify")
@@ -723,7 +723,7 @@ def test_verify_force_bypass_cache(tmp_path: Path, monkeypatch) -> None:
             "profile_id": profile_id,
         }
 
-    monkeypatch.setattr("src.trading.service.check_connection", _stub_check_connection)
+    monkeypatch.setattr("src.markets.trading.service.check_connection", _stub_check_connection)
 
     # First call
     r1 = client.post("/live/connectors/longbridge-live-sdk-readonly/verify")
@@ -763,7 +763,7 @@ def test_live_status_selects_readonly_sdk_profile_independent_of_registry_order(
             readonly=True,
         ),
     ]
-    monkeypatch.setattr("src.trading.profiles.list_profiles", lambda: profiles)
+    monkeypatch.setattr("src.markets.trading.profiles.list_profiles", lambda: profiles)
     checked_profiles: list[str] = []
 
     def _check_status(profile_id: str, force: bool = False):
@@ -802,7 +802,7 @@ def test_live_status_prefers_unique_suffixed_declared_readonly_profile(
             readonly=True,
         ),
     ]
-    monkeypatch.setattr("src.trading.profiles.list_profiles", lambda: profiles)
+    monkeypatch.setattr("src.markets.trading.profiles.list_profiles", lambda: profiles)
     checked_profiles: list[str] = []
 
     def _check_status(profile_id: str, force: bool = False):
@@ -832,7 +832,7 @@ def test_live_status_rejects_malformed_registry_profile_id(
         readonly=True,
     )
     monkeypatch.setattr(
-        "src.trading.profiles.list_profiles", lambda: [malformed_profile]
+        "src.markets.trading.profiles.list_profiles", lambda: [malformed_profile]
     )
     checked_profiles: list[object] = []
     monkeypatch.setattr(
@@ -875,7 +875,7 @@ def test_live_status_rejects_ambiguous_readonly_sdk_profiles(
             readonly=True,
         ),
     ]
-    monkeypatch.setattr("src.trading.profiles.list_profiles", lambda: profiles)
+    monkeypatch.setattr("src.markets.trading.profiles.list_profiles", lambda: profiles)
     checked_profiles: list[str] = []
     monkeypatch.setattr(
         api_server,
@@ -927,7 +927,7 @@ def test_live_status_preserves_first_transport_for_multi_profile_non_sdk_broker(
             readonly=True,
         ),
     ]
-    monkeypatch.setattr("src.trading.profiles.list_profiles", lambda: profiles)
+    monkeypatch.setattr("src.markets.trading.profiles.list_profiles", lambda: profiles)
 
     response = client.get("/live/status", params={"broker": "ibkr"})
 
@@ -985,7 +985,7 @@ def test_longbridge_verify_never_needs_mandate_and_runner_unavailable(
 def test_cache_contains_no_credentials(tmp_path: Path, monkeypatch) -> None:
     """The verify cache entry must never store credential material.
 
-    Patches the underlying ``src.trading.service.check_connection`` so the
+    Patches the underlying ``src.markets.trading.service.check_connection`` so the
     real cache wrapper (``_ConnectorVerifyCache``) is exercised, NOT the
     top-level ``_check_connector_status`` function (which would bypass the
     cache entirely).
@@ -1004,7 +1004,7 @@ def test_cache_contains_no_credentials(tmp_path: Path, monkeypatch) -> None:
             "config": {"app_key": "FAKE***", "app_secret": "***redacted***"},
         }
 
-    monkeypatch.setattr("src.trading.service.check_connection", _stub_check)
+    monkeypatch.setattr("src.markets.trading.service.check_connection", _stub_check)
 
     client.post("/live/connectors/longbridge-live-sdk-readonly/verify")
 

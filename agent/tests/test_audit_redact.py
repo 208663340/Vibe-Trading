@@ -1,4 +1,4 @@
-"""Tests for the live-action audit ledger (src/live/audit.py, SPEC Consent §5).
+"""Tests for the live-action audit ledger (src/markets/live/audit.py, SPEC Consent §5).
 
 Focus: every record is redacted BEFORE it touches the ledger or the SSE bus, the
 ledger is append-only, and the accountability refs (mandate/consent) survive
@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from src.live import audit
-from src.live import paths
-from src.live.audit import LiveActionEvent, write_live_action
+from src.markets.live import audit
+from src.markets.live import paths
+from src.markets.live.audit import LiveActionEvent, write_live_action
 
 
 @pytest.fixture

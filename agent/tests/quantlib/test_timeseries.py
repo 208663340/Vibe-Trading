@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.timeseries.
+"""Tests for src.research.quantlib.timeseries.
 
 Every test builds its data from a seeded generator with a known ground truth, so
 an assertion failure means the estimator moved, not that the market did. The
@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.quantlib.timeseries import (
+from src.research.quantlib.timeseries import (
     adf_test,
     autocorrelation_test,
     bootstrap_sharpe,
@@ -586,7 +586,7 @@ def test_bootstrap_sharpe_annualisation_is_configurable():
 
 def test_bootstrap_sharpe_uses_the_sample_standard_deviation():
     # The skill's markdown fed `returns.values` to a numpy `.std()`, i.e. ddof=0,
-    # and `backtest.validation._sharpe` still does. This function deliberately
+    # and `src.backtest.validation._sharpe` still does. This function deliberately
     # uses ddof=1. Pin the convention and the size of the resulting divergence so
     # nobody "reconciles" the two by accident.
     returns = pd.Series(np.random.default_rng(94).standard_normal(252) * 0.01 + 0.001)
@@ -672,7 +672,7 @@ def test_fit_garch_rejects_a_non_positive_horizon():
 
 
 def test_missing_optional_backend_names_the_package_and_the_install_command():
-    from src.quantlib import timeseries
+    from src.research.quantlib import timeseries
 
     with pytest.raises(ImportError) as excinfo:
         timeseries._require("definitely_not_a_real_module", "arch", "fit_garch")
@@ -701,7 +701,7 @@ def test_importing_the_module_does_not_require_the_optional_backends():
     # the pure-numpy bootstrap helpers stay usable on a bare install.
     import importlib
 
-    module = importlib.import_module("src.quantlib.timeseries")
+    module = importlib.import_module("src.research.quantlib.timeseries")
 
     assert len(module.__all__) == 13
     assert "statsmodels" not in module.__dict__

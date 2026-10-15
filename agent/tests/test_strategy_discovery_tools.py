@@ -1,4 +1,4 @@
-"""Frozen-contract tests for ``src.tools.strategy_discovery_tool`` — issue #969.
+"""Frozen-contract tests for ``src.runtime.tools.strategy_discovery_tool`` — issue #969.
 
 AC1 (tools callable at runtime): the module must expose exactly four
 ``BaseTool`` classes whose ``name`` attributes are ``list_strategies`` /
@@ -20,10 +20,10 @@ import json
 
 import pytest
 
-from src.agent.tools import BaseTool
+from src.runtime.agent.tools import BaseTool
 
 try:
-    from src.tools import strategy_discovery_tool as sdt
+    from src.runtime.tools import strategy_discovery_tool as sdt
 
     TOOLS_AVAILABLE = True
 except ImportError:
@@ -32,7 +32,7 @@ except ImportError:
 
 requires_tools = pytest.mark.skipif(
     not TOOLS_AVAILABLE,
-    reason="waiting on sibling B: src.tools.strategy_discovery_tool not landed yet (issue #969)",
+    reason="waiting on sibling B: src.runtime.tools.strategy_discovery_tool not landed yet (issue #969)",
 )
 
 READ_TOOL_NAMES = {"list_strategies", "query_strategies", "get_strategy_evidence"}
@@ -88,11 +88,11 @@ def fake_facade(monkeypatch):
     """Intercept StrategyDiscoveryFacade construction.
 
     The tool module imports the facade lazily inside execute() via
-    ``from src.strategy_discovery import StrategyDiscoveryFacade``, which is a
+    ``from src.research.strategy_discovery import StrategyDiscoveryFacade``, which is a
     module-attribute lookup at call time — patching the package attribute (and
     a module-level binding if present) keeps every real store untouched.
     """
-    import src.strategy_discovery as sd_package
+    import src.research.strategy_discovery as sd_package
 
     FakeFacade.instances.clear()
     monkeypatch.setattr(sd_package, "StrategyDiscoveryFacade", FakeFacade, raising=True)
@@ -319,7 +319,7 @@ class TestGenericErrorEnvelope:
     def test_facade_exception_yields_generic_message_without_leak(
         self, monkeypatch
     ) -> None:
-        import src.strategy_discovery as sd_package
+        import src.research.strategy_discovery as sd_package
 
         monkeypatch.setattr(
             sd_package, "StrategyDiscoveryFacade", self.ExplodingFacade, raising=True

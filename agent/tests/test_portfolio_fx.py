@@ -6,10 +6,10 @@ from decimal import Decimal
 
 import pytest
 
-from src.portfolio.compatibility import PortfolioContractError
-from src.portfolio.config import parse_settings
-from src.portfolio.fx import build_rates, from_usd, to_usd
-from src.portfolio.normalization import account_total_usd, value_position
+from src.markets.portfolio.compatibility import PortfolioContractError
+from src.markets.portfolio.config import parse_settings
+from src.markets.portfolio.fx import build_rates, from_usd, to_usd
+from src.markets.portfolio.normalization import account_total_usd, value_position
 
 RATES = build_rates(Decimal("7"), Decimal("8"))
 

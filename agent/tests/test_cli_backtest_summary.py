@@ -8,7 +8,7 @@ from pathlib import Path
 from rich.console import Console
 from unittest.mock import Mock
 
-from cli._legacy import _read_metric_values
+from src.interfaces.cli._legacy import _read_metric_values
 
 _METRICS_CSV = (
     "total_return,annual_return,sharpe,max_drawdown,win_rate,trade_count\n"
@@ -53,7 +53,7 @@ def test_read_metric_values_returns_empty_when_absent(tmp_path: Path) -> None:
 def test_interactive_result_prints_english_metrics_and_a_hint(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from cli.main import _print_interactive_result
+    from src.interfaces.cli.main import _print_interactive_result
 
     _forbid_spawn(monkeypatch)
     run_dir = _run_with_metrics(tmp_path)
@@ -85,8 +85,8 @@ def test_interactive_result_prints_english_metrics_and_a_hint(
 def test_single_prompt_run_prints_the_hint_without_serving(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from cli import _legacy
-    from src import preflight
+    from src.interfaces.cli import _legacy
+    from src.platform import preflight
 
     _forbid_spawn(monkeypatch)
     run_dir = _run_with_metrics(tmp_path)
@@ -112,7 +112,7 @@ def test_single_prompt_run_prints_the_hint_without_serving(
 
 
 def test_no_hint_when_the_turn_produced_no_backtest(tmp_path: Path, monkeypatch) -> None:
-    from cli.main import _print_interactive_result
+    from src.interfaces.cli.main import _print_interactive_result
 
     _forbid_spawn(monkeypatch)
     console = Console(record=True, force_terminal=False, color_system=None, width=100)

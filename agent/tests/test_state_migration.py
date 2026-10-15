@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.config.migrate import migrate_legacy_state
+from src.platform.config.migrate import migrate_legacy_state
 
 
 def _seed(directory: Path, filename: str = "record.json") -> Path:
@@ -201,11 +201,11 @@ def test_second_run_is_a_noop(tmp_path: Path) -> None:
 
 def test_default_legacy_root_matches_pre_904_agent_dir() -> None:
     """The default legacy root must equal the old AGENT_DIR expression."""
-    import cli._legacy as legacy
+    import src.interfaces.cli._legacy as legacy
 
-    from src.config.migrate import default_legacy_root
+    from src.platform.config.migrate import default_legacy_root
 
-    assert default_legacy_root() == Path(legacy.__file__).resolve().parents[1]
+    assert default_legacy_root() == Path(legacy.__file__).resolve().parents[3]
 
 
 def test_skips_when_legacy_root_equals_runtime_root(tmp_path: Path) -> None:

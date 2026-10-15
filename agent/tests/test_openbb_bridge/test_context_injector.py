@@ -30,7 +30,7 @@ from openbb_ai.models import (
     WorkspaceState,
 )
 
-from src.openbb_bridge.context_injector import (
+from src.interfaces.openbb_bridge.context_injector import (
     DATA_TRUNCATION_MARKER,
     MAX_DATA_CHARS,
     WorkspaceContextInjector,

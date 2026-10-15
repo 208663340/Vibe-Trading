@@ -12,10 +12,10 @@ import pandas as pd
 
 import pytest
 
-from backtest.engines._market_hooks import check_crypto_liquidation
-from backtest.engines.composite import CompositeEngine
-from backtest.engines.crypto import CryptoEngine
-from backtest.models import Position
+from src.backtest.engines._market_hooks import check_crypto_liquidation
+from src.backtest.engines.composite import CompositeEngine
+from src.backtest.engines.crypto import CryptoEngine
+from src.backtest.models import Position
 
 
 def _pos(direction: int, leverage: float = 1.0, entry: float = 100.0, size: float = 10.0) -> Position:

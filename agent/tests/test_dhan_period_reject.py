@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.dhan import sdk as dhan_sdk
+from src.markets.trading.connectors.dhan import sdk as dhan_sdk
 
 
 class _FakeDhanClient:

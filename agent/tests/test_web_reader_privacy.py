@@ -12,8 +12,8 @@ import json
 
 import pytest
 
-import src.tools.web_reader_tool as wr
-from src.tools.web_reader_tool import read_url
+import src.runtime.tools.web_reader_tool as wr
+from src.runtime.tools.web_reader_tool import read_url
 
 URL = "https://example.com/page"
 

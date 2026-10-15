@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from cli import _legacy
-from src.trading.connections import ConnectionStore
-from src.trading.credentials import CredentialStore
+from src.interfaces.cli import _legacy
+from src.markets.trading.connections import ConnectionStore
+from src.markets.trading.credentials import CredentialStore
 
 
 class _MemoryCredentials:
@@ -43,7 +43,7 @@ def test_connector_setup_prompts_locally_and_never_writes_secrets_to_registry(
     tmp_path,
     monkeypatch,
 ):
-    from src.trading import connections, service
+    from src.markets.trading import connections, service
 
     credentials = CredentialStore(_MemoryCredentials())
     store = ConnectionStore(tmp_path / "connections.json", credential_store=credentials)

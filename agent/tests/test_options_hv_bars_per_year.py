@@ -14,8 +14,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.options_portfolio import historical_volatility, run_options_backtest
-from src.quantlib.options import bs_price
+from src.backtest.engines.options_portfolio import historical_volatility, run_options_backtest
+from src.research.quantlib.options import bs_price
 
 DEFAULT_IV = 0.3
 WINDOW = 30

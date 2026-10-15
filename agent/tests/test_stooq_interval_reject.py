@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from backtest.loaders import stooq_loader as sq
+from src.backtest.loaders import stooq_loader as sq
 
 
 def test_unsupported_interval_does_not_hit_api() -> None:

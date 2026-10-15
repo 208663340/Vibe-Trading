@@ -5,7 +5,7 @@ the dot form (``BRK.B``) returns empty data, so the ``.US`` conversion
 must fold internal dots to hyphens.
 """
 
-from backtest.loaders.yfinance_loader import _to_yfinance_symbol
+from src.backtest.loaders.yfinance_loader import _to_yfinance_symbol
 
 
 def test_class_shares_map_to_hyphen_form() -> None:

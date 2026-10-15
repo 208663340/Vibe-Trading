@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from src.core import runner as runner_mod
-from src.core.runner import (
+from src.platform.core import runner as runner_mod
+from src.platform.core.runner import (
     Runner,
     _rlimit_bootstrap_argv,
     _prepare_sandbox_home,
@@ -132,10 +132,10 @@ def test_execute_keeps_runtime_run_valid_after_home_is_sandboxed(
     entry = _probe_entry(
         tmp_path,
         "import sys\n"
-        "from src.tools.path_utils import safe_run_dir\n"
+        "from src.runtime.tools.path_utils import safe_run_dir\n"
         "print(safe_run_dir(sys.argv[1]))\n",
     )
-    agent_root = Path(runner_mod.__file__).resolve().parents[2]
+    agent_root = Path(runner_mod.__file__).resolve().parents[3]
 
     result = Runner(timeout=60).execute(
         entry,
@@ -492,7 +492,7 @@ def test_execute_applies_address_space_rlimit(monkeypatch, tmp_path: Path) -> No
 
 @pytest.mark.parametrize("value", [{"password": "must-not-copy"}, ["must-not-copy"], True, float("inf")])
 def test_mt5_sandbox_allowlist_rejects_nonprimitive_settings(tmp_path, value):
-    from src.core.runner import _reexpose_mt5_config
+    from src.platform.core.runner import _reexpose_mt5_config
     source, target = tmp_path / "source", tmp_path / "target"
     source.mkdir()
     target.mkdir()

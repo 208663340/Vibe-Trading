@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backtest.loaders import base, local_loader
+from src.backtest.loaders import base, local_loader
 
 
 @pytest.mark.parametrize("interval", ["1m", "1D"])

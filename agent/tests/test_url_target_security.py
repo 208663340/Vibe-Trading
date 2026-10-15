@@ -21,8 +21,8 @@ import logging
 
 import pytest
 
-from src.channels import qq as qq_module
-from src.channels.utils import _is_private, validate_url_target
+from src.interfaces.channels import qq as qq_module
+from src.interfaces.channels.utils import _is_private, validate_url_target
 
 # ─── central SSRF guard ───
 

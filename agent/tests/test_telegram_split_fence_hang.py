@@ -54,7 +54,7 @@ def _stub_telegram_deps() -> None:
 
 _stub_telegram_deps()
 
-from src.channels.telegram import (  # noqa: E402
+from src.interfaces.channels.telegram import (  # noqa: E402
     TELEGRAM_MAX_MESSAGE_LEN,
     _split_telegram_markdown,
 )

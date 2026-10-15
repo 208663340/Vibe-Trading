@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.fixedincome.
+"""Tests for src.research.quantlib.fixedincome.
 
 Every sensitivity is checked against a finite-difference reprice of the pricing
 function itself, so a change to `bond_price` cannot leave duration/convexity
@@ -10,7 +10,7 @@ import datetime as dt
 import numpy as np
 import pytest
 
-from src.quantlib.fixedincome import (
+from src.research.quantlib.fixedincome import (
     COMPOUNDING_CONVENTIONS,
     DEFAULT_KEY_RATE_TENORS,
     CurveFit,

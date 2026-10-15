@@ -25,11 +25,11 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-import mcp_server
-import src.swarm.runtime as rt
-import src.swarm.store as store_mod
-import src.swarm.worker as worker_mod
-from src.swarm.models import (
+import src.interfaces.mcp_server as mcp_server
+import src.runtime.swarm.runtime as rt
+import src.runtime.swarm.store as store_mod
+import src.runtime.swarm.worker as worker_mod
+from src.runtime.swarm.models import (
     RunStatus,
     SwarmAgentSpec,
     SwarmEvent,
@@ -37,8 +37,8 @@ from src.swarm.models import (
     SwarmTask,
     TaskStatus,
 )
-from src.swarm.store import SwarmStore
-from src.swarm.task_store import TaskStore
+from src.runtime.swarm.store import SwarmStore
+from src.runtime.swarm.task_store import TaskStore
 
 
 def _iso(dt: datetime) -> str:
@@ -478,7 +478,7 @@ def test_runtime_layer_boundary_sync_writes_run_json(tmp_path, monkeypatch):
     store.create_run(run)
 
     def fake_worker(*args, **kwargs):
-        from src.swarm.models import WorkerResult
+        from src.runtime.swarm.models import WorkerResult
         return WorkerResult(status="completed", summary="ok")
 
     import threading
@@ -506,7 +506,7 @@ def test_worker_emits_task_heartbeat_during_tool_call():
     """
     import time
 
-    from src.agent.progress import HeartbeatTimer
+    from src.runtime.agent.progress import HeartbeatTimer
 
     captured: list[dict] = []
     with HeartbeatTimer(tool_name="slow_tool", interval=0.5, emit=captured.append):
@@ -520,7 +520,7 @@ def test_swarm_tool_format_result_preserves_running_status_on_budget_out():
     """_format_result(timed_out=True) must surface the real run status, not
     overwrite it with "timeout". Agents need to know "still running" so they
     can re-invoke with the run_id; the historical "timeout" mask hid that."""
-    import src.tools.swarm_tool as swarm_tool
+    import src.runtime.tools.swarm_tool as swarm_tool
 
     run = _base_run("r-budget")
     run.status = RunStatus.running
@@ -537,7 +537,7 @@ def test_swarm_tool_no_longer_cancels_on_budget_out():
     """Source-level guard: the SwarmTool wait loop must not call cancel_run
     when its budget elapses — that used to throw away in-flight LLM work."""
     import inspect
-    import src.tools.swarm_tool as swarm_tool
+    import src.runtime.tools.swarm_tool as swarm_tool
 
     source = inspect.getsource(swarm_tool.SwarmTool.execute)
     assert "cancel_run" not in source, (
@@ -766,7 +766,7 @@ def test_heartbeat_interval_env_var_is_robust_to_garbage(monkeypatch):
 
     # Force re-evaluation by calling the resolver directly.
     import importlib
-    import src.swarm.worker as w
+    import src.runtime.swarm.worker as w
     importlib.reload(w)
 
     assert w._HEARTBEAT_INTERVAL_S == 3.0
@@ -791,7 +791,7 @@ def test_worker_source_wires_heartbeat_around_tool_execute():
 
 def test_swarm_tool_forwards_started_and_live_events(monkeypatch):
     """Web chat sessions should receive a status card seed plus live swarm events."""
-    import src.tools.swarm_tool as swarm_tool
+    import src.runtime.tools.swarm_tool as swarm_tool
 
     run = _base_run("r-web-chat")
     run.status = RunStatus.running
@@ -827,9 +827,9 @@ def test_swarm_tool_forwards_started_and_live_events(monkeypatch):
     monkeypatch.setattr(swarm_tool, "_MAX_WAIT_SECONDS", 0)
     monkeypatch.setattr(swarm_tool, "_match_preset", lambda prompt: "demo")
     monkeypatch.setattr(swarm_tool, "_build_variables", lambda preset, prompt: {"goal": prompt})
-    monkeypatch.setattr("src.config.load_swarm_agent_config", lambda: None)
-    monkeypatch.setattr("src.swarm.store.SwarmStore", FakeStore)
-    monkeypatch.setattr("src.swarm.runtime.SwarmRuntime", FakeRuntime)
+    monkeypatch.setattr("src.platform.config.load_swarm_agent_config", lambda: None)
+    monkeypatch.setattr("src.runtime.swarm.store.SwarmStore", FakeStore)
+    monkeypatch.setattr("src.runtime.swarm.runtime.SwarmRuntime", FakeRuntime)
 
     tool = swarm_tool.SwarmTool(event_callback=lambda etype, data: captured.append((etype, data)))
     payload = json.loads(tool.execute(prompt="analyze AAPL"))
@@ -845,7 +845,7 @@ def test_swarm_tool_forwards_started_and_live_events(monkeypatch):
 
 def test_swarm_tool_without_session_callback_preserves_plain_runtime(monkeypatch):
     """No session bridge means no live callback is installed."""
-    import src.tools.swarm_tool as swarm_tool
+    import src.runtime.tools.swarm_tool as swarm_tool
 
     run = _base_run("r-no-session")
     run.status = RunStatus.running
@@ -871,9 +871,9 @@ def test_swarm_tool_without_session_callback_preserves_plain_runtime(monkeypatch
     monkeypatch.setattr(swarm_tool, "_MAX_WAIT_SECONDS", 0)
     monkeypatch.setattr(swarm_tool, "_match_preset", lambda prompt: "demo")
     monkeypatch.setattr(swarm_tool, "_build_variables", lambda preset, prompt: {"goal": prompt})
-    monkeypatch.setattr("src.config.load_swarm_agent_config", lambda: None)
-    monkeypatch.setattr("src.swarm.store.SwarmStore", FakeStore)
-    monkeypatch.setattr("src.swarm.runtime.SwarmRuntime", FakeRuntime)
+    monkeypatch.setattr("src.platform.config.load_swarm_agent_config", lambda: None)
+    monkeypatch.setattr("src.runtime.swarm.store.SwarmStore", FakeStore)
+    monkeypatch.setattr("src.runtime.swarm.runtime.SwarmRuntime", FakeRuntime)
 
     payload = json.loads(swarm_tool.SwarmTool().execute(prompt="analyze AAPL"))
 

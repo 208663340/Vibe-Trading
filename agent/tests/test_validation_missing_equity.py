@@ -7,7 +7,7 @@ import math
 import pandas as pd
 import pytest
 
-from backtest.validation import (
+from src.backtest.validation import (
     _load_equity,
     bootstrap_sharpe_ci,
     run_validation,

@@ -6,12 +6,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.portfolio import service as portfolio_service
-from src.portfolio.config import PortfolioSettingsStore
-from src.portfolio.normalization import auth_metadata
-from src.portfolio.service import PortfolioService
-from src.portfolio.store import PortfolioStore
-from src.trading.types import TradingProfile
+from src.markets.portfolio import service as portfolio_service
+from src.markets.portfolio.config import PortfolioSettingsStore
+from src.markets.portfolio.normalization import auth_metadata
+from src.markets.portfolio.service import PortfolioService
+from src.markets.portfolio.store import PortfolioStore
+from src.markets.trading.types import TradingProfile
 
 
 def _settings_store(tmp_path):
@@ -610,7 +610,7 @@ def test_analysis_context_supplies_risk_xray_arguments(tmp_path):
     args = service.analysis_context()["risk_xray_args"]
 
     # Symbols carry the market suffix the risk x-ray's loaders route on: a bare
-    # "AAPL" is read as an A-share code by src.market_data.detect_source.
+    # "AAPL" is read as an A-share code by src.markets.market_data.detect_source.
     assert args["symbols"] == ["700.HK", "AAPL.US"]
     assert set(args["weights"]) == set(args["symbols"])
     assert args["weights"]["700.HK"] == pytest.approx(0.625)
@@ -810,7 +810,7 @@ def test_reconnect_rejects_an_occupied_oauth_callback_port(monkeypatch, tmp_path
             auth=SimpleNamespace(callback_port=callback_port),
         )
         monkeypatch.setattr(
-            "src.config.loader.load_agent_config",
+            "src.platform.config.loader.load_agent_config",
             lambda: SimpleNamespace(mcp_servers={"ibkr": server}),
         )
 
@@ -822,7 +822,7 @@ def test_reconnect_contains_callback_server_system_exit(monkeypatch, tmp_path):
     monkeypatch.setattr(portfolio_service, "profile_by_id", lambda *_: _oauth_profile())
     server = SimpleNamespace(auth=SimpleNamespace(callback_port=None))
     monkeypatch.setattr(
-        "src.config.loader.load_agent_config",
+        "src.platform.config.loader.load_agent_config",
         lambda: SimpleNamespace(mcp_servers={"ibkr": server}),
     )
 
@@ -833,7 +833,7 @@ def test_reconnect_contains_callback_server_system_exit(monkeypatch, tmp_path):
         def discover_tools(self):
             raise BaseExceptionGroup("callback startup", [SystemExit(3)])
 
-    monkeypatch.setattr("src.tools.mcp.MCPServerAdapter", FailingAdapter)
+    monkeypatch.setattr("src.runtime.tools.mcp.MCPServerAdapter", FailingAdapter)
 
     with pytest.raises(RuntimeError, match="stopped safely"):
         _reconnect_service(tmp_path).reconnect_source("ibkr")

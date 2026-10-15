@@ -1,7 +1,7 @@
 """Tests for the Eastmoney-backed lockup-expiry (限售解禁) tool.
 
 No request ever leaves the process: the success/shape paths mock the shared
-client (:mod:`backtest.loaders.eastmoney_client`), and the end-to-end path mocks
+client (:mod:`src.backtest.loaders.eastmoney_client`), and the end-to-end path mocks
 the frozen HTTP boundary (``throttled_get_json``) so the real client routing and
 this tool's parsing both run while nothing hits the network.
 """
@@ -14,9 +14,9 @@ import json
 from datetime import date
 from unittest.mock import patch
 
-from backtest.loaders import eastmoney_client
-from src.tools import lockup_expiry_tool
-from src.tools.lockup_expiry_tool import LockupExpiryTool
+from src.backtest.loaders import eastmoney_client
+from src.runtime.tools import lockup_expiry_tool
+from src.runtime.tools.lockup_expiry_tool import LockupExpiryTool
 
 
 def _payload(rows: list[dict]) -> dict:
@@ -200,7 +200,7 @@ def test_free_shares_is_the_unlock_not_the_float() -> None:
 
     Row as served live for 603162 on 2026-09-21.
     """
-    from src.tools.lockup_expiry_tool import _shape_record
+    from src.runtime.tools.lockup_expiry_tool import _shape_record
 
     record = _shape_record(
         {

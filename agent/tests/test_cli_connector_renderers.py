@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import pytest
 
-from cli import _legacy
+from src.interfaces.cli import _legacy
 
 pytestmark = pytest.mark.unit
 
@@ -43,7 +43,7 @@ def test_connector_positions_renders_longbridge_schema(capsys) -> None:
             }
         ],
     }
-    with patch("src.trading.service.get_positions", return_value=longbridge_result):
+    with patch("src.markets.trading.service.get_positions", return_value=longbridge_result):
         rc = _legacy.cmd_connector_positions("longbridge-paper-trade")
 
     assert rc == _legacy.EXIT_SUCCESS
@@ -80,7 +80,7 @@ def test_connector_account_renders_balances_table(capsys) -> None:
 
 def test_connector_account_renders_ccxt_asset_balances(capsys) -> None:
     """#1539: Binance spot rows are asset/free/used/total, not Longbridge's keys."""
-    from src.trading.connectors.binance.shaping import nonzero_balances
+    from src.markets.trading.connectors.binance.shaping import nonzero_balances
 
     ccxt_balance = {
         "info": {},
@@ -111,7 +111,7 @@ def test_connector_account_renders_ccxt_asset_balances(capsys) -> None:
 
 def test_connector_account_renders_futu_assets(capsys) -> None:
     """#1539: Futu's accinfo_query rows arrive as ``assets``, not ``balances``."""
-    from src.trading.connectors.futu.sdk import _account_to_dict
+    from src.markets.trading.connectors.futu.sdk import _account_to_dict
 
     futu_account = {
         "status": "ok",
@@ -221,8 +221,8 @@ def test_connector_check_uses_sdk_diagnostics_without_oauth_rows(capsys) -> None
     }
 
     with (
-        patch("cli._legacy._selected_profile_or", return_value=profile),
-        patch("src.trading.service.check_connection", return_value=report),
+        patch("src.interfaces.cli._legacy._selected_profile_or", return_value=profile),
+        patch("src.markets.trading.service.check_connection", return_value=report),
     ):
         rc = _legacy.cmd_connector_check("alpaca-paper-trade")
 
@@ -275,7 +275,7 @@ def test_connector_orders_renders_flat_broker_sdk_row(capsys) -> None:
             }
         ],
     }
-    with patch("src.trading.service.get_open_orders", return_value=alpaca_result):
+    with patch("src.markets.trading.service.get_open_orders", return_value=alpaca_result):
         rc = _legacy.cmd_connector_orders("alpaca-paper-trade")
 
     assert rc == _legacy.EXIT_SUCCESS
@@ -305,7 +305,7 @@ def test_connector_orders_keeps_class_b_ticker_intact(capsys) -> None:
             }
         ],
     }
-    with patch("src.trading.service.get_open_orders", return_value=result):
+    with patch("src.markets.trading.service.get_open_orders", return_value=result):
         rc = _legacy.cmd_connector_orders("alpaca-paper-trade")
 
     assert rc == _legacy.EXIT_SUCCESS
@@ -332,7 +332,7 @@ def test_connector_orders_still_renders_the_nested_ibkr_row(capsys) -> None:
             }
         ],
     }
-    with patch("src.trading.service.get_open_orders", return_value=ibkr_result):
+    with patch("src.markets.trading.service.get_open_orders", return_value=ibkr_result):
         rc = _legacy.cmd_connector_orders("ibkr-local")
 
     assert rc == _legacy.EXIT_SUCCESS

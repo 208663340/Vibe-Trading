@@ -7,10 +7,10 @@ from types import SimpleNamespace
 
 import pytest
 
-import api_server
-from src.api import state
-from src.session.events import EventBus
-from src.session.execution import CloseSummary
+import src.interfaces.api_server as api_server
+from src.interfaces.api import state
+from src.runtime.session.events import EventBus
+from src.runtime.session.execution import CloseSummary
 
 
 def test_lifespan_closes_initialized_session_after_inbound_failure(monkeypatch):
@@ -47,7 +47,7 @@ def test_lifespan_closes_initialized_session_after_inbound_failure(monkeypatch):
 
 
 def test_runtime_incomplete_close_retains_resources_until_true_completion(tmp_path):
-    from src.api.runtime import RuntimeServices
+    from src.interfaces.api.runtime import RuntimeServices
 
     async def scenario():
         runtime = RuntimeServices(tmp_path / "sessions", tmp_path / "runs")
@@ -73,12 +73,12 @@ def test_runtime_incomplete_close_retains_resources_until_true_completion(tmp_pa
 
 def test_runtime_close_keeps_actual_worker_and_finalizer_then_rebuilds(tmp_path, monkeypatch):
     import threading
-    from src.api.runtime import RuntimeServices
-    from src.session.execution import SessionServiceClosingError
-    from src.session.search import SessionSearchIndex
+    from src.interfaces.api.runtime import RuntimeServices
+    from src.runtime.session.execution import SessionServiceClosingError
+    from src.runtime.session.search import SessionSearchIndex
 
     index = SessionSearchIndex(tmp_path / "index.db")
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: index)
     started, release, finalizing, finish = (threading.Event() for _ in range(4))
 
     async def scenario():
@@ -143,12 +143,12 @@ def test_runtime_close_keeps_actual_worker_and_finalizer_then_rebuilds(tmp_path,
 
 def test_later_lifespan_on_another_loop_refuses_unfinished_then_rebuilds(tmp_path, monkeypatch):
     import threading
-    from src.api.runtime import RuntimeServices
-    from src.session.execution import SessionServiceClosingError
-    from src.session.search import SessionSearchIndex
+    from src.interfaces.api.runtime import RuntimeServices
+    from src.runtime.session.execution import SessionServiceClosingError
+    from src.runtime.session.search import SessionSearchIndex
 
     index = SessionSearchIndex(tmp_path / "index.db")
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: index)
     monkeypatch.setattr(state, "_runtime_services", None)
     monkeypatch.setattr(state, "_session_service", None)
     monkeypatch.setattr(api_server, "_session_service", None)
@@ -224,11 +224,11 @@ def test_later_lifespan_on_another_loop_refuses_unfinished_then_rebuilds(tmp_pat
 
 
 def test_shutdown_resources_close_once_and_second_lifespan_has_fresh_service(tmp_path, monkeypatch):
-    from src.api.runtime import RuntimeServices
-    from src.session.search import SessionSearchIndex
+    from src.interfaces.api.runtime import RuntimeServices
+    from src.runtime.session.search import SessionSearchIndex
 
     index = SessionSearchIndex(tmp_path / "index.db")
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: index)
     monkeypatch.setattr(state, "_runtime_services", None)
     monkeypatch.setattr(state, "_session_service", None)
     monkeypatch.setattr(api_server, "_session_service", None)
@@ -273,10 +273,10 @@ def test_shutdown_resources_close_once_and_second_lifespan_has_fresh_service(tmp
 
 
 def test_legacy_host_none_reset_rebuilds_idle_service_with_owned_executor(tmp_path, monkeypatch):
-    from src.session.search import SessionSearchIndex
+    from src.runtime.session.search import SessionSearchIndex
 
     index = SessionSearchIndex(tmp_path / "index.db")
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: index)
     monkeypatch.setattr(state, "_runtime_services", None)
     monkeypatch.setattr(state, "_session_service", None)
     monkeypatch.setattr(api_server, "_session_service", None)
@@ -301,12 +301,12 @@ def test_legacy_host_none_reset_rebuilds_idle_service_with_owned_executor(tmp_pa
 @pytest.mark.parametrize("construction", ["synchronous", "idle_other_loop"])
 def test_close_uses_actual_execution_loop_after_lazy_construction(tmp_path, monkeypatch, construction):
     import threading
-    from src.api.runtime import RuntimeServices
-    from src.session.execution import SessionServiceClosingError
-    from src.session.search import SessionSearchIndex
+    from src.interfaces.api.runtime import RuntimeServices
+    from src.runtime.session.execution import SessionServiceClosingError
+    from src.runtime.session.search import SessionSearchIndex
 
     index = SessionSearchIndex(tmp_path / "index.db")
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: index)
     runtime = RuntimeServices(tmp_path / "sessions", tmp_path / "runs")
     if construction == "synchronous":
         service = runtime.get_session_service()
@@ -390,11 +390,11 @@ def test_close_uses_actual_execution_loop_after_lazy_construction(tmp_path, monk
 
 
 def test_unproven_execution_loop_keeps_reserved_owner_and_resources(tmp_path, monkeypatch):
-    from src.api.runtime import RuntimeServices
-    from src.session.search import SessionSearchIndex
+    from src.interfaces.api.runtime import RuntimeServices
+    from src.runtime.session.search import SessionSearchIndex
 
     index = SessionSearchIndex(tmp_path / "index.db")
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: index)
     runtime = RuntimeServices(tmp_path / "sessions", tmp_path / "runs")
     service = runtime.get_session_service()
 

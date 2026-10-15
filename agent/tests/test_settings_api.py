@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import settings_routes
+import src.interfaces.api_server as api_server
+from src.interfaces.api import settings_routes
 from tests.module_os_helpers import patch_module_os
 
 
@@ -617,7 +617,7 @@ def test_atomic_write_secret_is_crash_safe(
 ) -> None:
     """A crash during the replace must not corrupt or truncate the secret file,
     nor leave a stray temp file holding the secret behind."""
-    from src.api import helpers
+    from src.interfaces.api import helpers
 
     target = tmp_path / ".env"
     target.write_text("OLD=1\n", encoding="utf-8")
@@ -638,7 +638,7 @@ def test_atomic_write_secret_is_crash_safe(
 
 def test_atomic_write_secret_creates_0600_file(tmp_path: Path) -> None:
     """Fresh secret files are created owner-only via the atomic path."""
-    from src.api import helpers
+    from src.interfaces.api import helpers
 
     target = tmp_path / ".env"
     helpers._atomic_write_secret(target, "KEY=value\n")
@@ -652,7 +652,7 @@ def test_atomic_write_secret_supports_platforms_without_fchmod(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Windows must be able to persist Web UI settings without ``os.fchmod``."""
-    from src.api import helpers
+    from src.interfaces.api import helpers
 
     monkeypatch.delattr(helpers.os, "fchmod", raising=False)
     target = tmp_path / ".env"
@@ -674,7 +674,7 @@ def _reset_source_order_env():
     The PUT handler hot-applies overrides into os.environ and the registry;
     both must return to defaults so later tests see pristine chains.
     """
-    from backtest.loaders import registry
+    from src.backtest.loaders import registry
 
     yield
     for key in [k for k in list(os.environ) if k.startswith("MARKET_DATA_ORDER_")]:
@@ -712,7 +712,7 @@ def test_update_source_orders_persists_and_hot_applies(
     tmp_path: Path,
     _reset_source_order_env,
 ) -> None:
-    from backtest.loaders import registry
+    from src.backtest.loaders import registry
 
     response = client.put(
         "/settings/data-sources",
@@ -751,7 +751,7 @@ def test_update_source_orders_reset_clears_override(
     tmp_path: Path,
     _reset_source_order_env,
 ) -> None:
-    from backtest.loaders import registry
+    from src.backtest.loaders import registry
 
     put = client.put(
         "/settings/data-sources",
@@ -819,7 +819,7 @@ def test_update_source_orders_rejects_unknown_market(
 def test_claude_cli_model_list_skips_base_url_checks_and_reports_effort_levels(
     client: TestClient, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.providers import claude_cli_models
+    from src.runtime.providers import claude_cli_models
 
     observed: dict[str, bool] = {}
 
@@ -853,7 +853,7 @@ def test_claude_cli_model_list_skips_base_url_checks_and_reports_effort_levels(
 def test_claude_cli_model_list_falls_back_when_cli_is_unavailable(
     client: TestClient, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.providers import claude_cli_models
+    from src.runtime.providers import claude_cli_models
 
     def failing_list(*, refresh: bool = False):
         raise RuntimeError("claude model list unavailable")
@@ -890,7 +890,7 @@ def test_claude_cli_effort_is_validated_against_cli_levels(
     effort: str,
     status_code: int,
 ) -> None:
-    from src.providers import claude_cli
+    from src.runtime.providers import claude_cli
 
     monkeypatch.setattr(claude_cli, "get_claude_cli_auth_status", lambda: (True, "claude.ai"))
     response = client.put(

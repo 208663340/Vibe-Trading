@@ -14,10 +14,10 @@ import tempfile
 import pytest
 from fastapi.testclient import TestClient
 
-from src.session.events import EventBus
-from src.session.models import AuthMethod, Principal, Session
-from src.session.service import SessionService
-from src.session.store import SessionStore
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import AuthMethod, Principal, Session
+from src.runtime.session.service import SessionService
+from src.runtime.session.store import SessionStore
 
 
 def _service(root: pathlib.Path) -> SessionService:
@@ -95,7 +95,7 @@ def test_a_session_stored_before_owners_existed_still_loads(runtime_root):
 def test_creating_a_session_over_http_records_how_it_was_authorised(runtime_root):
     import importlib
 
-    import api_server
+    import src.interfaces.api_server as api_server
 
     importlib.reload(api_server)
     client = TestClient(api_server.app)
@@ -116,7 +116,7 @@ def test_creating_a_session_over_http_records_how_it_was_authorised(runtime_root
 def test_require_auth_hands_back_a_principal(runtime_root):
     import asyncio
 
-    from src.api.security import require_auth
+    from src.interfaces.api.security import require_auth
 
     class _Req:
         method = "GET"

@@ -13,28 +13,28 @@ from types import SimpleNamespace
 
 import pytest
 
-from backtest.loaders import longbridge as longbridge_loader
-from src.live.classification import ToolClass
-from src.trading.connectors.longbridge import credentials as lb_credentials
-from src.trading import profiles, service
-from src.trading.connectors.alpaca import sdk as al
-from src.trading.connectors.alpaca.classification import ALPACA_TOOL_CLASS
-from src.trading.connectors.binance import sdk as bn
-from src.trading.connectors.binance.classification import BINANCE_TOOL_CLASS
-from src.trading.connectors.mt5 import sdk as mt5
-from src.trading.connectors.dhan import sdk as dh
-from src.trading.connectors.dhan.classification import DHAN_TOOL_CLASS
-from src.trading.connectors.futu import sdk as ft
-from src.trading.connectors.futu.classification import FUTU_TOOL_CLASS
-from src.trading.connectors.longbridge import sdk as lb
-from src.trading.connectors.longbridge.classification import LONGBRIDGE_TOOL_CLASS
-from src.trading.connectors.okx import sdk as ox
-from src.trading.connectors.okx.classification import OKX_TOOL_CLASS
-from src.trading.connectors.shoonya import sdk as sh
-from src.trading.connectors.shoonya.classification import SHOONYA_TOOL_CLASS
-from src.trading.connectors.etoro import client as etoro_client
-from src.trading.connectors.tiger import sdk as tg
-from src.trading.connectors.tiger.classification import TIGER_TOOL_CLASS
+from src.backtest.loaders import longbridge as longbridge_loader
+from src.markets.live.classification import ToolClass
+from src.markets.trading.connectors.longbridge import credentials as lb_credentials
+from src.markets.trading import profiles, service
+from src.markets.trading.connectors.alpaca import sdk as al
+from src.markets.trading.connectors.alpaca.classification import ALPACA_TOOL_CLASS
+from src.markets.trading.connectors.binance import sdk as bn
+from src.markets.trading.connectors.binance.classification import BINANCE_TOOL_CLASS
+from src.markets.trading.connectors.mt5 import sdk as mt5
+from src.markets.trading.connectors.dhan import sdk as dh
+from src.markets.trading.connectors.dhan.classification import DHAN_TOOL_CLASS
+from src.markets.trading.connectors.futu import sdk as ft
+from src.markets.trading.connectors.futu.classification import FUTU_TOOL_CLASS
+from src.markets.trading.connectors.longbridge import sdk as lb
+from src.markets.trading.connectors.longbridge.classification import LONGBRIDGE_TOOL_CLASS
+from src.markets.trading.connectors.okx import sdk as ox
+from src.markets.trading.connectors.okx.classification import OKX_TOOL_CLASS
+from src.markets.trading.connectors.shoonya import sdk as sh
+from src.markets.trading.connectors.shoonya.classification import SHOONYA_TOOL_CLASS
+from src.markets.trading.connectors.etoro import client as etoro_client
+from src.markets.trading.connectors.tiger import sdk as tg
+from src.markets.trading.connectors.tiger.classification import TIGER_TOOL_CLASS
 
 pytestmark = pytest.mark.unit
 
@@ -914,8 +914,8 @@ def test_okx_invalid_profile_rejected() -> None:
 )
 def test_order_ops_write_pinned_via_registry(broker, order_op) -> None:
     """Every broker's order op resolves WRITE through the shared classifier."""
-    from src.live import registry
-    from src.live.classification import classify_tool
+    from src.markets.live import registry
+    from src.markets.live.classification import classify_tool
 
     curated = registry._BROKER_CURATED_MAPS[broker]
     assert classify_tool(order_op, None, curated) is ToolClass.WRITE
@@ -924,8 +924,8 @@ def test_order_ops_write_pinned_via_registry(broker, order_op) -> None:
 def test_unknown_op_does_not_classify_read() -> None:
     """An unmapped op resolves to UNKNOWN (never READ); the registry then treats
     UNKNOWN as WRITE (fail-closed) when wrapping the live channel."""
-    from src.live import registry
-    from src.live.classification import classify_tool
+    from src.markets.live import registry
+    from src.markets.live.classification import classify_tool
 
     curated = registry._BROKER_CURATED_MAPS["okx"]
     verdict = classify_tool("some_unmapped_future_tool", None, curated)
@@ -995,7 +995,7 @@ def test_tiger_history_month_does_not_collapse_to_minute(monkeypatch) -> None:
 
 
 def test_trading_history_tool_exposes_period_and_limit() -> None:
-    from src.tools.trading_connector_tool import TradingHistoryTool
+    from src.runtime.tools.trading_connector_tool import TradingHistoryTool
 
     props = TradingHistoryTool.parameters["properties"]
     assert "period" in props and "limit" in props

@@ -19,7 +19,7 @@ from unittest import mock
 
 import pytest
 
-import api_server
+import src.interfaces.api_server as api_server
 
 # Unique substring of the non-loopback bind warning (api_server.py:3513).
 _BIND_WARN = "without API_AUTH_KEY set"

@@ -12,8 +12,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.trading import service
-from src.trading.connectors.robinhood import mcp
+from src.markets.trading import service
+from src.markets.trading.connectors.robinhood import mcp
 from tests import robinhood_mcp_helpers as rh
 
 pytestmark = pytest.mark.unit
@@ -230,10 +230,10 @@ def test_trading_service_lists_accounts_through_get_accounts(monkeypatch: pytest
             return rh.accounts([rh.account("5QR12345", nickname="Main")])
 
     monkeypatch.setattr(
-        "src.config.loader.load_agent_config", lambda: SimpleNamespace(mcp_servers={"robinhood": server})
+        "src.platform.config.loader.load_agent_config", lambda: SimpleNamespace(mcp_servers={"robinhood": server})
     )
-    monkeypatch.setattr("src.live.registry.has_cached_oauth_token", lambda *_: True)
-    monkeypatch.setattr("src.tools.mcp.MCPServerAdapter", _Adapter)
+    monkeypatch.setattr("src.markets.live.registry.has_cached_oauth_token", lambda *_: True)
+    monkeypatch.setattr("src.runtime.tools.mcp.MCPServerAdapter", _Adapter)
 
     result = service.get_accounts("robinhood-live-mcp-readonly", interactive_oauth=False)
 

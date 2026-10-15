@@ -1,6 +1,6 @@
 """Tests for get_northbound_flow: success + error envelopes, HTTP fully mocked.
 
-All Eastmoney HTTP is mocked at ``src.tools.northbound_tool.get_json`` (the name
+All Eastmoney HTTP is mocked at ``src.runtime.tools.northbound_tool.get_json`` (the name
 the tool imported), so no test touches a live Eastmoney endpoint.
 """
 
@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from src.tools import northbound_tool as nb
+from src.runtime.tools import northbound_tool as nb
 
 
 def _realtime_payload() -> dict:

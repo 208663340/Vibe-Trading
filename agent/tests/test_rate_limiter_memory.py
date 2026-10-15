@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import time
 
-from src.api.system_routes import _SlidingWindowRateLimiter
+from src.interfaces.api.system_routes import _SlidingWindowRateLimiter
 
 
 def test_allows_within_budget() -> None:

@@ -1,6 +1,6 @@
 """Tests for the shared market-data helper layer.
 
-``src.market_data`` is the source-resolution + normalization layer shared by
+``src.markets.market_data`` is the source-resolution + normalization layer shared by
 the MCP server and the agent ``get_market_data`` tool. It shipped (with the
 #270 global data layer) without dedicated tests. These cover the
 network-free logic: source detection, row capping, JSON-safety, and the
@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.market_data import (
+from src.markets.market_data import (
     DEFAULT_MAX_ROWS,
     _json_safe,
     cap_rows,
@@ -73,7 +73,7 @@ def test_detect_source(code: str, expected: str) -> None:
 
 def test_yahoo_loader_accepts_futures_and_forex_suffixes() -> None:
     """The yahoo direct loader must accept =F/=X, not just equity suffixes (#718)."""
-    from backtest.loaders.yahoo_loader import _is_supported
+    from src.backtest.loaders.yahoo_loader import _is_supported
 
     assert _is_supported("GC=F") is True
     assert _is_supported("EURUSD=X") is True
@@ -85,7 +85,7 @@ def test_yahoo_loader_accepts_futures_and_forex_suffixes() -> None:
 
 def test_yahoo_loader_accepts_index_symbols() -> None:
     """^SPX-style index symbols must be served verbatim like =F/=X."""
-    from backtest.loaders.yahoo_loader import _is_supported
+    from src.backtest.loaders.yahoo_loader import _is_supported
 
     assert _is_supported("^SPX") is True
     assert _is_supported("^GSPC") is True
@@ -95,7 +95,7 @@ def test_yahoo_loader_accepts_index_symbols() -> None:
 
 def test_index_market_detection() -> None:
     """^ symbols classify as index everywhere, not the a_share default."""
-    from backtest.engines._market_hooks import _detect_market, code_currency
+    from src.backtest.engines._market_hooks import _detect_market, code_currency
 
     assert _detect_market("^SPX") == "index"
     assert _detect_market("^N225") == "index"
@@ -104,7 +104,7 @@ def test_index_market_detection() -> None:
 
 def test_forex_pair_x_classifies_as_forex_not_a_share() -> None:
     """=X pairs must stop falling through to the a_share default (latent misroute)."""
-    from backtest.engines._market_hooks import _detect_market, code_currency
+    from src.backtest.engines._market_hooks import _detect_market, code_currency
 
     assert _detect_market("GBPUSD=X") == "forex"
     assert code_currency("GBPUSD=X") == "USD"
@@ -112,7 +112,7 @@ def test_forex_pair_x_classifies_as_forex_not_a_share() -> None:
 
 def test_abbreviated_fx_pair_x_classes_as_forex() -> None:
     """JPY=X (USD/JPY abbreviation) must not fall to the a_share default."""
-    from backtest.engines._market_hooks import _detect_market, code_currency
+    from src.backtest.engines._market_hooks import _detect_market, code_currency
 
     assert _detect_market("JPY=X") == "forex"
     assert _detect_market("EUR=X") == "forex"
@@ -123,8 +123,8 @@ def test_abbreviated_fx_pair_x_classes_as_forex() -> None:
 
 def test_index_backtest_routes_to_global_equity_not_china_or_crypto() -> None:
     """^SPX must never reach ChinaAEngine/CryptoEngine through the runner."""
-    from backtest.engines.global_equity import GlobalEquityEngine
-    from backtest.runner import _MARKET_TO_SOURCE, _create_market_engine, _detect_source
+    from src.backtest.engines.global_equity import GlobalEquityEngine
+    from src.backtest.runner import _MARKET_TO_SOURCE, _create_market_engine, _detect_source
 
     assert _detect_source("^SPX") == "yahoo"
     engine = _create_market_engine("yahoo", {}, ["^SPX"])
@@ -133,8 +133,8 @@ def test_index_backtest_routes_to_global_equity_not_china_or_crypto() -> None:
 
 def test_composite_builds_index_rule_engine() -> None:
     """A mixed book containing an index gets an index sub-engine, not a drop."""
-    from backtest.engines.global_equity import GlobalEquityEngine
-    from backtest.engines.composite import _build_rule_engines
+    from src.backtest.engines.global_equity import GlobalEquityEngine
+    from src.backtest.engines.composite import _build_rule_engines
 
     engines = _build_rule_engines({}, ["^SPX"])
     assert "index" in engines
@@ -143,7 +143,7 @@ def test_composite_builds_index_rule_engine() -> None:
 
 def test_yahoo_loader_accepts_futures_and_forex_suffixes() -> None:
     """The yahoo direct loader must accept =F/=X, not just equity suffixes (#718)."""
-    from backtest.loaders.yahoo_loader import _is_supported
+    from src.backtest.loaders.yahoo_loader import _is_supported
 
     assert _is_supported("GC=F") is True
     assert _is_supported("EURUSD=X") is True
@@ -368,7 +368,7 @@ def test_fetch_auto_hk_walks_hk_chain_not_us_chain() -> None:
     the us_equity chain first, where the attempt budget exhausts on the
     US-only stooq/sina loaders and never reaches eastmoney/akshare.
     """
-    from backtest.loaders.base import NoAvailableSourceError
+    from src.backtest.loaders.base import NoAvailableSourceError
 
     attempts: list[str] = []
 
@@ -394,7 +394,7 @@ def test_fetch_auto_hk_walks_hk_chain_not_us_chain() -> None:
 def test_fetch_auto_hk_akshare_reachable_within_default_budget() -> None:
     """akshare (Eastmoney-backed HK daily) must be reachable within the
     default ``max_fallback_attempts`` when every earlier HK source is down."""
-    from backtest.loaders.base import NoAvailableSourceError
+    from src.backtest.loaders.base import NoAvailableSourceError
 
     attempts: list[str] = []
 
@@ -420,7 +420,7 @@ def test_fetch_auto_hk_akshare_reachable_within_default_budget() -> None:
 def test_fetch_auto_india_walks_india_chain() -> None:
     """India symbols must degrade through the india_equity chain (chain
     selection is market-aware for every market, not just HK)."""
-    from backtest.loaders.base import NoAvailableSourceError
+    from src.backtest.loaders.base import NoAvailableSourceError
 
     attempts: list[str] = []
 
@@ -444,7 +444,7 @@ def test_fetch_auto_india_walks_india_chain() -> None:
 
 def test_fetch_auto_us_still_walks_us_chain() -> None:
     """US routing is unchanged by the market-aware chain selection."""
-    from backtest.loaders.base import NoAvailableSourceError
+    from src.backtest.loaders.base import NoAvailableSourceError
 
     attempts: list[str] = []
 
@@ -609,7 +609,7 @@ def test_fetch_non_canadian_symbol_unaffected_by_venue_fallback() -> None:
 
 def test_ca_venue_sibling_swaps_suffix_only() -> None:
     """Unit check for the sibling helper, incl. hyphenated class bases."""
-    from src.market_data import _ca_venue_sibling
+    from src.markets.market_data import _ca_venue_sibling
 
     assert _ca_venue_sibling("HIVE.V") == "HIVE.TO"
     assert _ca_venue_sibling("HIVE.TO") == "HIVE.V"
@@ -635,7 +635,7 @@ def a_share_tushare_first():
     must scrub the var and refresh BEFORE monkeypatch's later undo, otherwise
     the chains would stay overridden for subsequent tests.
     """
-    from backtest.loaders import registry
+    from src.backtest.loaders import registry
 
     os.environ["MARKET_DATA_ORDER_A_SHARE"] = (
         "tushare,tencent,eastmoney,baostock,akshare,gildata,local"
@@ -652,7 +652,7 @@ def test_fetch_auto_respects_source_order_override_head(
     a_share_tushare_first,
 ) -> None:
     """auto mode starts at the override's head (tushare), not the default's."""
-    from backtest.loaders.base import NoAvailableSourceError
+    from src.backtest.loaders.base import NoAvailableSourceError
 
     attempts: list[str] = []
 
@@ -678,7 +678,7 @@ def test_fetch_explicit_source_stays_src_first_with_override(
     a_share_tushare_first,
 ) -> None:
     """An explicit source= never gets reordered by the market's override."""
-    from backtest.loaders.base import NoAvailableSourceError
+    from src.backtest.loaders.base import NoAvailableSourceError
 
     attempts: list[str] = []
 
@@ -727,7 +727,7 @@ def test_fetch_chain_provider_hook_wins_over_override(
 ) -> None:
     """The fallback_chain_provider test hook defines the chain; the override
     must not leak its order in."""
-    from backtest.loaders.base import NoAvailableSourceError
+    from src.backtest.loaders.base import NoAvailableSourceError
 
     attempts: list[str] = []
 

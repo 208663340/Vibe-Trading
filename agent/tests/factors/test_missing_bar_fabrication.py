@@ -52,7 +52,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.registry import get_default_registry
+from src.research.factors.registry import get_default_registry
 
 FIXED = [
     "alpha101_065",

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.tools.portfolio_risk_tool import PortfolioRiskXrayTool
+from src.runtime.tools.portfolio_risk_tool import PortfolioRiskXrayTool
 
 
 @pytest.mark.parametrize(
@@ -55,8 +55,8 @@ def test_public_tool_annualizes_calendar_bars(
 
 @pytest.fixture
 def local_price_file(tmp_path, monkeypatch):
-    from backtest.loaders import base, local_loader
-    from src.market_data import fetch_market_data
+    from src.backtest.loaders import base, local_loader
+    from src.markets.market_data import fetch_market_data
 
     dates = pd.bdate_range("2020-01-01", "2026-01-31")
     close = 100 * np.cumprod(1 + np.resize([0.002, -0.001, 0.0005, -0.0015], len(dates)))

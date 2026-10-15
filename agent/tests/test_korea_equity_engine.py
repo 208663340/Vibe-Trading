@@ -18,14 +18,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.korea_equity import (
+from src.backtest.engines.korea_equity import (
     KoreaEquityEngine,
     krx_price_limits,
     krx_round_down,
     krx_round_up,
     krx_tick_size,
 )
-from backtest.models import Position
+from src.backtest.models import Position
 
 
 def _engine(**overrides) -> KoreaEquityEngine:
@@ -299,13 +299,13 @@ class TestSlippageAndLeverage:
 
 class TestRouting:
     def test_single_market_korea_routes_to_korea_engine(self) -> None:
-        from backtest.runner import _create_market_engine
+        from src.backtest.runner import _create_market_engine
 
         engine = _create_market_engine("auto", {"initial_cash": 100_000}, ["005930.KS"])
         assert isinstance(engine, KoreaEquityEngine)
 
     def test_cross_market_with_korea_builds_korea_subengine(self) -> None:
-        from backtest.engines.composite import _build_rule_engines
+        from src.backtest.engines.composite import _build_rule_engines
 
         engines = _build_rule_engines(
             {"initial_cash": 100_000}, ["005930.KS", "AAPL.US"]
@@ -314,7 +314,7 @@ class TestRouting:
 
     def test_cross_market_short_config_fails_loudly(self) -> None:
         """A shared allow_short config must not yield a silently long-only KRX leg."""
-        from backtest.engines.composite import _build_rule_engines
+        from src.backtest.engines.composite import _build_rule_engines
 
         with pytest.raises(ValueError, match="long-only"):
             _build_rule_engines(

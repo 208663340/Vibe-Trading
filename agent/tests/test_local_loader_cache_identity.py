@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import yaml
 
-from backtest.loaders import base, local_loader
+from src.backtest.loaders import base, local_loader
 
 
 def _source(path: Path) -> dict:

@@ -9,12 +9,12 @@ import re
 from pathlib import Path
 from types import SimpleNamespace
 
-import mcp_server
+import src.interfaces.mcp_server as mcp_server
 import pytest
 
-from src.tools.alpha_bench_tool import AlphaBenchTool
-from src.tools.alpha_zoo_tool import AlphaZooTool
-from src.tools import alpha_bench_tool as alpha_bench_module
+from src.runtime.tools.alpha_bench_tool import AlphaBenchTool
+from src.runtime.tools.alpha_zoo_tool import AlphaZooTool
+from src.runtime.tools import alpha_bench_tool as alpha_bench_module
 
 _ALPHA_ZOO = getattr(mcp_server.alpha_zoo, "fn", None) or getattr(
     mcp_server.alpha_zoo, "__wrapped__", mcp_server.alpha_zoo
@@ -113,7 +113,7 @@ def test_skill_inventory_matches_the_whole_mcp_surface() -> None:
     """
     # Given the runtime MCP registration and the bundled SKILL inventory.
     registered = {tool.name for tool in asyncio.run(mcp_server.mcp.list_tools())}
-    skill_text = (Path(mcp_server.__file__).parent / "SKILL.md").read_text(encoding="utf-8")
+    skill_text = (Path(mcp_server.__file__).resolve().parents[2] / "SKILL.md").read_text(encoding="utf-8")
 
     # When the SKILL header and table are read.
     header = re.search(r"^## Available MCP Tools \((\d+)\)$", skill_text, re.MULTILINE)
@@ -271,7 +271,7 @@ def test_alpha_bench_does_not_follow_preexisting_report_symlink(monkeypatch, tmp
     predictable_report_link.symlink_to(external_target)
     report_link.symlink_to(external_target)
 
-    monkeypatch.setattr("src.factors.registry.get_default_registry", lambda: _BenchRegistry())
+    monkeypatch.setattr("src.research.factors.registry.get_default_registry", lambda: _BenchRegistry())
     monkeypatch.setattr(alpha_bench_module, "datetime", _FixedDateTime)
     monkeypatch.setattr(alpha_bench_module.secrets, "token_hex", lambda length: "fixed")
     monkeypatch.setattr(alpha_bench_module, "_load_universe_panel", lambda *args, **kwargs: {})

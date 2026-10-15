@@ -1,7 +1,7 @@
 """Tests for the Eastmoney OHLCV loader.
 
 These never touch the network: the cross-market path mocks the shared client
-(:mod:`backtest.loaders.eastmoney_client`), and the end-to-end path mocks the
+(:mod:`src.backtest.loaders.eastmoney_client`), and the end-to-end path mocks the
 HTTP boundary (``throttled_get_json``) so the real client parsing runs while no
 request leaves the process.
 """
@@ -14,9 +14,9 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from backtest.loaders import eastmoney_client
+from src.backtest.loaders import eastmoney_client
 from tests.loader_contract import assert_loader_contract
-from backtest.loaders.eastmoney_loader import DataLoader, _to_compact_date
+from src.backtest.loaders.eastmoney_loader import DataLoader, _to_compact_date
 
 
 def _client_rows() -> List[dict]:

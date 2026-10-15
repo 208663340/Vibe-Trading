@@ -14,8 +14,8 @@ from typing import Any
 
 import pytest
 
-from src.channels.bus.queue import MessageBus
-from src.channels.dingtalk import DingTalkChannel
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.dingtalk import DingTalkChannel
 
 
 def _make_channel() -> DingTalkChannel:
@@ -99,7 +99,7 @@ def test_force_ipv4_binds_transport_to_ipv4(monkeypatch: pytest.MonkeyPatch) -> 
     """DingTalk's send API enforces the app egress-IP whitelist; force_ipv4 pins it."""
     import httpx
 
-    from src.channels import dingtalk as dingtalk_mod
+    from src.interfaces.channels import dingtalk as dingtalk_mod
 
     captured: list[dict[str, Any]] = []
     real_transport_cls = httpx.AsyncHTTPTransport

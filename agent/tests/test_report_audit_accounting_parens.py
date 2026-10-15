@@ -9,7 +9,7 @@ import json
 
 import pytest
 
-from src.tools.report_audit_tool import ReportAuditTool, extract_data_points
+from src.runtime.tools.report_audit_tool import ReportAuditTool, extract_data_points
 
 
 def _by_label(points, label_part):

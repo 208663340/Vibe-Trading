@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders.yfinance_loader import _to_yfinance_interval
+from src.backtest.loaders.yfinance_loader import _to_yfinance_interval
 
 
 def test_month_token_maps_to_1mo_not_1m() -> None:

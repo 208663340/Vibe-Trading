@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 def bench_operators():
     """Benchmark factor operators: old pandas vs new fast paths."""
-    from src.factors.base import decay_linear, ts_argmax, ts_argmin, ts_rank
+    from src.research.factors.base import decay_linear, ts_argmax, ts_argmin, ts_rank
 
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(5000, 100))
@@ -46,8 +46,8 @@ def bench_operators():
 
 def bench_equity():
     """Benchmark _calc_equity: vectorized vs loop."""
-    from backtest.engines.base import BaseEngine
-    from backtest.models import Position
+    from src.backtest.engines.base import BaseEngine
+    from src.backtest.models import Position
 
     class _Stub(BaseEngine):
         def can_execute(self, *a):
@@ -121,10 +121,10 @@ if __name__ == "__main__":
     print("=" * 50)
     print()
 
-    from src.factors._backend import HAS_BOTTLENECK
+    from src.research.factors._backend import HAS_BOTTLENECK
 
     print(f"Bottleneck available: {HAS_BOTTLENECK}")
-    from src.config.accessor import get_env_config
+    from src.platform.config.accessor import get_env_config
 
     print(f"VIBE_TRADING_DISABLE_BOTTLENECK: {get_env_config().agent_tuning.vibe_trading_disable_bottleneck}")
     print()

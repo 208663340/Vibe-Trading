@@ -14,7 +14,7 @@ This gate encodes the four SPEC invariants end to end:
 4. After the user allowlists the WRITE tool names AND a mandate is committed, the
    order tools APPEAR and are gate-wrapped (:class:`LiveOrderGuardTool`).
 
-Reuses the mock-MCP ``client_factory`` seam (``src.tools.mcp``) so no Robinhood
+Reuses the mock-MCP ``client_factory`` seam (``src.runtime.tools.mcp``) so no Robinhood
 access is required.
 """
 
@@ -28,19 +28,19 @@ import pytest
 from fastmcp.client.client import CallToolResult
 from mcp import types as mcp_types
 
-import src.live.paths as paths
-from src.config.schema import (
+import src.markets.live.paths as paths
+from src.platform.config.schema import (
     LIVE_BROKER_SERVER_KEYS,
     AgentConfig,
     MCPServerConfig,
     ROBINHOOD_MCP_SERVER_SEED,
 )
-from src.live.mandate.model import MANDATE_SCHEMA_VERSION
-from src.live.order_guard import LiveOrderGuardTool
-from src.live.registry import is_live_broker, wrap_live_broker_tools
-from src.trading.connectors.robinhood.classification import ROBINHOOD_TOOL_CLASS
-from src.live.classification import ToolClass
-from src.tools.mcp import MCPRemoteTool, build_mcp_tool_wrappers
+from src.markets.live.mandate.model import MANDATE_SCHEMA_VERSION
+from src.markets.live.order_guard import LiveOrderGuardTool
+from src.markets.live.registry import is_live_broker, wrap_live_broker_tools
+from src.markets.trading.connectors.robinhood.classification import ROBINHOOD_TOOL_CLASS
+from src.markets.live.classification import ToolClass
+from src.runtime.tools.mcp import MCPRemoteTool, build_mcp_tool_wrappers
 
 pytestmark = pytest.mark.unit
 
@@ -231,7 +231,7 @@ def test_order_tools_appear_gate_wrapped_when_allowlisted(live_runtime: Path) ->
 
 def test_aliased_key_with_robinhood_url_is_gated() -> None:
     """A Robinhood agentic URL parked under key 'rh' is gated + broker-resolved."""
-    from src.config.schema import MCPServerConfig
+    from src.platform.config.schema import MCPServerConfig
 
     assert is_live_broker("rh", "https://agent.robinhood.com/mcp/trading")
     assert not is_live_broker("rh", "https://example.test/mcp")
@@ -263,7 +263,7 @@ def test_lookalike_host_is_not_a_live_broker() -> None:
 
 
 def test_halt_omits_order_tools_at_registration(live_runtime: Path) -> None:
-    from src.live.halt import trip_halt
+    from src.markets.live.halt import trip_halt
 
     _commit_mandate(live_runtime)
     trip_halt(by="test", reason="reg-time halt", broker="robinhood")
@@ -288,7 +288,7 @@ def test_halt_omits_order_tools_at_registration(live_runtime: Path) -> None:
 
 
 def test_should_register_live_channel_headless_no_token(live_runtime: Path) -> None:
-    from src.live.registry import should_register_live_channel
+    from src.markets.live.registry import should_register_live_channel
 
     cache = str(live_runtime / "live" / "robinhood" / "oauth")
     url = "https://agent.robinhood.com/mcp/trading"
@@ -302,8 +302,8 @@ def test_should_register_live_channel_headless_no_token(live_runtime: Path) -> N
 def test_should_register_live_channel_headless_with_cached_token(live_runtime: Path) -> None:
     import asyncio
 
-    from src.live.registry import has_cached_oauth_token, should_register_live_channel
-    from src.tools.mcp import _build_token_store
+    from src.markets.live.registry import has_cached_oauth_token, should_register_live_channel
+    from src.runtime.tools.mcp import _build_token_store
 
     cache = str(live_runtime / "live" / "robinhood" / "oauth")
     url = "https://agent.robinhood.com/mcp/trading"

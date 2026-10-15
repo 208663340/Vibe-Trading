@@ -17,7 +17,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.channels.signal import SignalChannel
+from src.interfaces.channels.signal import SignalChannel
 
 pytestmark = pytest.mark.unit
 

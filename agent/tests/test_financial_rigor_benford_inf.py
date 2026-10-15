@@ -4,7 +4,7 @@ Locks out a bug where benford_check crashed with OverflowError: cannot convert f
 to integer when input values list contained inf or -inf.
 """
 
-from src.tools.financial_rigor_tool import benford_check
+from src.runtime.tools.financial_rigor_tool import benford_check
 
 
 def test_benford_check_handles_infinite_values():

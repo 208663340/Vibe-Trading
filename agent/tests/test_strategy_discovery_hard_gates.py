@@ -27,10 +27,10 @@ import pandas as pd
 import pytest
 
 try:
-    from src.strategy_discovery import evidence_harness as sd_harness
-    from src.strategy_discovery import run_artifacts as sd_artifacts
-    from src.strategy_discovery.evidence_store import EvidenceStore
-    from src.strategy_discovery.models import EvidenceRow
+    from src.research.strategy_discovery import evidence_harness as sd_harness
+    from src.research.strategy_discovery import run_artifacts as sd_artifacts
+    from src.research.strategy_discovery.evidence_store import EvidenceStore
+    from src.research.strategy_discovery.models import EvidenceRow
 
     from tests.test_strategy_discovery_harness import (
         ALL_TRADE_DAYS,
@@ -50,7 +50,7 @@ except ImportError:
 
 requires_gates = pytest.mark.skipif(
     not GATES_AVAILABLE,
-    reason="waiting on src.strategy_discovery hard gates (issue #969 Phase 2)",
+    reason="waiting on src.research.strategy_discovery hard gates (issue #969 Phase 2)",
 )
 
 

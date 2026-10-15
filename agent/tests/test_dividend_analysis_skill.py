@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.agent.skills import SkillsLoader, _parse_frontmatter
+from src.runtime.agent.skills import SkillsLoader, _parse_frontmatter
 
 
-SKILL_DIR = Path(__file__).resolve().parents[1] / "src" / "skills" / "dividend-analysis"
+SKILL_DIR = Path(__file__).resolve().parents[1] / "src" / "research" / "skills" / "dividend-analysis"
 SKILL_MD = SKILL_DIR / "SKILL.md"
 
 
@@ -42,7 +42,7 @@ def test_dividend_analysis_skill_contains_required_frameworks() -> None:
 
 def test_dividend_analysis_skill_loads_with_bundled_skills(tmp_path: Path) -> None:
     """Bundled loader exposes the new skill in the analysis category."""
-    bundled_dir = Path(__file__).resolve().parents[1] / "src" / "skills"
+    bundled_dir = Path(__file__).resolve().parents[1] / "src" / "research" / "skills"
     loader = SkillsLoader(bundled_dir, user_skills_dir=tmp_path)
 
     content = loader.get_content("dividend-analysis")

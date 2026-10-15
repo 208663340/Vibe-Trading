@@ -6,12 +6,12 @@ import sys
 
 import requests
 
-from src import preflight
+from src.platform import preflight
 
 
 def _configure_llm_preflight(monkeypatch) -> None:
     """Install a minimal OpenAI-compatible provider environment for preflight tests."""
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
     monkeypatch.setenv("LANGCHAIN_PROVIDER", "openai")
     monkeypatch.setenv("LANGCHAIN_MODEL_NAME", "gpt-test")
@@ -79,8 +79,8 @@ def test_copilot_preflight_uses_sdk_auth_instead_of_openai_base_url(
     monkeypatch,
 ) -> None:
     """Copilot has no OpenAI base URL because the official SDK owns transport."""
-    import src.providers.copilot_auth as copilot_auth
-    import src.providers.llm as llm
+    import src.runtime.providers.copilot_auth as copilot_auth
+    import src.runtime.providers.llm as llm
 
     monkeypatch.setenv("LANGCHAIN_PROVIDER", "copilot")
     monkeypatch.setenv("LANGCHAIN_MODEL_NAME", "claude-sonnet-5")

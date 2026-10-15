@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.metrics import calc_turnover_series
-from backtest.optimizers.turnover_aware import TurnoverAwareOptimizer
+from src.backtest.metrics import calc_turnover_series
+from src.backtest.optimizers.turnover_aware import TurnoverAwareOptimizer
 
 
 def _inputs(flip: bool) -> tuple[pd.DataFrame, pd.DataFrame, pd.DatetimeIndex]:

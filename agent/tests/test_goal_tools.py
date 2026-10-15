@@ -6,9 +6,9 @@ import hashlib
 import json
 from pathlib import Path
 
-from src.agent.skills import SkillsLoader
-from src.goal import GoalStore
-from src.tools.goal_tool import (
+from src.runtime.agent.skills import SkillsLoader
+from src.runtime.goal import GoalStore
+from src.runtime.tools.goal_tool import (
     AddGoalEvidenceTool,
     GetResearchGoalTool,
     StartResearchGoalTool,
@@ -78,7 +78,7 @@ def test_goal_tool_rejects_live_trading_objective(tmp_path: Path) -> None:
 
 def test_registry_injects_session_id_into_goal_tools() -> None:
     """SessionService can build a registry with session-scoped goal tools."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry(session_id="session-xyz")
     tool = registry.get("start_research_goal")
@@ -261,7 +261,7 @@ def test_goal_status_tool_can_cancel_current_goal(tmp_path: Path) -> None:
 
 def test_registry_injects_goal_event_callback() -> None:
     """SessionService can build goal tools that emit through the event bus."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     events: list[tuple[str, dict]] = []
     registry = build_registry(

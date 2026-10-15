@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pandas as pd
 
-from backtest.loaders.registry import FALLBACK_CHAINS
-from src import market_data
+from src.backtest.loaders.registry import FALLBACK_CHAINS
+from src.markets import market_data
 
 
 def test_market_data_falls_back_from_okx_to_binance() -> None:
@@ -42,7 +42,7 @@ def test_market_data_falls_back_from_okx_to_binance() -> None:
 def test_binance_loader_canonical_frame_uses_shared_contract(monkeypatch):
     import pandas as pd
 
-    from backtest.loaders.binance_loader import DataLoader
+    from src.backtest.loaders.binance_loader import DataLoader
     from tests.loader_contract import assert_loader_contract
 
     class Exchange:

@@ -11,10 +11,10 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-from src.providers.chat import LLMResponse, ToolCallRequest
-from src.swarm.models import SwarmAgentSpec, SwarmEvent, SwarmTask, WorkerResult
-import src.swarm.worker as worker_mod
-from src.swarm.worker import run_worker
+from src.runtime.providers.chat import LLMResponse, ToolCallRequest
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmEvent, SwarmTask, WorkerResult
+import src.runtime.swarm.worker as worker_mod
+from src.runtime.swarm.worker import run_worker
 from tests.message_roles_helpers import assert_system_messages_only_lead
 
 FINAL_TEXT = (

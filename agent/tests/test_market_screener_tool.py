@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from src.tools.market_screener_tool import MarketScreenerTool
+from src.runtime.tools.market_screener_tool import MarketScreenerTool
 
 _CLIST_PAYLOAD = {
     "data": {
@@ -45,7 +45,7 @@ class TestSuccessEnvelope:
 
     def test_change_pct_screen_parses_rows(self):
         with patch(
-            "src.tools.market_screener_tool.get_json", return_value=_CLIST_PAYLOAD
+            "src.runtime.tools.market_screener_tool.get_json", return_value=_CLIST_PAYLOAD
         ):
             text = MarketScreenerTool().execute(
                 market="a", sort_by="change_pct", top_n=20
@@ -79,7 +79,7 @@ class TestSuccessEnvelope:
 
     def test_sort_by_maps_to_eastmoney_fid(self):
         with patch(
-            "src.tools.market_screener_tool.get_json", return_value=_CLIST_PAYLOAD
+            "src.runtime.tools.market_screener_tool.get_json", return_value=_CLIST_PAYLOAD
         ) as mock_get:
             MarketScreenerTool().execute(market="us", sort_by="amount", top_n=5)
 
@@ -92,7 +92,7 @@ class TestSuccessEnvelope:
     def test_diff_as_dict_is_normalized(self):
         dict_diff = {"data": {"diff": {"0": _CLIST_PAYLOAD["data"]["diff"][0]}}}
         with patch(
-            "src.tools.market_screener_tool.get_json", return_value=dict_diff
+            "src.runtime.tools.market_screener_tool.get_json", return_value=dict_diff
         ):
             text = MarketScreenerTool().execute(market="hk")
 
@@ -102,7 +102,7 @@ class TestSuccessEnvelope:
 
     def test_top_n_caps_returned_rows(self):
         with patch(
-            "src.tools.market_screener_tool.get_json", return_value=_CLIST_PAYLOAD
+            "src.runtime.tools.market_screener_tool.get_json", return_value=_CLIST_PAYLOAD
         ):
             text = MarketScreenerTool().execute(market="a", top_n=1)
 
@@ -110,7 +110,7 @@ class TestSuccessEnvelope:
 
     def test_rowless_payload_yields_empty_data(self):
         with patch(
-            "src.tools.market_screener_tool.get_json", return_value={"data": None}
+            "src.runtime.tools.market_screener_tool.get_json", return_value={"data": None}
         ):
             text = MarketScreenerTool().execute(market="a")
 
@@ -154,7 +154,7 @@ class TestErrorEnvelope:
 
     def test_http_failure_surfaces_as_error_envelope(self):
         with patch(
-            "src.tools.market_screener_tool.get_json",
+            "src.runtime.tools.market_screener_tool.get_json",
             side_effect=RuntimeError("HTTP 429"),
         ):
             text = MarketScreenerTool().execute(market="a")

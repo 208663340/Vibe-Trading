@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.composite import CompositeEngine
-from backtest.models import Position
+from src.backtest.engines.composite import CompositeEngine
+from src.backtest.models import Position
 
 
 class TestCompositeEngineFallback:

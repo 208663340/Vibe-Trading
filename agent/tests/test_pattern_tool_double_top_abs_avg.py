@@ -8,7 +8,7 @@ negative relative difference (< 0.03).
 
 import numpy as np
 import pandas as pd
-from src.tools.pattern_tool import double_top_bottom
+from src.runtime.tools.pattern_tool import double_top_bottom
 
 
 def test_double_top_negative_prices_requires_abs_avg():

@@ -10,9 +10,9 @@ import pytest
 
 
 def test_swarm_retry_dispatches_full_retry_by_default() -> None:
-    from cli._legacy import EXIT_SUCCESS, main
+    from src.interfaces.cli._legacy import EXIT_SUCCESS, main
 
-    with patch("cli._legacy.cmd_swarm_retry_live", return_value=0) as retry:
+    with patch("src.interfaces.cli._legacy.cmd_swarm_retry_live", return_value=0) as retry:
         rc = main(["--swarm-retry", "run-123"])
 
     assert rc == EXIT_SUCCESS
@@ -20,9 +20,9 @@ def test_swarm_retry_dispatches_full_retry_by_default() -> None:
 
 
 def test_swarm_retry_dispatches_resume_opt_in() -> None:
-    from cli._legacy import EXIT_SUCCESS, main
+    from src.interfaces.cli._legacy import EXIT_SUCCESS, main
 
-    with patch("cli._legacy.cmd_swarm_retry_live", return_value=0) as retry:
+    with patch("src.interfaces.cli._legacy.cmd_swarm_retry_live", return_value=0) as retry:
         rc = main(["--swarm-retry", "run-123", "--swarm-resume"])
 
     assert rc == EXIT_SUCCESS
@@ -30,7 +30,7 @@ def test_swarm_retry_dispatches_resume_opt_in() -> None:
 
 
 def test_swarm_resume_requires_retry_id(capsys: pytest.CaptureFixture[str]) -> None:
-    from cli._legacy import EXIT_USAGE_ERROR, main
+    from src.interfaces.cli._legacy import EXIT_USAGE_ERROR, main
 
     rc = main(["--swarm-resume"])
 
@@ -39,9 +39,9 @@ def test_swarm_resume_requires_retry_id(capsys: pytest.CaptureFixture[str]) -> N
 
 
 def test_swarm_retry_slash_command_accepts_resume_opt_in() -> None:
-    from cli._legacy import _handle_swarm_command
+    from src.interfaces.cli._legacy import _handle_swarm_command
 
-    with patch("cli._legacy.cmd_swarm_retry_live") as retry:
+    with patch("src.interfaces.cli._legacy.cmd_swarm_retry_live") as retry:
         _handle_swarm_command("retry run-123 --resume")
 
     retry.assert_called_once_with("run-123", resume=True)
@@ -50,7 +50,7 @@ def test_swarm_retry_slash_command_accepts_resume_opt_in() -> None:
 def test_swarm_retry_passes_prior_run_only_for_resume(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from cli import _legacy
+    from src.interfaces.cli import _legacy
 
     captured: dict[str, object] = {}
     status = SimpleNamespace(running="running", failed="failed", cancelled="cancelled")
@@ -85,20 +85,20 @@ def test_swarm_retry_passes_prior_run_only_for_resume(
             captured.update(kwargs)
             return SimpleNamespace(id="run-retry")
 
-    swarm_package = ModuleType("src.swarm")
+    swarm_package = ModuleType("src.runtime.swarm")
     swarm_package.__path__ = []  # type: ignore[attr-defined]
-    models_module = ModuleType("src.swarm.models")
+    models_module = ModuleType("src.runtime.swarm.models")
     models_module.RunStatus = status
-    runtime_module = ModuleType("src.swarm.runtime")
+    runtime_module = ModuleType("src.runtime.swarm.runtime")
     runtime_module.SwarmRuntime = FakeRuntime
-    store_module = ModuleType("src.swarm.store")
+    store_module = ModuleType("src.runtime.swarm.store")
     store_module.SwarmStore = FakeStore
 
-    monkeypatch.setitem(sys.modules, "src.swarm", swarm_package)
-    monkeypatch.setitem(sys.modules, "src.swarm.models", models_module)
-    monkeypatch.setitem(sys.modules, "src.swarm.runtime", runtime_module)
-    monkeypatch.setitem(sys.modules, "src.swarm.store", store_module)
-    monkeypatch.setattr("src.config.load_swarm_agent_config", lambda: {"agents": []})
+    monkeypatch.setitem(sys.modules, "src.runtime.swarm", swarm_package)
+    monkeypatch.setitem(sys.modules, "src.runtime.swarm.models", models_module)
+    monkeypatch.setitem(sys.modules, "src.runtime.swarm.runtime", runtime_module)
+    monkeypatch.setitem(sys.modules, "src.runtime.swarm.store", store_module)
+    monkeypatch.setattr("src.platform.config.load_swarm_agent_config", lambda: {"agents": []})
     monkeypatch.setattr(_legacy, "_watch_swarm_run", lambda *args: 0)
 
     assert _legacy.cmd_swarm_retry_live("run-failed", resume=True) == 0
@@ -108,7 +108,7 @@ def test_swarm_retry_passes_prior_run_only_for_resume(
 
 
 def test_swarm_dashboard_marks_resumed_task_as_kept() -> None:
-    from cli._legacy import _SwarmDashboard
+    from src.interfaces.cli._legacy import _SwarmDashboard
 
     dashboard = _SwarmDashboard("demo", "run-retry")
     dashboard.handle_event(

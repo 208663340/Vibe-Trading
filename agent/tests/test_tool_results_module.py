@@ -1,16 +1,16 @@
 """Pin the re-export contract of the tool-results extraction (issue #1624).
 
 ``loop.py`` used to define these helpers inline; they now live in
-``src.agent.tool_results`` and are re-exported by ``loop.py`` so every
-existing ``from src.agent.loop import ...`` keeps resolving. These tests
+``src.runtime.agent.tool_results`` and are re-exported by ``loop.py`` so every
+existing ``from src.runtime.agent.loop import ...`` keeps resolving. These tests
 fail if the two modules ever drift apart, e.g. someone deletes a re-export
 or redefines a helper in ``loop.py`` instead of moving it.
 """
 
 import pytest
 
-import src.agent.loop as loop
-import src.agent.tool_results as tool_results
+import src.runtime.agent.loop as loop
+import src.runtime.agent.tool_results as tool_results
 
 MOVED_CONSTANTS = [
     "_FORCED_TEXT_TOOL_CALL_RE",

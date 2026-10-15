@@ -8,11 +8,11 @@ from types import SimpleNamespace
 
 import pytest
 
-import src.agent.loop as loop_mod
-from src.agent.loop import AgentLoop
-from src.agent.tools import ToolRegistry
-from src.agent.trace import TraceWriter
-from src.core.state import RunStateStore
+import src.runtime.agent.loop as loop_mod
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.tools import ToolRegistry
+from src.runtime.agent.trace import TraceWriter
+from src.platform.core.state import RunStateStore
 
 
 def response(content="done"):
@@ -148,7 +148,7 @@ def test_delayed_tool_timer_cannot_emit_after_run_or_into_reuse(tmp_path, monkey
 
 
 def test_stalled_active_write_retains_owner_until_actual_exit(tmp_path, monkeypatch):
-    from src.agent.tools import BaseTool
+    from src.runtime.agent.tools import BaseTool
     entered, release = threading.Event(), threading.Event()
     class Write(BaseTool):
         name = "local_write"
@@ -212,7 +212,7 @@ def test_stop_after_terminal_claim_cannot_rewrite_result(tmp_path, monkeypatch):
 
 
 def test_real_completion_only_refreshes_monotonic_progress(tmp_path, monkeypatch):
-    from src.agent.tool_execution import PreparedToolCall, ToolExecutionResult
+    from src.runtime.agent.tool_execution import PreparedToolCall, ToolExecutionResult
     agent = build(tmp_path, monkeypatch)
     call = PreparedToolCall(0, "read", "read", {}, True)
     monkeypatch.setattr(loop_mod._time, "monotonic", lambda: 100)
@@ -310,7 +310,7 @@ def test_blocked_timer_emitter_cannot_block_stop_or_owner_finish(tmp_path, monke
 def test_initial_helper_predicate_is_revoked_when_first_generation_starts(tmp_path, monkeypatch):
     agent = build(tmp_path, monkeypatch)
     old_invoker = agent._tool_invoker()
-    from src.agent.tool_execution import PreparedToolCall
+    from src.runtime.agent.tool_execution import PreparedToolCall
     effects, results = [], []
     old_invoker.execute = lambda *args: effects.append("obsolete dispatch") or "{}"
     def stream(*args, **kwargs):
@@ -366,7 +366,7 @@ def test_terminal_artifact_fault_still_stops_real_watchdog(tmp_path, monkeypatch
 @pytest.mark.parametrize("window", ["admission", "retirement"])
 def test_cancel_during_owner_handoff_reaches_published_generation(tmp_path, monkeypatch, reuse, window):
     """An accepted stop between admission and publication belongs to that run."""
-    from src.agent.tools import BaseTool
+    from src.runtime.agent.tools import BaseTool
     entered, publish = threading.Event(), threading.Event()
     cancel_entered, cancel_returned = threading.Event(), threading.Event()
     agent = build(tmp_path, monkeypatch)

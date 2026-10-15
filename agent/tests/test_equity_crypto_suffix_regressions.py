@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
-from backtest.correlation import infer_market, _fetch_price_series
-from backtest.loaders import registry
-from src.market_data import fetch_market_data
+from src.backtest.correlation import infer_market, _fetch_price_series
+from src.backtest.loaders import registry
+from src.markets.market_data import fetch_market_data
 
 
 @pytest.mark.parametrize("symbol", ["ABNB", "ABNB.US", "SOL", "SOL.US"])
@@ -19,7 +19,7 @@ def test_explicit_crypto_pairs_stay_crypto(symbol):
 
 
 def test_airbnb_fetch_uses_equity_chain(monkeypatch):
-    from backtest.loaders import registry
+    from src.backtest.loaders import registry
 
     seen = []
 
@@ -43,7 +43,7 @@ def test_airbnb_fetch_uses_equity_chain(monkeypatch):
 )
 def test_shared_engine_recognizes_known_slash_usd_crypto(symbol):
     """The engine and correlation consumer must agree on documented USD pairs."""
-    from backtest.engines._market_hooks import _detect_market
+    from src.backtest.engines._market_hooks import _detect_market
 
     assert _detect_market(symbol) == "crypto"
 
@@ -58,7 +58,7 @@ def test_shared_engine_recognizes_known_slash_usd_crypto(symbol):
     ],
 )
 def test_shared_engine_slash_crypto_keeps_fiat_and_equity_controls(symbol, expected):
-    from backtest.engines._market_hooks import _detect_market
+    from src.backtest.engines._market_hooks import _detect_market
 
     assert _detect_market(symbol) == expected
     assert infer_market(symbol) == expected
@@ -66,7 +66,7 @@ def test_shared_engine_slash_crypto_keeps_fiat_and_equity_controls(symbol, expec
 
 def test_correlation_slash_crypto_uses_crypto_chain(monkeypatch):
     """Exercise the public price consumer with isolated data-provider seams."""
-    from backtest.loaders import registry
+    from src.backtest.loaders import registry
 
     seen = []
 

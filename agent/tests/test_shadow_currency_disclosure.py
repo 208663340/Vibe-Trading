@@ -11,13 +11,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.shadow_account.models import (
+from src.markets.shadow_account.models import (
     AttributionBreakdown,
     ShadowBacktestResult,
     ShadowProfile,
     ShadowRule,
 )
-from src.shadow_account.reporter import render_shadow_report
+from src.markets.shadow_account.reporter import render_shadow_report
 
 
 def _profile() -> ShadowProfile:

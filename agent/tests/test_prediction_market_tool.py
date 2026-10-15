@@ -1,7 +1,7 @@
 """Tests for prediction_market_tool: validation, normalization, batch isolation.
 
 All HTTP is mocked — no test ever reaches a live Polymarket endpoint. The tool
-imports ``throttled_get_json`` from :mod:`backtest.loaders._http` into its own
+imports ``throttled_get_json`` from :mod:`src.backtest.loaders._http` into its own
 namespace, so we monkeypatch that name on the ``prediction_market_tool`` module.
 
 Fixture payloads mirror shapes captured from the live endpoints, including the
@@ -24,8 +24,8 @@ from typing import Any, Dict, List
 
 import pytest
 
-from src.tools import prediction_market_tool
-from src.tools.prediction_market_tool import PredictionMarketTool
+from src.runtime.tools import prediction_market_tool
+from src.runtime.tools.prediction_market_tool import PredictionMarketTool
 
 
 def _open_market() -> Dict[str, Any]:

@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-import src.core.state as state_mod
-from src.core.state import RunStateStore
+import src.platform.core.state as state_mod
+from src.platform.core.state import RunStateStore
 from tests.module_os_helpers import patch_module_os
 
 

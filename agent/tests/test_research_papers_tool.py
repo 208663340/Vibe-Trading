@@ -19,9 +19,9 @@ from unittest.mock import patch
 
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.tools import research_papers_tool as rpt
-from src.tools.research_papers_tool import ResearchPapersTool
+from src.platform.config.accessor import reset_env_config
+from src.runtime.tools import research_papers_tool as rpt
+from src.runtime.tools.research_papers_tool import ResearchPapersTool
 
 _NOT_STATED = "not stated in source"
 

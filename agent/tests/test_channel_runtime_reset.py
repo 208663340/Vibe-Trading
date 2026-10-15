@@ -7,8 +7,8 @@ from typing import Any
 
 import pytest
 
-import api_server
-from src.api import state
+import src.interfaces.api_server as api_server
+from src.interfaces.api import state
 
 
 class FakeSessionService:
@@ -27,8 +27,8 @@ def _stub_channel_runtime_deps(
     attributes to patch (the ``api_server`` host attrs stay in play as the
     compatibility surface the function also consults).
     """
-    import src.channels.config as channel_config
-    import src.channels.pairing.store as pairing_store
+    import src.interfaces.channels.config as channel_config
+    import src.interfaces.channels.pairing.store as pairing_store
 
     del tmp_path  # the config loader is stubbed; no file is read
     monkeypatch.setattr(channel_config, "load_channels_config", lambda: dict(config))

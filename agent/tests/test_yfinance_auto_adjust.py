@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders import yfinance_loader as yfl
+from src.backtest.loaders import yfinance_loader as yfl
 
 
 def test_download_history_requests_auto_adjust(monkeypatch):

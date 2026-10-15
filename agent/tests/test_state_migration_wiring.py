@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.config import migrate
+from src.platform.config import migrate
 
 
 @pytest.fixture()
@@ -21,9 +21,9 @@ def test_cli_main_runs_migration(
 ) -> None:
     import importlib
 
-    import cli._legacy as legacy
+    import src.interfaces.cli._legacy as legacy
 
-    cli_main = importlib.import_module("cli.main")
+    cli_main = importlib.import_module("src.interfaces.cli.main")
 
     monkeypatch.setattr(cli_main, "_is_interactive_invocation", lambda argv: False)
     monkeypatch.setattr(legacy, "main", lambda argv: 0)
@@ -35,7 +35,7 @@ def test_cli_main_runs_migration(
 def test_mcp_server_main_runs_migration(
     monkeypatch: pytest.MonkeyPatch, record_migration: list[int]
 ) -> None:
-    import mcp_server
+    import src.interfaces.mcp_server as mcp_server
 
     monkeypatch.setattr(
         "sys.argv", ["vibe-trading-mcp", "--transport", "stdio"]
@@ -51,12 +51,12 @@ def test_api_startup_runs_migration(
 ) -> None:
     import asyncio
 
-    import api_server
+    import src.interfaces.api_server as api_server
 
-    monkeypatch.setattr("src.preflight.run_preflight", lambda console: None)
+    monkeypatch.setattr("src.platform.preflight.run_preflight", lambda console: None)
     monkeypatch.setattr(api_server, "_start_scheduled_research_executor", lambda: None)
     monkeypatch.setattr(
-        "src.config.accessor.get_env_config",
+        "src.platform.config.accessor.get_env_config",
         lambda: type(
             "Cfg",
             (),
@@ -77,7 +77,7 @@ def test_api_lifespan_preserves_startup_and_shutdown_order(
 ) -> None:
     import asyncio
 
-    import api_server
+    import src.interfaces.api_server as api_server
 
     events: list[str] = []
 
@@ -87,7 +87,7 @@ def test_api_lifespan_preserves_startup_and_shutdown_order(
         lambda: events.append("migration"),
     )
     monkeypatch.setattr(
-        "src.preflight.run_preflight",
+        "src.platform.preflight.run_preflight",
         lambda console: events.append("preflight"),
     )
     monkeypatch.setattr(
@@ -109,7 +109,7 @@ def test_api_lifespan_preserves_startup_and_shutdown_order(
     monkeypatch.setattr(api_server, "_stop_channel_runtime", stop_channels)
     monkeypatch.setattr(api_server, "_stop_scheduled_research_executor", stop_scheduler)
     monkeypatch.setattr(
-        "src.config.accessor.get_env_config",
+        "src.platform.config.accessor.get_env_config",
         lambda: type(
             "Cfg",
             (),
@@ -143,7 +143,7 @@ def test_api_lifespan_stops_scheduler_when_channel_shutdown_fails(
 ) -> None:
     import asyncio
 
-    import api_server
+    import src.interfaces.api_server as api_server
 
     events: list[str] = []
 

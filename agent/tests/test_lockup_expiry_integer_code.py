@@ -2,7 +2,7 @@
 
 import json
 import pytest
-from src.tools.lockup_expiry_tool import LockupExpiryTool
+from src.runtime.tools.lockup_expiry_tool import LockupExpiryTool
 
 
 def test_lockup_expiry_tool_integer_code_handling(monkeypatch: pytest.MonkeyPatch):
@@ -23,7 +23,7 @@ def test_lockup_expiry_tool_integer_code_handling(monkeypatch: pytest.MonkeyPatc
         }
     }
     monkeypatch.setattr(
-        "src.tools.lockup_expiry_tool.eastmoney_client.get_json",
+        "src.runtime.tools.lockup_expiry_tool.eastmoney_client.get_json",
         lambda *args, **kwargs: canned,
     )
     tool = LockupExpiryTool()

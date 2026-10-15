@@ -6,7 +6,7 @@ import asyncio
 import threading
 import time
 
-from src.session.events import EventBus, SSEEvent
+from src.runtime.session.events import EventBus, SSEEvent
 
 
 def test_first_connect_does_not_replay_completed_history_by_default() -> None:

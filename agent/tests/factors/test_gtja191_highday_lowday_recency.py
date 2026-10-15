@@ -12,10 +12,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors import base
-from src.factors.zoo.gtja191.alpha_103 import compute as alpha_103
-from src.factors.zoo.gtja191.alpha_133 import compute as alpha_133
-from src.factors.zoo.gtja191.alpha_177 import compute as alpha_177
+from src.research.factors import base
+from src.research.factors.zoo.gtja191.alpha_103 import compute as alpha_103
+from src.research.factors.zoo.gtja191.alpha_133 import compute as alpha_133
+from src.research.factors.zoo.gtja191.alpha_177 import compute as alpha_177
 
 N = 20
 

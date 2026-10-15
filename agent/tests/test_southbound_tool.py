@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
-from src.tools import southbound_tool as sb
+from src.runtime.tools import southbound_tool as sb
 
 
 def _em_rows(channel_net: dict[str, float]) -> dict:

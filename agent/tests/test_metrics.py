@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.metrics import (
+from src.backtest.metrics import (
     by_exit_reason_stats,
     by_symbol_stats,
     calc_bars_per_year,
@@ -26,7 +26,7 @@ from backtest.metrics import (
     calc_turnover_series,
     win_rate_and_stats,
 )
-from backtest.models import TradeRecord
+from src.backtest.models import TradeRecord
 
 
 # ---------------------------------------------------------------------------
@@ -171,8 +171,8 @@ class TestBarsPerYear:
     # Verify the default for every VALID_SOURCES entry is not the misleading 252×1 at intraday
     def test_no_intraday_source_falls_to_default(self) -> None:
         """Every entry in VALID_SOURCES must have a trading-days lookup."""
-        from backtest.loaders.registry import VALID_SOURCES
-        from backtest.metrics import _TRADING_DAYS, _BARS_PER_DAY
+        from src.backtest.loaders.registry import VALID_SOURCES
+        from src.backtest.metrics import _TRADING_DAYS, _BARS_PER_DAY
 
         # A source is "covered" if it has an entry in _TRADING_DAYS AND in at
         # least one _BARS_PER_DAY interval layer.  Both tables must be kept in

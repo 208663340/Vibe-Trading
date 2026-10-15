@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
+import src.interfaces.api_server as api_server
 
 SYMBOL_A = "SYMA.US"
 SYMBOL_B = "SYMB.US"

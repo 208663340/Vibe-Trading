@@ -23,10 +23,10 @@ from pathlib import Path
 
 import pytest
 
-import src.governance.ledger as ledger_mod
-import src.live.daily_count as daily_count_mod
-import src.providers.openai_codex as codex_mod
-from src.governance.ledger import append_record, verify_chain
+import src.platform.governance.ledger as ledger_mod
+import src.markets.live.daily_count as daily_count_mod
+import src.runtime.providers.openai_codex as codex_mod
+from src.platform.governance.ledger import append_record, verify_chain
 
 
 class _StubMsvcrt:

@@ -1,7 +1,7 @@
 """A successor keeps current filings and inherits dated predecessor facts."""
 from copy import deepcopy
 
-from backtest.loaders import sec_edgar_client as sec
+from src.backtest.loaders import sec_edgar_client as sec
 
 
 def test_successor_facts_include_only_pre_change_history(monkeypatch):

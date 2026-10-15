@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.crossvalidation.
+"""Tests for src.research.quantlib.crossvalidation.
 
 The central test is the one that shows a NAIVE split leaks and the purged split
 does not, over identical data. Asserting only that the purged splitter is clean
@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.quantlib.crossvalidation import (
+from src.research.quantlib.crossvalidation import (
     DEFAULT_EMBARGO_FRACTION,
     MIN_FOLDS,
     Split,

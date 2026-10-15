@@ -4,7 +4,7 @@ Locks out a bug where _classify_market returned None for Shanghai A-share symbol
 standard .SS suffix (e.g. "600519.SS"), rejecting valid financial statement queries.
 """
 
-from src.tools.financial_statements_tool import _classify_market
+from src.runtime.tools.financial_statements_tool import _classify_market
 
 
 def test_classify_market_supports_yahoo_ss_suffix():

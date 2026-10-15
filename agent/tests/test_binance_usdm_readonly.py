@@ -8,10 +8,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.tools import trading_connector_tool
-from src.trading.connectors.binance import sdk as bn
-from src.trading.connectors.binance.classification import BINANCE_TOOL_CLASS
-from src.live.classification import ToolClass
+from src.runtime.tools import trading_connector_tool
+from src.markets.trading.connectors.binance import sdk as bn
+from src.markets.trading.connectors.binance.classification import BINANCE_TOOL_CLASS
+from src.markets.live.classification import ToolClass
 
 
 def _account_payload() -> dict[str, object]:

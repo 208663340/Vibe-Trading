@@ -7,7 +7,7 @@ import json
 import pytest
 import requests
 
-from src.trading.connectors.kis import sdk as kis
+from src.markets.trading.connectors.kis import sdk as kis
 
 
 @pytest.fixture

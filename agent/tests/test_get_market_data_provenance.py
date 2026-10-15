@@ -17,7 +17,7 @@ import json
 
 import pandas as pd
 
-import mcp_server
+import src.interfaces.mcp_server as mcp_server
 
 # fastmcp wraps the tool; reach the raw callable.
 _gmd = getattr(mcp_server.get_market_data, "fn", None) or getattr(

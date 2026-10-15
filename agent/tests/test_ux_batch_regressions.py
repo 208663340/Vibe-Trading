@@ -5,11 +5,11 @@ import pandas as pd
 import pytest
 import json
 
-from src.memory.persistent import PersistentMemory
-from src.quantlib.crossvalidation import detect_boundary_leakage, group_purged_kfold_splits
-from src.shadow_account.extractor import _compute_rsi as extracted_rsi
-from src.shadow_account.scanner import _compute_rsi as scanned_rsi
-from src.tools.remember_tool import RememberTool
+from src.runtime.memory.persistent import PersistentMemory
+from src.research.quantlib.crossvalidation import detect_boundary_leakage, group_purged_kfold_splits
+from src.markets.shadow_account.extractor import _compute_rsi as extracted_rsi
+from src.markets.shadow_account.scanner import _compute_rsi as scanned_rsi
+from src.runtime.tools.remember_tool import RememberTool
 
 
 def test_group_split_preserves_legacy_positional_arguments():

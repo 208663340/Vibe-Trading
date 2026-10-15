@@ -18,17 +18,17 @@ from pathlib import Path
 
 import pytest
 
-import src.live.paths as paths
-import src.live.mandate.commit as mandate_commit
-from src.live.mandate.commit import (
+import src.markets.live.paths as paths
+import src.markets.live.mandate.commit as mandate_commit
+from src.markets.live.mandate.commit import (
     CommitError,
     DEFAULT_MANDATE_LIFETIME_DAYS,
     _profile_fits_ceilings,
     commit_mandate,
     save_proposal,
 )
-from src.live.mandate.store import load_mandate
-from src.tools.propose_mandate_tool import ProposeMandateProfilesTool
+from src.markets.live.mandate.store import load_mandate
+from src.runtime.tools.propose_mandate_tool import ProposeMandateProfilesTool
 
 pytestmark = pytest.mark.unit
 
@@ -621,8 +621,8 @@ def test_commit_explicit_flatten_param_overrides_profile(live_runtime: Path) -> 
 
 def test_propose_tool_is_a_basetool_but_commit_is_not() -> None:
     """The proposer is a registerable tool; the committer is a plain function."""
-    from src.agent.tools import BaseTool
-    import src.live.mandate.commit as commit_mod
+    from src.runtime.agent.tools import BaseTool
+    import src.markets.live.mandate.commit as commit_mod
 
     assert issubclass(ProposeMandateProfilesTool, BaseTool)
     # No BaseTool subclass lives in the commit module — it can never be
@@ -641,10 +641,10 @@ def test_no_registered_tool_references_commit_mandate() -> None:
     Importing ``save_proposal`` is allowed (a proposal grants no authority); a
     reference to ``commit_mandate`` from a tool/loop module is a hard failure.
     """
-    suspect_files = list((AGENT_DIR / "src" / "tools").glob("*.py"))
+    suspect_files = list((AGENT_DIR / "src" / "runtime" / "tools").glob("*.py"))
     suspect_files += [
-        AGENT_DIR / "src" / "agent" / "loop.py",
-        AGENT_DIR / "src" / "swarm" / "worker.py",
+        AGENT_DIR / "src" / "runtime" / "agent" / "loop.py",
+        AGENT_DIR / "src" / "runtime" / "swarm" / "worker.py",
     ]
     offenders: list[str] = []
     for path in suspect_files:
@@ -665,7 +665,7 @@ def test_no_registered_tool_references_commit_mandate() -> None:
 
 def test_registry_has_propose_tool_but_no_mandate_writer() -> None:
     """The assembled registry exposes propose_mandate_profiles, no commit tool."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
     names = set(registry.tool_names)

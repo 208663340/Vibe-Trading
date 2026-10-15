@@ -12,10 +12,10 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from backtest.loaders import qveris_loader as qv
+from src.backtest.loaders import qveris_loader as qv
 from tests.loader_contract import assert_loader_contract
-from backtest.loaders.base import NoAvailableSourceError
-from backtest.loaders.registry import (
+from src.backtest.loaders.base import NoAvailableSourceError
+from src.backtest.loaders.registry import (
     FALLBACK_CHAINS,
     LOADER_REGISTRY,
     get_loader_cls_with_fallback,

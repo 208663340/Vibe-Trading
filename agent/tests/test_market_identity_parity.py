@@ -1,6 +1,6 @@
 """Every market the data layer routes is known to identity and symbol search (#1565).
 
-A market is added in ``backtest.engines._market_hooks`` (pattern + currency) and
+A market is added in ``src.backtest.engines._market_hooks`` (pattern + currency) and
 the backtest can then price it. The grounding identity layer and symbol search
 keep their own suffix tables, and nothing tied them to that one: ``.L``, ``.VN``
 and ``.BA`` each shipped with no canonical-symbol scan, no venue, no currency,
@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import pytest
 
-from backtest.engines._market_hooks import _MARKET_CURRENCY, _detect_market
-from src.agent.grounding.identity import _infer_currency, _infer_venue, _scan_symbols
-from src.tools.symbol_search_tool import _from_yahoo_symbol
+from src.backtest.engines._market_hooks import _MARKET_CURRENCY, _detect_market
+from src.runtime.agent.grounding.identity import _infer_currency, _infer_venue, _scan_symbols
+from src.runtime.tools.symbol_search_tool import _from_yahoo_symbol
 
 # market -> (project symbol, Yahoo's spelling of it, symbol-search label)
 _SAMPLES: dict[str, tuple[str, str, str]] = {

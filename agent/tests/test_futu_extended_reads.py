@@ -18,8 +18,8 @@ from typing import Any
 
 import pytest
 
-from src.trading.connectors.futu import sdk as futu_sdk
-from src.trading.connectors.futu import profiles as futu_profiles
+from src.markets.trading.connectors.futu import sdk as futu_sdk
+from src.markets.trading.connectors.futu import profiles as futu_profiles
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +286,7 @@ def test_get_earnings_calendar_passes_market_and_dates(base_futu_cfg, patched_fu
 
 
 def test_all_futu_profiles_advertise_extended_read_capabilities() -> None:
-    from src.trading.types import FUTU_EXTENDED_READ_CAPABILITIES
+    from src.markets.trading.types import FUTU_EXTENDED_READ_CAPABILITIES
 
     for profile in futu_profiles.FUTU_PROFILES:
         for cap in FUTU_EXTENDED_READ_CAPABILITIES:
@@ -308,7 +308,7 @@ def test_service_returns_unsupported_when_sdk_function_missing(monkeypatch) -> N
     crashing the agent loop when an unsupported capability is requested.
     """
     # We monkeypatch _sdk_module to a fake alpaca module with no get_rehab.
-    import src.trading.service as service
+    import src.markets.trading.service as service
 
     class _FakeAlpacaModule:
         RET_OK = 0
@@ -323,7 +323,7 @@ def test_service_returns_unsupported_when_sdk_function_missing(monkeypatch) -> N
 
     monkeypatch.setattr(service, "_sdk_module", lambda connector: _FakeAlpacaModule)
 
-    from src.trading.profiles import list_profiles
+    from src.markets.trading.profiles import list_profiles
 
     # pick an alpaca profile, fall back to first broker_sdk profile
     profile_id = next(p.id for p in list_profiles() if p.connector == "alpaca")
@@ -340,7 +340,7 @@ def test_service_returns_unsupported_when_sdk_function_missing(monkeypatch) -> N
 
 
 def test_futu_extended_capabilities_are_exactly_seven() -> None:
-    from src.trading.types import FUTU_EXTENDED_READ_CAPABILITIES
+    from src.markets.trading.types import FUTU_EXTENDED_READ_CAPABILITIES
 
     assert len(FUTU_EXTENDED_READ_CAPABILITIES) == 7
     assert set(FUTU_EXTENDED_READ_CAPABILITIES) == {

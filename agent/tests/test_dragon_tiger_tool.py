@@ -1,7 +1,7 @@
 """Tests for the dragon-tiger (龙虎榜) tool.
 
 No request leaves the process: the HTTP boundary
-(:func:`backtest.loaders.eastmoney_client.throttled_get_json`) is mocked so the
+(:func:`src.backtest.loaders.eastmoney_client.throttled_get_json`) is mocked so the
 real client + tool parsing runs offline.
 """
 
@@ -13,8 +13,8 @@ from unittest.mock import patch
 
 import pytest
 
-from backtest.loaders import eastmoney_client
-from src.tools.dragon_tiger_tool import DragonTigerTool, _bare_code, _compact_date
+from src.backtest.loaders import eastmoney_client
+from src.runtime.tools.dragon_tiger_tool import DragonTigerTool, _bare_code, _compact_date
 
 
 def _appearance_payload() -> dict[str, Any]:
@@ -231,7 +231,7 @@ class TestExecuteError:
                 side_effect=RuntimeError("eastmoney banned"),
             ),
             patch(
-                "src.tools.dragon_tiger_tool.tushare_fallbacks.fetch_dragon_tiger",
+                "src.runtime.tools.dragon_tiger_tool.tushare_fallbacks.fetch_dragon_tiger",
                 side_effect=RuntimeError("no fallback"),
             ),
         ):
@@ -254,7 +254,7 @@ class TestExecuteError:
                 side_effect=RuntimeError("eastmoney banned"),
             ),
             patch(
-                "src.tools.dragon_tiger_tool.tushare_fallbacks.fetch_dragon_tiger",
+                "src.runtime.tools.dragon_tiger_tool.tushare_fallbacks.fetch_dragon_tiger",
                 return_value=fallback,
             ) as fallback_fetch,
         ):
@@ -280,7 +280,7 @@ class TestExecuteError:
                 side_effect=[_appearance_payload(), _rejected_payload()],
             ),
             patch(
-                "src.tools.dragon_tiger_tool.tushare_fallbacks.fetch_dragon_tiger",
+                "src.runtime.tools.dragon_tiger_tool.tushare_fallbacks.fetch_dragon_tiger",
                 return_value=fallback,
             ) as fallback_fetch,
         ):
@@ -322,7 +322,7 @@ class TestExecuteError:
                 ],
             ),
             patch(
-                "src.tools.dragon_tiger_tool.tushare_fallbacks.fetch_dragon_tiger",
+                "src.runtime.tools.dragon_tiger_tool.tushare_fallbacks.fetch_dragon_tiger",
                 return_value=fallback,
             ) as fallback_fetch,
         ):

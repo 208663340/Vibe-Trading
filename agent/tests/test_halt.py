@@ -1,4 +1,4 @@
-"""Tests for the live-trading kill switch (src/live/halt.py, SPEC Consent §4).
+"""Tests for the live-trading kill switch (src/markets/live/halt.py, SPEC Consent §4).
 
 The kill switch is a pure-filesystem sentinel — independent of any LLM/agent
 state — so these tests exercise it purely through the filesystem.
@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from src.live import halt
-from src.live import paths
+from src.markets.live import halt
+from src.markets.live import paths
 
 
 @pytest.fixture

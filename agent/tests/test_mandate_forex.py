@@ -19,15 +19,15 @@ from typing import Any
 
 import pytest
 
-import src.live.sdk_order_gate as sdk_order_gate
-from src.live.enforcement import (
+import src.markets.live.sdk_order_gate as sdk_order_gate
+from src.markets.live.enforcement import (
     BREACH_KIND_INSTRUMENT,
     BREACH_KIND_UNIVERSE,
     OrderIntent,
     check_mandate,
     instrument_asset_class,
 )
-from src.live.mandate.model import (
+from src.markets.live.mandate.model import (
     MANDATE_SCHEMA_VERSION,
     AssetClass,
     ConsentMeta,
@@ -36,7 +36,7 @@ from src.live.mandate.model import (
     Mandate,
     UniverseConstraint,
 )
-from src.live.mandate.store import _parse_mandate
+from src.markets.live.mandate.store import _parse_mandate
 
 pytestmark = pytest.mark.unit
 

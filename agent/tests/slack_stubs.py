@@ -1,6 +1,6 @@
 """Import stand-ins for the optional Slack SDK, shared by the Slack tests.
 
-CI installs no channel extras, so ``src.channels.slack`` cannot import
+CI installs no channel extras, so ``src.interfaces.channels.slack`` cannot import
 ``slack_sdk`` there. Each test file used to stub it its own way; one stubbed
 ``SocketModeResponse = object``, which then broke any later test that builds a
 response (``object(envelope_id=...)`` raises TypeError) depending on import
@@ -22,7 +22,7 @@ def _module(name: str) -> types.ModuleType:
 
 
 def install_slack_stubs() -> None:
-    """Make ``src.channels.slack`` importable without the Slack extras."""
+    """Make ``src.interfaces.channels.slack`` importable without the Slack extras."""
     if "slack_sdk" not in sys.modules and importlib.util.find_spec("slack_sdk") is None:
         for name in (
             "slack_sdk",

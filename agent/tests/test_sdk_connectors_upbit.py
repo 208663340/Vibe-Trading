@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import pytest
 
-from src.live.classification import ToolClass
-from src.portfolio.normalization import normalize_position
-from src.trading import profiles, service
-from src.trading.connectors.upbit import sdk as up
-from src.trading.connectors.upbit.classification import UPBIT_TOOL_CLASS
+from src.markets.live.classification import ToolClass
+from src.markets.portfolio.normalization import normalize_position
+from src.markets.trading import profiles, service
+from src.markets.trading.connectors.upbit import sdk as up
+from src.markets.trading.connectors.upbit.classification import UPBIT_TOOL_CLASS
 
 pytestmark = pytest.mark.unit
 
@@ -214,7 +214,7 @@ def test_upbit_positions_report_the_coin_as_symbol_and_krw_as_currency(monkeypat
 
 
 def test_upbit_position_row_normalizes_as_a_krw_priced_crypto_position(monkeypatch) -> None:
-    """End-to-end through the portfolio contract: src/portfolio/normalization.py
+    """End-to-end through the portfolio contract: src/markets/portfolio/normalization.py
     must see a crypto position priced in KRW, not a stock priced in BTC."""
     monkeypatch.setattr(
         up,

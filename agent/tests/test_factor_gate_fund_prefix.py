@@ -9,8 +9,8 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from backtest import runner
-from src.factors.registry import AlphaMeta
+from src.backtest import runner
+from src.research.factors.registry import AlphaMeta
 
 
 def _meta(**overrides: Any) -> dict[str, Any]:
@@ -89,9 +89,9 @@ def test_runner_injects_requested_fundamental_panel(monkeypatch: pytest.MonkeyPa
             )
         }
 
-    module = types.ModuleType("backtest.loaders.fundamentals_loader")
+    module = types.ModuleType("src.backtest.loaders.fundamentals_loader")
     module.load_fundamental_panel = fake_load_fundamental_panel
-    monkeypatch.setitem(sys.modules, "backtest.loaders.fundamentals_loader", module)
+    monkeypatch.setitem(sys.modules, "src.backtest.loaders.fundamentals_loader", module)
 
     runner._inject_fundamental_panel(
         panel,
@@ -137,9 +137,9 @@ def test_runner_does_not_import_loader_without_fund_factor(
         calls.append(kwargs)
         return {}
 
-    module = types.ModuleType("backtest.loaders.fundamentals_loader")
+    module = types.ModuleType("src.backtest.loaders.fundamentals_loader")
     module.load_fundamental_panel = fake_load_fundamental_panel
-    monkeypatch.setitem(sys.modules, "backtest.loaders.fundamentals_loader", module)
+    monkeypatch.setitem(sys.modules, "src.backtest.loaders.fundamentals_loader", module)
 
     result = runner._maybe_inject_fundamentals_for_factor_panel(
         data_map,
@@ -172,9 +172,9 @@ def test_runner_selected_fund_factor_projects_panel_back_to_data_map(
         captured.update(kwargs)
         return {"roe": pd.DataFrame({"AAPL.US": [0.4, 0.5]}, index=index)}
 
-    module = types.ModuleType("backtest.loaders.fundamentals_loader")
+    module = types.ModuleType("src.backtest.loaders.fundamentals_loader")
     module.load_fundamental_panel = fake_load_fundamental_panel
-    monkeypatch.setitem(sys.modules, "backtest.loaders.fundamentals_loader", module)
+    monkeypatch.setitem(sys.modules, "src.backtest.loaders.fundamentals_loader", module)
 
     result = runner._maybe_inject_fundamentals_for_factor_panel(
         data_map,
@@ -205,9 +205,9 @@ def test_runner_injects_nan_fundamental_frame_when_loader_fails(
     def failing_load_fundamental_panel(**_: Any) -> dict[str, pd.DataFrame]:
         raise RuntimeError("synthetic provider outage")
 
-    module = types.ModuleType("backtest.loaders.fundamentals_loader")
+    module = types.ModuleType("src.backtest.loaders.fundamentals_loader")
     module.load_fundamental_panel = failing_load_fundamental_panel
-    monkeypatch.setitem(sys.modules, "backtest.loaders.fundamentals_loader", module)
+    monkeypatch.setitem(sys.modules, "src.backtest.loaders.fundamentals_loader", module)
 
     runner._inject_fundamental_panel(
         panel,

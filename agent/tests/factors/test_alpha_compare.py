@@ -23,8 +23,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors import cli_handlers, compare_runner
-from src.factors.bench_runner import run_bench
+from src.research.factors import cli_handlers, compare_runner
+from src.research.factors.bench_runner import run_bench
 
 
 # ── run_bench(only=...) integration ─────────────────────────────────────────
@@ -71,11 +71,11 @@ def _stub_panel(monkeypatch: pytest.MonkeyPatch, n_rows: int = 80, n_cols: int =
         "vwap": close, "amount": close * 1_000_000,
     }
     monkeypatch.setattr(
-        "src.factors.bench_runner._load_universe_panel",
+        "src.research.factors.bench_runner._load_universe_panel",
         lambda universe, period: panel,  # noqa: ARG005
     )
     monkeypatch.setattr(
-        "src.factors.bench_runner._compute_forward_returns",
+        "src.research.factors.bench_runner._compute_forward_returns",
         lambda panel_in, horizon=1: panel_in["close"].pct_change().shift(-1),
     )
 
@@ -166,7 +166,7 @@ def _args(**kw: Any) -> argparse.Namespace:
 
 def _wire(monkeypatch: pytest.MonkeyPatch, id_to_zoo: dict[str, str], fake_bench: Any) -> None:
     monkeypatch.setattr(cli_handlers, "Registry", lambda: _FakeRegistry(id_to_zoo))
-    monkeypatch.setattr("src.factors.bench_runner.run_bench", fake_bench)
+    monkeypatch.setattr("src.research.factors.bench_runner.run_bench", fake_bench)
 
 
 def _run(capsys: pytest.CaptureFixture[str], args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
@@ -319,7 +319,7 @@ def test_core_progress_counts_globally_across_zoos(monkeypatch) -> None:
                 on_progress(i, len(only), aid)  # per-zoo local count
         return {"status": "ok", "zoo": zoo, "rows": rows, "skipped": []}
 
-    monkeypatch.setattr("src.factors.bench_runner.run_bench", _fake)
+    monkeypatch.setattr("src.research.factors.bench_runner.run_bench", _fake)
     seen: list[tuple[int, int, str]] = []
     env = compare_runner.compare_alphas(
         ["a", "b", "c"], "csi300", "2020-2025", sort="ir",
@@ -344,7 +344,7 @@ def test_core_below_two_returns_error(monkeypatch) -> None:
 def test_core_invalid_sort_falls_back_to_ir(monkeypatch) -> None:
     id_to_zoo = {"a": "alpha101", "b": "alpha101"}
     metrics = {"a": _metrics(0.01, 0.05, 0.20), "b": _metrics(0.03, 0.05, 0.60)}
-    monkeypatch.setattr("src.factors.bench_runner.run_bench", _fake_run_bench(metrics))
+    monkeypatch.setattr("src.research.factors.bench_runner.run_bench", _fake_run_bench(metrics))
     env = compare_runner.compare_alphas(
         ["a", "b"], "csi300", "2020-2025", sort="bogus", registry=_FakeRegistry(id_to_zoo),
     )

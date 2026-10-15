@@ -17,10 +17,10 @@ import pytest
 
 import ccxt
 
-import backtest.loaders.ccxt_loader as cl
-from backtest.loaders.base import DEFAULT_MAX_RETRIES
+import src.backtest.loaders.ccxt_loader as cl
+from src.backtest.loaders.base import DEFAULT_MAX_RETRIES
 from tests.loader_contract import assert_loader_contract
-from backtest.loaders.ccxt_loader import DataLoader
+from src.backtest.loaders.ccxt_loader import DataLoader
 
 SINCE = int(pd.Timestamp("2026-05-01").timestamp() * 1000)
 END = int((pd.Timestamp("2026-05-05") + pd.Timedelta(days=1)).timestamp() * 1000)
@@ -118,7 +118,7 @@ def test_invalid_timeout_env_values_fall_back_on_reload(monkeypatch, caplog):
     monkeypatch.setenv("CCXT_TIMEOUT_MS", "abc")
     monkeypatch.setenv("CCXT_FETCH_BUDGET_S", "nope")
     try:
-        with caplog.at_level("WARNING", logger="backtest.loaders.base"):
+        with caplog.at_level("WARNING", logger="src.backtest.loaders.base"):
             module = importlib.reload(cl)
 
         assert module._CCXT_TIMEOUT_MS == 15_000

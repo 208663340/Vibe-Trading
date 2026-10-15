@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from backtest.optimizers.base import BaseOptimizer
+from src.backtest.optimizers.base import BaseOptimizer
 
 
 class _LastObservationOptimizer(BaseOptimizer):

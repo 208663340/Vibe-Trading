@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.credit.
+"""Tests for src.research.quantlib.credit.
 
 Note on the Altman references: what is pinned here are the *published
 coefficients and cut-offs* of the three variants (Altman 1968 Z, Z' for private
@@ -15,7 +15,7 @@ import pandas as pd
 import pytest
 from scipy.stats import norm
 
-from src.quantlib.credit import (
+from src.research.quantlib.credit import (
     ALTMAN_MODELS,
     ZONE_LABELS_ZH,
     AltmanZScore,

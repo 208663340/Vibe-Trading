@@ -2,7 +2,7 @@
 
 Swarm workers get a strict per-node tool whitelist. ``build_swarm_registry``
 projects the full registry down to ``agent_spec.tools`` and merely *logs* a
-warning for anything it had to drop (``src/tools/__init__.py::_filter_registry``),
+warning for anything it had to drop (``src/runtime/tools/__init__.py::_filter_registry``),
 so a preset whose prompt instructs the worker to "use the ``foo`` tool" while
 ``foo`` is absent from that node's ``tools:`` list fails silently at runtime —
 the model is told to call something it was never handed, and the usual failure
@@ -36,11 +36,11 @@ from pathlib import Path
 import pytest
 import yaml
 
-from src.swarm.presets import PRESETS_DIR
-from src.tools import build_registry
+from src.runtime.swarm.presets import PRESETS_DIR
+from src.runtime.tools import build_registry
 
 #: Skill bodies live one directory per skill, each holding a ``SKILL.md``.
-SKILLS_DIR = Path(__file__).resolve().parents[1] / "src" / "skills"
+SKILLS_DIR = Path(__file__).resolve().parents[1] / "src" / "research" / "skills"
 
 #: ``snake_case`` only — at least one underscore between lowercase/digit runs.
 #: This is the single most important constraint in the file; see the module
@@ -50,7 +50,7 @@ _SNAKE_CASE = re.compile(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b")
 #: Prompt contexts that unambiguously present a name as a callable tool.
 #: Kept narrow on purpose: a bare backtick is NOT a tool-reference context,
 #: because presets legitimately backtick Python helpers such as
-#: ``src.quantlib.risk.historical_var`` that are imported under ``bash`` rather
+#: ``src.research.quantlib.risk.historical_var`` that are imported under ``bash`` rather
 #: than dispatched through the tool registry.
 _TOOL_REFERENCE_CONTEXTS = (
     re.compile(r"\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\s+tool\b"),

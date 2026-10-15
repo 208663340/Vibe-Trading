@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 STORE = Path(__file__).resolve().parents[3] / "wiki" / "alpha-library" / "i18n.zh.json"
 

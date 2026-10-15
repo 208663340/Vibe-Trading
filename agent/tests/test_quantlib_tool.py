@@ -11,8 +11,8 @@ import json
 
 import pytest
 
-from src.tools import build_registry
-from src.tools.quantlib_tool import ALLOWED_MODULES, QuantlibCallTool
+from src.runtime.tools import build_registry
+from src.runtime.tools.quantlib_tool import ALLOWED_MODULES, QuantlibCallTool
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def call(tool, **kwargs):
 
 
 def test_a_module_outside_the_allowlist_is_unreachable(tool):
-    for module in ("os", "subprocess", "builtins", "src.agent.loop", "sys"):
+    for module in ("os", "subprocess", "builtins", "src.runtime.agent.loop", "sys"):
         result = call(tool, action="call", module=module, function="system", kwargs={})
         assert result["ok"] is False
         assert "unknown module" in result["error"]
@@ -37,7 +37,7 @@ def test_a_module_outside_the_allowlist_is_unreachable(tool):
 def test_the_module_string_never_reaches_importlib(tool):
     # A dotted path that WOULD import if passed through is still refused,
     # because resolution is a dict lookup and not an import.
-    result = call(tool, action="call", module="src.quantlib.risk", function="historical_var", kwargs={})
+    result = call(tool, action="call", module="src.research.quantlib.risk", function="historical_var", kwargs={})
     assert result["ok"] is False
     assert "unknown module" in result["error"]
 
@@ -140,7 +140,7 @@ def test_bs_price_matches_the_textbook_value(tool):
 
 
 def test_result_matches_a_direct_import(tool):
-    from src.quantlib.risk import historical_var
+    from src.research.quantlib.risk import historical_var
 
     returns = [0.01, -0.02, -0.05, 0.03, -0.01, 0.02, -0.03, 0.04, -0.06, 0.01]
     through_tool = call(tool, action="call", module="risk", function="historical_var",

@@ -13,7 +13,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.global_equity import GlobalEquityEngine
+from src.backtest.engines.global_equity import GlobalEquityEngine
 
 
 # ---------------------------------------------------------------------------

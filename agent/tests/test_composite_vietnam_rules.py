@@ -23,10 +23,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.composite import CompositeEngine, _build_rule_engines
-from backtest.engines.global_equity import GlobalEquityEngine
-from backtest.engines.vietnam_equity import VietnamEquityEngine
-from backtest.models import Position
+from src.backtest.engines.composite import CompositeEngine, _build_rule_engines
+from src.backtest.engines.global_equity import GlobalEquityEngine
+from src.backtest.engines.vietnam_equity import VietnamEquityEngine
+from src.backtest.models import Position
 
 CODES = ["VIC.VN", "AAPL.US"]
 

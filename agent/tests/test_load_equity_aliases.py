@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backtest.validation import _load_equity
+from src.backtest.validation import _load_equity
 
 
 def test_load_equity_accepts_nav_column(tmp_path: Path) -> None:

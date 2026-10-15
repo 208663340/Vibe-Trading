@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from backtest.loaders.yfinance_loader import _normalize_frame
+from src.backtest.loaders.yfinance_loader import _normalize_frame
 
 
 def _hourly_frame() -> pd.DataFrame:

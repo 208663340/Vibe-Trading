@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable
 
-from src.agent.loop import AgentLoop
-from src.goal import GoalStore
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.goal import GoalStore
 
 
 class _AnswerResponse:
@@ -45,8 +45,8 @@ class _CapturingLLM:
 
 
 def _agent(llm: _CapturingLLM, run_dir: Path) -> AgentLoop:
-    from src.memory.persistent import PersistentMemory
-    from src.tools import build_registry
+    from src.runtime.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
 
     pm = PersistentMemory()
     agent = AgentLoop(
@@ -61,7 +61,7 @@ def _agent(llm: _CapturingLLM, run_dir: Path) -> AgentLoop:
 
 
 def test_agent_loop_injects_active_goal_context(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setattr("src.agent.tuning.GOAL_MAX_CONTINUATIONS", 0, raising=False)
+    monkeypatch.setattr("src.runtime.agent.tuning.GOAL_MAX_CONTINUATIONS", 0, raising=False)
     monkeypatch.setenv("VIBE_TRADING_GOAL_DB_PATH", str(tmp_path / "goals.db"))
     store = GoalStore()
     goal = store.replace_goal(
@@ -86,7 +86,7 @@ def test_agent_loop_injects_active_goal_context(tmp_path: Path, monkeypatch) -> 
 
 
 def test_agent_loop_accounts_goal_token_and_turn_usage(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setattr("src.agent.tuning.GOAL_MAX_CONTINUATIONS", 0, raising=False)
+    monkeypatch.setattr("src.runtime.agent.tuning.GOAL_MAX_CONTINUATIONS", 0, raising=False)
     monkeypatch.setenv("VIBE_TRADING_GOAL_DB_PATH", str(tmp_path / "goals.db"))
     store = GoalStore()
     goal = store.replace_goal(
@@ -110,7 +110,7 @@ def test_agent_loop_accounts_goal_token_and_turn_usage(tmp_path: Path, monkeypat
 
 
 def test_agent_loop_continues_active_incomplete_goal(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setattr("src.agent.tuning.GOAL_MAX_CONTINUATIONS", 1, raising=False)
+    monkeypatch.setattr("src.runtime.agent.tuning.GOAL_MAX_CONTINUATIONS", 1, raising=False)
     monkeypatch.setenv("VIBE_TRADING_GOAL_DB_PATH", str(tmp_path / "goals.db"))
     store = GoalStore()
     store.replace_goal(
@@ -135,9 +135,9 @@ def test_agent_loop_continues_active_incomplete_goal(tmp_path: Path, monkeypatch
 
 def test_agent_loop_continues_active_covered_goal_to_force_audit(tmp_path: Path, monkeypatch) -> None:
     """Covered criteria still need a terminal status audit before the loop stops."""
-    from src.goal import EvidenceInput
+    from src.runtime.goal import EvidenceInput
 
-    monkeypatch.setattr("src.agent.tuning.GOAL_MAX_CONTINUATIONS", 1, raising=False)
+    monkeypatch.setattr("src.runtime.agent.tuning.GOAL_MAX_CONTINUATIONS", 1, raising=False)
     monkeypatch.setenv("VIBE_TRADING_GOAL_DB_PATH", str(tmp_path / "goals.db"))
     store = GoalStore()
     goal = store.replace_goal(

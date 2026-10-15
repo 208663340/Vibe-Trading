@@ -25,9 +25,9 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.grounding import GroundingLedger
+from src.runtime.agent.grounding import GroundingLedger
 from tests.grounding_parameter_helpers import declared_parameter
-from src.agent.grounding.figures import (
+from src.runtime.agent.grounding.figures import (
     ROLES,
     parse_figures_block,
     scan_figures,
@@ -693,7 +693,7 @@ def test_a_fabricated_figure_is_refused_under_all_the_same_words(
 
 
 def _prompt_blocks() -> list[str]:
-    from src.agent.context import _SYSTEM_PROMPT
+    from src.runtime.agent.context import _SYSTEM_PROMPT
 
     return [
         "```figures" + chunk.split("```")[0] + "```"
@@ -788,7 +788,7 @@ def test_a_cut_figure_takes_its_magnitude_mark_with_it(tmp_path: Path) -> None:
 def test_a_magnitude_mark_is_a_glued_symbol_not_a_word(
     text: str, end: int, expected: tuple[float, int]
 ) -> None:
-    from src.agent.grounding.figures import magnitude_suffix
+    from src.runtime.agent.grounding.figures import magnitude_suffix
 
     assert magnitude_suffix(text, end) == expected
 

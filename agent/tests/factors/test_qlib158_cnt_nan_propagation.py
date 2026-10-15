@@ -16,7 +16,7 @@ is not wrong by a rounding step: a 5-day window with one gap reports 0.2 where
 the observed days say 0.4, so a halt reads as a weaker signal rather than no
 signal. That violates base.py's NaN policy ("every operator propagates NaN; no
 silent fillna(0)") and the compute() contract for
-`agent/src/factors/zoo/**` — NaN preserved at missing-data positions.
+`agent/src/research/factors/zoo/**` — NaN preserved at missing-data positions.
 
 The gap must therefore stay NaN through every window that still touches it, and
 leave once the gap scrolls out. A *real* tie (close == prior close) is not
@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 N_ROWS = 160
 GAP_ROW = 70  # past every window below, so the clean fixture is finite here

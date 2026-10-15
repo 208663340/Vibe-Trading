@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from rich.console import Console
 
-from cli.ui.banner import print_banner
-from cli.ui.rail import RailRunDashboard
-from cli.ui.transcript import render_answer, render_elapsed_status, render_prompt_footer, render_recap
+from src.interfaces.cli.ui.banner import print_banner
+from src.interfaces.cli.ui.rail import RailRunDashboard
+from src.interfaces.cli.ui.transcript import render_answer, render_elapsed_status, render_prompt_footer, render_recap
 
 
 def _render(renderable) -> str:
@@ -50,7 +50,7 @@ def test_rail_renders_codex_style_shell_transcript() -> None:
             "elapsed_ms": 200,
             "preview": (
                 '{"status":"ok","stdout":"M  CHANGELOG.md\\n M agent/.env.example\\n'
-                'M  agent/cli/main.py\\nA  docs/screenshots/boot.png\\n'
+                'M  agent/src/interfaces/cli/main.py\\nA  docs/screenshots/boot.png\\n'
                 'A  docs/screenshots/agent-run.png\\n","stderr":""}'
             ),
         },
@@ -117,7 +117,7 @@ def test_transcript_helpers_render_prompt_recap_and_elapsed() -> None:
 
 
 def test_interactive_result_prints_elapsed_after_answer() -> None:
-    from cli.main import _print_interactive_result
+    from src.interfaces.cli.main import _print_interactive_result
 
     console = Console(record=True, force_terminal=False, color_system=None, width=100)
     _print_interactive_result(

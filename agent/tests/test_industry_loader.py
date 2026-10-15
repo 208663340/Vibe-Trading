@@ -1,4 +1,4 @@
-"""PIT contract for ``backtest.loaders.industry_loader``.
+"""PIT contract for ``src.backtest.loaders.industry_loader``.
 
 Every test injects a fake tushare API — no network. The behaviours pinned here
 are the ones a silent bug would ruin: ``in_date`` inclusive / ``out_date``
@@ -16,7 +16,7 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from backtest.loaders.industry_loader import (
+from src.backtest.loaders.industry_loader import (
     load_industry_frame,
     load_industry_frame_with_coverage,
     validate_industry_params,

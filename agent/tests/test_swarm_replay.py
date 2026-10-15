@@ -13,8 +13,8 @@ import threading
 
 import pytest
 
-import src.swarm.runtime as rt
-from src.swarm.models import (
+import src.runtime.swarm.runtime as rt
+from src.runtime.swarm.models import (
     RunStatus,
     SwarmAgentSpec,
     SwarmRun,
@@ -22,8 +22,8 @@ from src.swarm.models import (
     TaskStatus,
     WorkerResult,
 )
-from src.swarm.store import SwarmStore
-from src.swarm.task_store import TaskStore
+from src.runtime.swarm.store import SwarmStore
+from src.runtime.swarm.task_store import TaskStore
 
 
 def _make_dag_run(run_id: str, status: RunStatus) -> SwarmRun:

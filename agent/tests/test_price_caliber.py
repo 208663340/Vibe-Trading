@@ -10,14 +10,14 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest import runner
-from backtest.loaders.registry import (
+from src.backtest import runner
+from src.backtest.loaders.registry import (
     FALLBACK_CHAINS,
     additive_caliber_warning,
     mixed_caliber_warning,
     price_caliber,
 )
-from src.market_data import fetch_market_data
+from src.markets.market_data import fetch_market_data
 
 
 def _df() -> pd.DataFrame:
@@ -501,7 +501,7 @@ def _bar(**over):
 
 
 def test_fmp_loader_serves_the_caliber_the_table_claims() -> None:
-    from backtest.loaders.fmp_loader import _parse_historical
+    from src.backtest.loaders.fmp_loader import _parse_historical
 
     assert price_caliber("fmp", "us_equity") == "split_dividend"
     df = _parse_historical([_bar()])
@@ -513,7 +513,7 @@ def test_fmp_loader_serves_the_caliber_the_table_claims() -> None:
 
 
 def test_tiingo_loader_serves_the_caliber_the_table_claims() -> None:
-    from backtest.loaders.tiingo_loader import _rows_to_frame
+    from src.backtest.loaders.tiingo_loader import _rows_to_frame
 
     assert price_caliber("tiingo", "us_equity") == "split_dividend"
     df = _rows_to_frame([_bar(date="2024-01-03T00:00:00.000Z")])
@@ -524,7 +524,7 @@ def test_tiingo_loader_serves_the_caliber_the_table_claims() -> None:
 
 
 def test_gildata_loader_serves_the_caliber_the_table_claims() -> None:
-    from backtest.loaders.gildata_loader import _RESTORATION_QFQ, _parse_daily_rows
+    from src.backtest.loaders.gildata_loader import _RESTORATION_QFQ, _parse_daily_rows
 
     assert price_caliber("gildata", "a_share") == "split_dividend"
     # The caliber is pinned by the request parameter, not by any local

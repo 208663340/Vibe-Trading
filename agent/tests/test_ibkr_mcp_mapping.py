@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.trading.connectors.ibkr.mcp import (
+from src.markets.trading.connectors.ibkr.mcp import (
     normalize_result,
     remote_arguments,
     remote_tool_name,

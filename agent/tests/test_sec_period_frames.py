@@ -16,9 +16,9 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from backtest.loaders import sec_frames
-from src.tools.financial_statements_tool import FinancialStatementsTool
-from src.tools.sec_filings_tool import _parse_metric
+from src.backtest.loaders import sec_frames
+from src.runtime.tools.financial_statements_tool import FinancialStatementsTool
+from src.runtime.tools.sec_filings_tool import _parse_metric
 
 
 def _row(start, end, val, *, fy, fp, form, accn, filed):
@@ -45,9 +45,9 @@ def _facts(rows, concept="Revenues"):
 def _fetch(facts, *, statement="income", period="annual", code="AAPL.US"):
     """Run the tool against a mocked companyfacts payload and return its periods."""
     with patch(
-        "src.tools.financial_statements_tool.cik_for", return_value="0000320193"
+        "src.runtime.tools.financial_statements_tool.cik_for", return_value="0000320193"
     ), patch(
-        "src.tools.financial_statements_tool.get_company_facts", return_value=facts
+        "src.runtime.tools.financial_statements_tool.get_company_facts", return_value=facts
     ):
         text = FinancialStatementsTool().execute(
             code=code, statement=statement, period=period

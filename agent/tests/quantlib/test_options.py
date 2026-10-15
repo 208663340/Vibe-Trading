@@ -1,4 +1,4 @@
-"""Pin the Black-Scholes primitives in ``src.quantlib.options``.
+"""Pin the Black-Scholes primitives in ``src.research.quantlib.options``.
 
 Three independent kinds of check, because each catches what the others miss:
 
@@ -19,7 +19,7 @@ import math
 import numpy as np
 import pytest
 
-from src.quantlib.options import (
+from src.research.quantlib.options import (
     barrier_greeks,
     barrier_option_price,
     bs_greeks,
@@ -396,7 +396,7 @@ class TestEdgeCases:
 
 def test_engine_and_quantlib_are_the_same_object() -> None:
     """The engine must not carry a second copy of this math."""
-    from backtest.engines import options_portfolio
+    from src.backtest.engines import options_portfolio
 
     assert options_portfolio.bs_price is bs_price
     assert options_portfolio.bs_greeks is bs_greeks
@@ -413,14 +413,14 @@ class TestEngineFoldsOptionTypeTheSameWay:
 
     @pytest.mark.parametrize("alias", ["call", "Call", "CALL", " call "])
     def test_stored_type_is_folded(self, alias: str) -> None:
-        from backtest.engines.options_portfolio import OptionPosition
+        from src.backtest.engines.options_portfolio import OptionPosition
 
         pos = OptionPosition(alias, 100.0, "2026-01-01", 1, 5.0, "2025-10-01", "X")
         assert pos.option_type == "call"
 
     @pytest.mark.parametrize("alias", ["call", "Call", "CALL"])
     def test_price_and_settlement_agree(self, alias: str) -> None:
-        from backtest.engines.options_portfolio import OptionPosition
+        from src.backtest.engines.options_portfolio import OptionPosition
 
         pos = OptionPosition(alias, 100.0, "2026-01-01", 1, 5.0, "2025-10-01", "X")
         # Spot above the strike: a call settles at 30, a put at 0.
@@ -428,7 +428,7 @@ class TestEngineFoldsOptionTypeTheSameWay:
         assert pos.intrinsic_value(130.0) == 30.0
 
     def test_matching_is_case_insensitive(self) -> None:
-        from backtest.engines.options_portfolio import (
+        from src.backtest.engines.options_portfolio import (
             OptionPosition, _find_matching_position, normalise_option_type,
         )
 
@@ -439,14 +439,14 @@ class TestEngineFoldsOptionTypeTheSameWay:
             ) is pos
 
     def test_unknown_type_is_rejected_at_construction(self) -> None:
-        from backtest.engines.options_portfolio import OptionPosition
+        from src.backtest.engines.options_portfolio import OptionPosition
 
         # A genuine typo, not "c" -- that is an accepted alias now.
         with pytest.raises(ValueError, match="option_type"):
             OptionPosition("cal", 100.0, "2026-01-01", 1, 5.0, "2025-10-01", "X")
 
     def test_an_aliased_type_is_accepted_at_construction(self) -> None:
-        from backtest.engines.options_portfolio import OptionPosition
+        from src.backtest.engines.options_portfolio import OptionPosition
 
         # The engine folds through the same rule, so a config typed "C" builds
         # a position that prices AND settles as a call.

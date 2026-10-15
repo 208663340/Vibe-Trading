@@ -1,1 +1,1 @@
-"""Tests for the FastAPI route modules under ``src/api``."""
+"""Tests for the FastAPI route modules under ``src/interfaces/api``."""

@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.tools.web_search_tool import WebSearchTool
+from src.runtime.tools.web_search_tool import WebSearchTool
 
 
 def _make_ddgs_module(text_impl):
@@ -80,7 +80,7 @@ def test_env_overrides_backends(monkeypatch):
 
 def test_retries_transient_failure_then_succeeds(monkeypatch):
     """A transient exception is retried (with backoff) and a later attempt wins."""
-    monkeypatch.setattr("src.tools.web_search_tool.time.sleep", lambda *_: None)
+    monkeypatch.setattr("src.runtime.tools.web_search_tool.time.sleep", lambda *_: None)
     calls = {"n": 0}
 
     def text_impl(query, max_results, **kwargs):
@@ -98,7 +98,7 @@ def test_retries_transient_failure_then_succeeds(monkeypatch):
 
 def test_no_results_is_ok_empty_not_error(monkeypatch):
     """ddgs raising 'No results found.' yields an ok+empty envelope, not ❌."""
-    monkeypatch.setattr("src.tools.web_search_tool.time.sleep", lambda *_: None)
+    monkeypatch.setattr("src.runtime.tools.web_search_tool.time.sleep", lambda *_: None)
 
     def text_impl(query, max_results, **kwargs):
         raise RuntimeError("No results found.")
@@ -114,7 +114,7 @@ def test_no_results_is_ok_empty_not_error(monkeypatch):
 def test_persistent_failure_returns_actionable_error(monkeypatch):
     """When every attempt fails, the error names the retry/env/read_url remedies."""
     monkeypatch.setenv("VIBE_TRADING_SEARCH_BING_FALLBACK", "0")
-    monkeypatch.setattr("src.tools.web_search_tool.time.sleep", lambda *_: None)
+    monkeypatch.setattr("src.runtime.tools.web_search_tool.time.sleep", lambda *_: None)
     calls = {"n": 0}
 
     def text_impl(query, max_results, **kwargs):
@@ -132,7 +132,7 @@ def test_persistent_failure_returns_actionable_error(monkeypatch):
 
 def test_persistent_failure_uses_cn_fallback_without_network(monkeypatch):
     """Persistent ddgs failures can fall back to CN search without touching real network in tests."""
-    monkeypatch.setattr("src.tools.web_search_tool.time.sleep", lambda *_: None)
+    monkeypatch.setattr("src.runtime.tools.web_search_tool.time.sleep", lambda *_: None)
     calls = {"ddgs": 0, "sogou": 0, "bing_cn": 0}
 
     def text_impl(query, max_results, **kwargs):
@@ -147,8 +147,8 @@ def test_persistent_failure_uses_cn_fallback_without_network(monkeypatch):
         calls["bing_cn"] += 1
         return [{"title": "backup", "href": "https://example.test/b", "body": "ok"}]
 
-    monkeypatch.setattr("src.tools.web_search_tool._sogou_search", fake_sogou)
-    monkeypatch.setattr("src.tools.web_search_tool._bing_cn_search", fake_bing_cn)
+    monkeypatch.setattr("src.runtime.tools.web_search_tool._sogou_search", fake_sogou)
+    monkeypatch.setattr("src.runtime.tools.web_search_tool._bing_cn_search", fake_bing_cn)
 
     with _patch_ddgs(monkeypatch, text_impl):
         out = json.loads(WebSearchTool().execute(query="tsla"))
@@ -161,7 +161,7 @@ def test_persistent_failure_uses_cn_fallback_without_network(monkeypatch):
 
 def test_network_failure_fast_fails_to_cn_fallback(monkeypatch):
     """Network-style ddgs failures skip extra retries and go straight to fallback."""
-    monkeypatch.setattr("src.tools.web_search_tool.time.sleep", lambda *_: None)
+    monkeypatch.setattr("src.runtime.tools.web_search_tool.time.sleep", lambda *_: None)
     calls = {"ddgs": 0}
 
     def text_impl(query, max_results, **kwargs):
@@ -169,12 +169,12 @@ def test_network_failure_fast_fails_to_cn_fallback(monkeypatch):
         raise RuntimeError("Connection timed out")
 
     monkeypatch.setattr(
-        "src.tools.web_search_tool._sogou_search",
+        "src.runtime.tools.web_search_tool._sogou_search",
         lambda query, max_results=5: [
             {"title": "fallback", "href": "https://example.test/f", "body": "ok"}
         ],
     )
-    monkeypatch.setattr("src.tools.web_search_tool._bing_cn_search", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr("src.runtime.tools.web_search_tool._bing_cn_search", lambda *_args, **_kwargs: [])
 
     with _patch_ddgs(monkeypatch, text_impl):
         out = json.loads(WebSearchTool().execute(query="maotai"))

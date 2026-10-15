@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.composite import CompositeEngine
-from backtest.engines.india_equity import IndiaEquityEngine
-from backtest.models import Position
+from src.backtest.engines.composite import CompositeEngine
+from src.backtest.engines.india_equity import IndiaEquityEngine
+from src.backtest.models import Position
 
 
 SYMBOL = "RELIANCE.NS"

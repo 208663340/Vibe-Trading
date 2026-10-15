@@ -1,4 +1,4 @@
-from src.quantlib.crossvalidation import (
+from src.research.quantlib.crossvalidation import (
     purged_walk_forward_splits,
     detect_boundary_leakage,
 )

@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from backtest.engines._market_hooks import code_currency
-from backtest.engines.composite import CompositeEngine, _reject_mixed_currency
+from src.backtest.engines._market_hooks import code_currency
+from src.backtest.engines.composite import CompositeEngine, _reject_mixed_currency
 
 
 class TestCodeCurrency:

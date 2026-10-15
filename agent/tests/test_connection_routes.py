@@ -3,9 +3,9 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api import connection_routes
-from src.trading.connections import ConnectionStore
-from src.trading.credentials import CredentialStore
+from src.interfaces.api import connection_routes
+from src.markets.trading.connections import ConnectionStore
+from src.markets.trading.credentials import CredentialStore
 
 
 class _MemoryCredentials:

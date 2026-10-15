@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from backtest.loaders.mt5_loader import DataLoader, _INTERVAL_MAP
+from src.backtest.loaders.mt5_loader import DataLoader, _INTERVAL_MAP
 
 
 def test_week_and_month_tokens_map_like_connector() -> None:
@@ -28,7 +28,7 @@ def test_week_interval_uses_w1_not_daily() -> None:
     frame = MagicMock()
     frame.empty = False
     with patch(
-        "backtest.loaders.mt5_loader.cached_loader_fetch", return_value=frame
+        "src.backtest.loaders.mt5_loader.cached_loader_fetch", return_value=frame
     ) as mock_cache:
         out = DataLoader().fetch(
             ["EURUSD"], "2024-01-01", "2024-01-31", interval="1W"

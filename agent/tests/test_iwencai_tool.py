@@ -1,7 +1,7 @@
 """Tests for the iWenCai (问财) natural-language A-share search tool.
 
 No request leaves the process: the HTTP boundary
-(:func:`backtest.loaders._http.throttled_get_json`, imported into the tool
+(:func:`src.backtest.loaders._http.throttled_get_json`, imported into the tool
 module) is mocked so the real auth/parsing/envelope path runs offline.
 """
 
@@ -13,8 +13,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.tools import iwencai_tool
-from src.tools.iwencai_tool import IWenCaiSearchTool, _coerce_limit, _extract_rows
+from src.runtime.tools import iwencai_tool
+from src.runtime.tools.iwencai_tool import IWenCaiSearchTool, _coerce_limit, _extract_rows
 
 _KEY_ENV = "VIBE_TRADING_IWENCAI_KEY"
 

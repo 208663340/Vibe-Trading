@@ -4,8 +4,8 @@ AC2 (routing validated at startup): ``ContextBuilder.build_system_prompt()``
 must include the Strategy Discovery routing block when — and only when — all
 four tools (three read-only plus ``refresh_strategy_evidence``) are present
 in the tool registry, and must degrade to a clean prompt (no block, no
-crash) when ``src.strategy_discovery`` cannot be imported. The expected block text is derived from
-``src.strategy_discovery.guard.routing_block`` so these tests stay decoupled
+crash) when ``src.research.strategy_discovery`` cannot be imported. The expected block text is derived from
+``src.research.strategy_discovery.guard.routing_block`` so these tests stay decoupled
 from the block's exact wording.
 
 Registries are real ``ToolRegistry`` objects with minimal ``BaseTool``
@@ -21,13 +21,13 @@ import sys
 
 import pytest
 
-from src.agent.context import ContextBuilder
-from src.agent.memory import WorkspaceMemory
-from src.agent.skills import SkillsLoader
-from src.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.memory import WorkspaceMemory
+from src.runtime.agent.skills import SkillsLoader
+from src.runtime.agent.tools import BaseTool, ToolRegistry
 
 try:
-    from src.strategy_discovery import guard as sd_guard
+    from src.research.strategy_discovery import guard as sd_guard
 
     GUARD_AVAILABLE = True
 except ImportError:
@@ -61,7 +61,7 @@ def _registry_with(names) -> ToolRegistry:
 
 
 def _context_module():
-    from src.agent import context as context_mod
+    from src.runtime.agent import context as context_mod
 
     return context_mod
 
@@ -79,8 +79,8 @@ def _wiring_landed() -> bool:
 requires_routing = pytest.mark.skipif(
     not _wiring_landed(),
     reason=(
-        "waiting on sibling A+B: src.strategy_discovery.guard and/or the "
-        "src.agent.context Strategy Discovery routing wiring not landed yet (issue #969)"
+        "waiting on sibling A+B: src.research.strategy_discovery.guard and/or the "
+        "src.runtime.agent.context Strategy Discovery routing wiring not landed yet (issue #969)"
     ),
 )
 
@@ -152,24 +152,24 @@ class TestRoutingBlockInPrompt:
 
         # Break the package for any deferred import inside build_system_prompt
         # (an entry set to None makes ``import`` raise ImportError).
-        monkeypatch.setitem(sys.modules, "src.strategy_discovery", None)
-        monkeypatch.setitem(sys.modules, "src.strategy_discovery.guard", None)
+        monkeypatch.setitem(sys.modules, "src.research.strategy_discovery", None)
+        monkeypatch.setitem(sys.modules, "src.research.strategy_discovery.guard", None)
         # Additionally poison any module-level binding the context may hold,
         # covering top-level-import designs that call the guard at runtime.
         for name in dir(context_mod):
             obj = getattr(context_mod, name, None)
             module_of = getattr(obj, "__module__", "")
-            if module_of.startswith("src.strategy_discovery"):
+            if module_of.startswith("src.research.strategy_discovery"):
                 monkeypatch.setattr(context_mod, name, _raiser, raising=True)
             elif inspect.ismodule(obj) and obj.__name__.startswith(
-                "src.strategy_discovery"
+                "src.research.strategy_discovery"
             ):
                 monkeypatch.setattr(context_mod, name, _BrokenModule(), raising=True)
 
         prompt = builder_factory(registry).build_system_prompt()
         assert (
             isinstance(prompt, str) and prompt.strip()
-        ), "prompt must still build when src.strategy_discovery import fails"
+        ), "prompt must still build when src.research.strategy_discovery import fails"
         assert (
             full_block not in prompt
         ), "broken import must degrade to no routing block"

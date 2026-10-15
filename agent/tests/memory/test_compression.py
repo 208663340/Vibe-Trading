@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.memory.compression import (
+from src.runtime.memory.compression import (
     DAILY_THRESHOLD_DAYS,
     DIGEST_THRESHOLD_DAYS,
     LEVEL_DAILY,

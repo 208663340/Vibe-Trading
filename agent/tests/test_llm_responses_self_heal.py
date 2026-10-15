@@ -22,8 +22,8 @@ from typing import Any, Iterator
 import httpx
 import pytest
 
-import src.providers.llm as llm_mod
-from src.providers.llm import ChatOpenAIWithReasoning, _is_responses_required_error
+import src.runtime.providers.llm as llm_mod
+from src.runtime.providers.llm import ChatOpenAIWithReasoning, _is_responses_required_error
 
 pytestmark = pytest.mark.skipif(
     ChatOpenAIWithReasoning is None, reason="langchain-openai is not installed"

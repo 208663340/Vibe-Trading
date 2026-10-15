@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import cli
+import src.interfaces.cli as cli
 import pytest
 
 
@@ -110,7 +110,7 @@ class TestCmdSetupRunsSteps:
 
         with patch.object(cli._legacy, "_resolve_node_and_npm", return_value=("/usr/bin/node", "/usr/bin/npm")):
             with patch.object(cli._legacy, "_is_windows", return_value=False):
-                with patch("cli._legacy.subprocess.run") as mock_run:
+                with patch("src.interfaces.cli._legacy.subprocess.run") as mock_run:
                     mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
                     rc = cli._legacy.cmd_setup(frontend_dir=frontend_dir)
 
@@ -127,7 +127,7 @@ class TestCmdSetupRunsSteps:
 
         with patch.object(cli._legacy, "_resolve_node_and_npm", return_value=("/usr/bin/node", "/usr/bin/npm")):
             with patch.object(cli._legacy, "_is_windows", return_value=False):
-                with patch("cli._legacy.subprocess.run") as mock_run:
+                with patch("src.interfaces.cli._legacy.subprocess.run") as mock_run:
                     mock_run.return_value = MagicMock(
                         returncode=1, stdout="", stderr="boom: failed"
                     )
@@ -152,8 +152,8 @@ class TestCmdDev:
         # We must fabricate node_modules/.bin/vite so the pre-check in
         # cmd_dev does not bail out with USAGE_ERROR before Popen runs.
         frontend_dir = _make_frontend_with_vite(tmp_path)
-        with patch("cli._legacy._resolve_node_and_npm", return_value=("/usr/bin/node", "/usr/bin/npm")):
-            with patch("cli._legacy.subprocess.Popen") as mock_popen:
+        with patch("src.interfaces.cli._legacy._resolve_node_and_npm", return_value=("/usr/bin/node", "/usr/bin/npm")):
+            with patch("src.interfaces.cli._legacy.subprocess.Popen") as mock_popen:
                 # Both children "exit" immediately so the wait loop ends.
                 proc = MagicMock()
                 proc.poll.return_value = 0
@@ -168,8 +168,8 @@ class TestCmdDev:
         frontend_cmd = frontend_call.args[0]
         # Backend must run from AGENT_DIR, not the repo root.
         assert backend_call.kwargs.get("cwd") == str(cli._legacy.AGENT_DIR)
-        # Backend invocation must be `python -m cli._legacy serve`.
-        assert backend_cmd[:4] == [sys.executable, "-m", "cli._legacy", "serve"]
+        # Backend invocation must be `python -m src.interfaces.cli._legacy serve`.
+        assert backend_cmd[:4] == [sys.executable, "-m", "src.interfaces.cli._legacy", "serve"]
         # Frontend invocation must pass the configured vite port (5899 by
         # default; --port 5173 would be a bug).
         assert "--port" in frontend_cmd
@@ -182,8 +182,8 @@ class TestCmdDev:
 
     def test_custom_frontend_port_propagates(self, tmp_path: Path) -> None:
         frontend_dir = _make_frontend_with_vite(tmp_path)
-        with patch("cli._legacy._resolve_node_and_npm", return_value=("/usr/bin/node", "/usr/bin/npm")):
-            with patch("cli._legacy.subprocess.Popen") as mock_popen:
+        with patch("src.interfaces.cli._legacy._resolve_node_and_npm", return_value=("/usr/bin/node", "/usr/bin/npm")):
+            with patch("src.interfaces.cli._legacy.subprocess.Popen") as mock_popen:
                 proc = MagicMock()
                 proc.poll.return_value = 0
                 mock_popen.return_value = proc
@@ -213,10 +213,10 @@ class TestCmdDev:
         frontend.poll.return_value = frontend_code
 
         with patch(
-            "cli._legacy._resolve_node_and_npm",
+            "src.interfaces.cli._legacy._resolve_node_and_npm",
             return_value=("/usr/bin/node", "/usr/bin/npm"),
         ):
-            with patch("cli._legacy.subprocess.Popen", side_effect=[backend, frontend]):
+            with patch("src.interfaces.cli._legacy.subprocess.Popen", side_effect=[backend, frontend]):
                 with patch.object(cli._legacy.time, "sleep", return_value=None):
                     rc = cli._legacy.cmd_dev(frontend_dir=frontend_dir)
 
@@ -230,11 +230,11 @@ class TestCmdDev:
         backend.poll.return_value = None
 
         with patch(
-            "cli._legacy._resolve_node_and_npm",
+            "src.interfaces.cli._legacy._resolve_node_and_npm",
             return_value=("/usr/bin/node", "/usr/bin/npm"),
         ):
             with patch(
-                "cli._legacy.subprocess.Popen",
+                "src.interfaces.cli._legacy.subprocess.Popen",
                 side_effect=[backend, OSError("frontend failed to start")],
             ):
                 rc = cli._legacy.cmd_dev(frontend_dir=frontend_dir)
@@ -251,10 +251,10 @@ class TestCmdDev:
         frontend.poll.return_value = None
 
         with patch(
-            "cli._legacy._resolve_node_and_npm",
+            "src.interfaces.cli._legacy._resolve_node_and_npm",
             return_value=("/usr/bin/node", "/usr/bin/npm"),
         ):
-            with patch("cli._legacy.subprocess.Popen", side_effect=[backend, frontend]):
+            with patch("src.interfaces.cli._legacy.subprocess.Popen", side_effect=[backend, frontend]):
                 with patch.object(
                     cli._legacy.time, "sleep", side_effect=KeyboardInterrupt
                 ):

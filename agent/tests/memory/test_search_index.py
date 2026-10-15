@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from src.memory.search_index import MemorySearchIndex
+from src.runtime.memory.search_index import MemorySearchIndex
 
 
 # ---------------------------------------------------------------------------

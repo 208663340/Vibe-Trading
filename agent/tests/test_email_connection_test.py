@@ -24,9 +24,9 @@ from typing import Any
 
 import pytest
 
-from src.channels.bus.queue import MessageBus
-from src.channels.email import EmailChannel
-from src.channels.utils import email_tls_context, send_imap_id
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.email import EmailChannel
+from src.interfaces.channels.utils import email_tls_context, send_imap_id
 
 IMAP_HOST = "imap.example.com"
 SMTP_HOST = "smtp.example.com"
@@ -713,10 +713,10 @@ def test_probe_module_never_imports_the_adapter_at_runtime() -> None:
     """The probe keeps the adapter import TYPE_CHECKING-only (no cycle)."""
     import inspect as _inspect
 
-    from src.channels import email_probe
+    from src.interfaces.channels import email_probe
 
     source = _inspect.getsource(email_probe)
-    assert "from src.channels.email import EmailConfig" in source
+    assert "from src.interfaces.channels.email import EmailConfig" in source
     assert "if TYPE_CHECKING:" in source
 
 

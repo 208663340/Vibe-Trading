@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from backtest.loaders.local_loader import _RESAMPLE_RULES, _resample_to_interval
+from src.backtest.loaders.local_loader import _RESAMPLE_RULES, _resample_to_interval
 
 
 def _hourly_frame() -> pd.DataFrame:

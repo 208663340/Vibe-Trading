@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from src.tools.portfolio_tool import PortfolioSummaryTool
+from src.runtime.tools.portfolio_tool import PortfolioSummaryTool
 
 
 def test_snapshot_id_reaches_the_service_and_an_unknown_id_fails_closed(monkeypatch):
@@ -14,7 +14,7 @@ def test_snapshot_id_reaches_the_service_and_an_unknown_id_fails_closed(monkeypa
         seen.append(snapshot_id)
         return None if snapshot_id in {"gone", ""} else {"snapshot_id": snapshot_id or "latest-id"}
 
-    monkeypatch.setattr("src.portfolio.service.PortfolioService.analysis_context", fake_context)
+    monkeypatch.setattr("src.markets.portfolio.service.PortfolioService.analysis_context", fake_context)
     tool = PortfolioSummaryTool()
 
     assert json.loads(tool.execute())["context"]["snapshot_id"] == "latest-id"

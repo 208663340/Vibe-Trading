@@ -14,11 +14,11 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from src.swarm import grounding
-from src.swarm.models import SwarmAgentSpec, SwarmRun, SwarmTask, WorkerResult
-from src.swarm.runtime import SwarmRuntime
-from src.swarm.task_store import TaskStore
-from src.swarm.worker import build_worker_prompt
+from src.runtime.swarm import grounding
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmRun, SwarmTask, WorkerResult
+from src.runtime.swarm.runtime import SwarmRuntime
+from src.runtime.swarm.task_store import TaskStore
+from src.runtime.swarm.worker import build_worker_prompt
 
 
 # --------------------------------------------------------------------------- #
@@ -154,7 +154,7 @@ def test_fetch_returns_normalized_bars(monkeypatch) -> None:
     regression that drops or rewrites the dispatch shows up here.
     """
     frame = _three_bar_frame()
-    import backtest.loaders.registry as reg
+    import src.backtest.loaders.registry as reg
     captured_markets: list[str] = []
 
     def _fake_resolve(market: str):
@@ -176,7 +176,7 @@ def test_fetch_returns_normalized_bars(monkeypatch) -> None:
 
 
 def test_fetch_skips_symbols_with_no_data(monkeypatch) -> None:
-    import backtest.loaders.registry as reg
+    import src.backtest.loaders.registry as reg
     monkeypatch.setattr(
         reg, "resolve_loader",
         lambda market: _StubLoader(pd.DataFrame()),  # empty frame

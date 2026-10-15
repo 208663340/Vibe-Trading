@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from src.tools.financial_statements_tool import FinancialStatementsTool
+from src.runtime.tools.financial_statements_tool import FinancialStatementsTool
 
 # Eastmoney datacenter report success body: result.data is a list of rows.
 _EM_PAYLOAD = {
@@ -105,10 +105,10 @@ class TestSuccessEnvelope:
 
     def test_a_share_uses_eastmoney_and_parses_periods(self):
         with patch(
-            "src.tools.financial_statements_tool.resolve_secid",
+            "src.runtime.tools.financial_statements_tool.resolve_secid",
             return_value="1.600519",
         ), patch(
-            "src.tools.financial_statements_tool.get_json",
+            "src.runtime.tools.financial_statements_tool.get_json",
             return_value=_EM_A_PAYLOAD,
         ) as mock_get:
             text = FinancialStatementsTool().execute(
@@ -136,14 +136,14 @@ class TestSuccessEnvelope:
 
     def test_us_uses_sec_companyfacts(self):
         with patch(
-            "src.tools.financial_statements_tool.resolve_secid",
+            "src.runtime.tools.financial_statements_tool.resolve_secid",
         ) as mock_resolve, patch(
-            "src.tools.financial_statements_tool.get_json",
+            "src.runtime.tools.financial_statements_tool.get_json",
         ) as mock_get, patch(
-            "src.tools.financial_statements_tool.cik_for",
+            "src.runtime.tools.financial_statements_tool.cik_for",
             return_value="0000320193",
         ) as mock_cik, patch(
-            "src.tools.financial_statements_tool.get_company_facts",
+            "src.runtime.tools.financial_statements_tool.get_company_facts",
             return_value=_SEC_FACTS,
         ) as mock_facts:
             text = FinancialStatementsTool().execute(
@@ -172,10 +172,10 @@ class TestSuccessEnvelope:
 
     def test_us_quarter_keeps_10q_points(self):
         with patch(
-            "src.tools.financial_statements_tool.cik_for",
+            "src.runtime.tools.financial_statements_tool.cik_for",
             return_value="0000320193",
         ), patch(
-            "src.tools.financial_statements_tool.get_company_facts",
+            "src.runtime.tools.financial_statements_tool.get_company_facts",
             return_value=_SEC_FACTS,
         ):
             text = FinancialStatementsTool().execute(
@@ -192,10 +192,10 @@ class TestSuccessEnvelope:
 
     def test_hk_indicators_use_hk_report_name(self):
         with patch(
-            "src.tools.financial_statements_tool.resolve_secid",
+            "src.runtime.tools.financial_statements_tool.resolve_secid",
             return_value="116.00700",
         ), patch(
-            "src.tools.financial_statements_tool.get_json",
+            "src.runtime.tools.financial_statements_tool.get_json",
             return_value=_EM_PAYLOAD,
         ) as mock_get:
             FinancialStatementsTool().execute(
@@ -218,10 +218,10 @@ class TestAllFailedSurfacesError:
 
     def test_http_failure_yields_top_level_ok_false(self):
         with patch(
-            "src.tools.financial_statements_tool.resolve_secid",
+            "src.runtime.tools.financial_statements_tool.resolve_secid",
             return_value="1.600519",
         ), patch(
-            "src.tools.financial_statements_tool.get_json",
+            "src.runtime.tools.financial_statements_tool.get_json",
             side_effect=RuntimeError("HTTP 429"),
         ):
             text = FinancialStatementsTool().execute(
@@ -235,7 +235,7 @@ class TestAllFailedSurfacesError:
 
     def test_unresolvable_us_symbol_yields_ok_false(self):
         with patch(
-            "src.tools.financial_statements_tool.cik_for",
+            "src.runtime.tools.financial_statements_tool.cik_for",
             return_value=None,
         ):
             text = FinancialStatementsTool().execute(code="ZZZZ.US")
@@ -249,10 +249,10 @@ class TestAllFailedSurfacesError:
         # An empty-but-well-formed payload is data (zero periods), not a fetch
         # failure, so the envelope stays ok=true.
         with patch(
-            "src.tools.financial_statements_tool.resolve_secid",
+            "src.runtime.tools.financial_statements_tool.resolve_secid",
             return_value="0.000001",
         ), patch(
-            "src.tools.financial_statements_tool.get_json",
+            "src.runtime.tools.financial_statements_tool.get_json",
             return_value={"result": {}},
         ):
             text = FinancialStatementsTool().execute(code="000001.SZ")
@@ -292,9 +292,9 @@ class TestPeriodSelection:
     def _run(self, payload, *, period, statement="balance",
              code="600519.SH", secid="1.600519"):
         with patch(
-            "src.tools.financial_statements_tool.resolve_secid", return_value=secid,
+            "src.runtime.tools.financial_statements_tool.resolve_secid", return_value=secid,
         ), patch(
-            "src.tools.financial_statements_tool.get_json", return_value=payload,
+            "src.runtime.tools.financial_statements_tool.get_json", return_value=payload,
         ) as mock_get:
             text = FinancialStatementsTool().execute(
                 code=code, statement=statement, period=period
@@ -387,7 +387,7 @@ class TestUKYahooStatements:
 
     def test_uk_income_annual_uses_annual_module(self) -> None:
         with patch(
-            "src.tools.financial_statements_tool.yahoo_client.get_quote_summary",
+            "src.runtime.tools.financial_statements_tool.yahoo_client.get_quote_summary",
             return_value=self._INCOME_PAYLOAD,
         ) as mock_qs:
             text = FinancialStatementsTool().execute(
@@ -420,7 +420,7 @@ class TestUKYahooStatements:
             }
         }
         with patch(
-            "src.tools.financial_statements_tool.yahoo_client.get_quote_summary",
+            "src.runtime.tools.financial_statements_tool.yahoo_client.get_quote_summary",
             return_value=quarterly,
         ) as mock_qs:
             payload = json.loads(
@@ -442,7 +442,7 @@ class TestUKYahooStatements:
 
     def test_uk_il_suffix_routes_to_yahoo(self) -> None:
         with patch(
-            "src.tools.financial_statements_tool.yahoo_client.get_quote_summary",
+            "src.runtime.tools.financial_statements_tool.yahoo_client.get_quote_summary",
             return_value=self._INCOME_PAYLOAD,
         ) as mock_qs:
             FinancialStatementsTool().execute(
@@ -464,7 +464,7 @@ class TestUKYahooStatements:
             },
         }
         with patch(
-            "src.tools.financial_statements_tool.yahoo_client.get_quote_summary",
+            "src.runtime.tools.financial_statements_tool.yahoo_client.get_quote_summary",
             return_value=payload,
         ) as mock_qs:
             text = FinancialStatementsTool().execute(
@@ -484,7 +484,7 @@ class TestUKYahooStatements:
 
     def test_uk_yahoo_failure_surfaces_ok_false(self) -> None:
         with patch(
-            "src.tools.financial_statements_tool.yahoo_client.get_quote_summary",
+            "src.runtime.tools.financial_statements_tool.yahoo_client.get_quote_summary",
             side_effect=RuntimeError("crumb expired"),
         ):
             text = FinancialStatementsTool().execute(

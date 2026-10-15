@@ -16,7 +16,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 N_ROWS = 60
 GAP_ROW = 30  # past min_warmup_bars=20

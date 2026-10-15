@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.memory.lifecycle import (
+from src.platform.config.accessor import reset_env_config
+from src.runtime.memory.lifecycle import (
     MemoryLifecycle,
     compute_importance,
     is_decay_enabled,
@@ -16,7 +16,7 @@ from src.memory.lifecycle import (
     is_quality_enabled,
     memory_lock,
 )
-from src.memory.persistent import PersistentMemory
+from src.runtime.memory.persistent import PersistentMemory
 
 
 @pytest.fixture(autouse=True)

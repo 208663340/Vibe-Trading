@@ -9,10 +9,10 @@ import pytest
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.testclient import TestClient
 
-from src.session.search import SessionSearchIndex
-from src.tools.path_utils import resolve_safe_path
-from src.tools.swarm_tool import _build_variables, _match_preset, _merge_variables
-from src.tools.write_file_tool import WriteFileTool
+from src.runtime.session.search import SessionSearchIndex
+from src.runtime.tools.path_utils import resolve_safe_path
+from src.runtime.tools.swarm_tool import _build_variables, _match_preset, _merge_variables
+from src.runtime.tools.write_file_tool import WriteFileTool
 
 
 @pytest.mark.parametrize("text,query", [
@@ -80,7 +80,7 @@ def test_case_alias_and_symlink_paths_use_real_directory_identity(tmp_path):
     ("Analyze copper for the next six months", "commodity_research_team", "copper", "horizon", "6 months"),
 ])
 def test_swarm_actual_worker_templates_retain_explicit_assets_and_duration(prompt, preset, asset, key, duration):
-    from src.swarm.presets import load_preset
+    from src.runtime.swarm.presets import load_preset
     assert _match_preset(prompt) == preset
     variables = _build_variables(preset, prompt)
     assert variables[key] == duration
@@ -98,8 +98,8 @@ def test_swarm_unknown_asset_is_not_replaced_by_default_crypto_basket():
 
 @pytest.mark.parametrize("parser", ["fmp", "tiingo"])
 def test_adjustment_gap_never_fabricates_a_doubling_return(parser, caplog):
-    from backtest.loaders.fmp_loader import _parse_historical
-    from backtest.loaders.tiingo_loader import _rows_to_frame
+    from src.backtest.loaders.fmp_loader import _parse_historical
+    from src.backtest.loaders.tiingo_loader import _rows_to_frame
     parse = (lambda rows: _parse_historical({"historical": rows})) if parser == "fmp" else _rows_to_frame
     rows = [{"date": date, "open": 100, "high": 110, "low": 90, "close": 100, "volume": 10,
              **adjustment} for date, adjustment in [
@@ -118,19 +118,19 @@ def test_adjustment_gap_never_fabricates_a_doubling_return(parser, caplog):
 @pytest.mark.parametrize("field", ["current_price", "ltp", "market_val"])
 @pytest.mark.parametrize("invalid", [float("nan"), float("inf"), float("-inf"), True, "invalid"])
 def test_sdk_aliases_still_refuse_nonfinite_or_malformed_positions(field, invalid):
-    from src.live.enforcement import _post_trade_gross_exposure
+    from src.markets.live.enforcement import _post_trade_gross_exposure
     row = {"symbol": "AAPL", "quantity": 2, field: invalid}
     assert _post_trade_gross_exposure([row], symbol="AAPL", signed_order_notional=50) is None
 
 
 def test_pdf_write_authenticated_download_and_im_delivery_share_real_file(tmp_path, monkeypatch):
-    from src.api.uploads_routes import register_uploads_routes
-    from src.channels.runtime import ChannelRuntime
-    from src.session.models import Message
-    from src.tools import report_artifacts
+    from src.interfaces.api.uploads_routes import register_uploads_routes
+    from src.interfaces.channels.runtime import ChannelRuntime
+    from src.runtime.session.models import Message
+    from src.runtime.tools import report_artifacts
     monkeypatch.setenv("VIBE_TRADING_ALLOWED_WRITE_ROOTS", str(tmp_path))
     monkeypatch.setenv("VIBE_TRADING_HOME", str(tmp_path / "runtime"))
-    from src.config.accessor import reset_env_config
+    from src.platform.config.accessor import reset_env_config
     reset_env_config()
     payload = json.loads(WriteFileTool().execute(path=str(tmp_path / "研究报告.pdf"), content=(
         "# 研究报告\n\n投资策略 < & >\n\n| 指标 | 观察 |\n| --- | --- |\n| 样本 | 完整 |\n")))
@@ -157,8 +157,8 @@ def test_pdf_write_authenticated_download_and_im_delivery_share_real_file(tmp_pa
 
 
 def test_pdf_render_failure_preserves_existing_file_and_reports_error(tmp_path, monkeypatch):
-    from src.tools import pdf_report
-    monkeypatch.setattr("src.tools.write_file_tool.allowed_write_roots", lambda: [tmp_path])
+    from src.runtime.tools import pdf_report
+    monkeypatch.setattr("src.runtime.tools.write_file_tool.allowed_write_roots", lambda: [tmp_path])
     target = tmp_path / "report.pdf"
     target.write_bytes(b"previous version")
     def fail(*args):
@@ -170,7 +170,7 @@ def test_pdf_render_failure_preserves_existing_file_and_reports_error(tmp_path, 
 
 
 def test_cache_upgrade_invalidates_old_basis_and_preserves_adjustment_stamp():
-    from backtest.loaders import base
+    from src.backtest.loaders import base
     import pandas as pd
     assert base._LOADER_CACHE_VERSION >= 8
     frame = pd.DataFrame({"close": [100.]}, index=pd.to_datetime(["2024-01-02"]))

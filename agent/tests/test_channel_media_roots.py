@@ -8,7 +8,7 @@ from pathlib import Path
 def test_media_dir_lives_under_uploads_root(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path), raising=False)
 
-    from src.channels.utils import get_media_dir
+    from src.interfaces.channels.utils import get_media_dir
 
     media = get_media_dir("napcat")
     assert media == tmp_path / ".vibe-trading" / "uploads" / "napcat"
@@ -18,8 +18,8 @@ def test_media_dir_lives_under_uploads_root(tmp_path, monkeypatch):
 def test_media_dir_is_within_allowed_file_roots(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path), raising=False)
 
-    from src.channels.utils import get_media_dir
-    from src.tools.path_utils import allowed_file_roots
+    from src.interfaces.channels.utils import get_media_dir
+    from src.runtime.tools.path_utils import allowed_file_roots
 
     media = get_media_dir("weixin").resolve()
     assert any(

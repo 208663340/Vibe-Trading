@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from backtest.run_card import write_run_card
+from src.backtest.run_card import write_run_card
 
 
 def test_structured_metrics_survive_without_widening_metrics(tmp_path: Path) -> None:
@@ -53,7 +53,7 @@ def test_oversized_structured_metric_is_omitted_and_named(tmp_path: Path) -> Non
     A large map is named under `_omitted` rather than silently carried, so the
     card stays bounded without the data disappearing unannounced.
     """
-    from backtest.run_card import _STRUCTURED_METRIC_MAX_BYTES
+    from src.backtest.run_card import _STRUCTURED_METRIC_MAX_BYTES
 
     big = {"k%04d" % i: i for i in range(_STRUCTURED_METRIC_MAX_BYTES)}
     metrics = {
@@ -143,7 +143,7 @@ def test_bound_is_measured_in_bytes_of_the_written_json(tmp_path: Path) -> None:
     UTF-8 bytes in the written card - past a bound named ``..._MAX_BYTES``. The
     card is also written indented, which a compact dump understates again.
     """
-    from backtest.run_card import _STRUCTURED_METRIC_MAX_BYTES, _serialised_size
+    from src.backtest.run_card import _STRUCTURED_METRIC_MAX_BYTES, _serialised_size
 
     assert _serialised_size({"note": "键" * 100}) < _STRUCTURED_METRIC_MAX_BYTES
     assert _serialised_size({"note": "键" * 1400}) > _STRUCTURED_METRIC_MAX_BYTES

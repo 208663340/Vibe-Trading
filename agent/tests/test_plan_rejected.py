@@ -10,8 +10,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.base import BaseEngine
-from backtest.models import Position
+from src.backtest.engines.base import BaseEngine
+from src.backtest.models import Position
 
 _TS = pd.Timestamp("2026-01-02")
 _REASONS = (

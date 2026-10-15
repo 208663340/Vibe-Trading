@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from src.tools.mcp import _build_token_store
+from src.runtime.tools.mcp import _build_token_store
 
 pytestmark = pytest.mark.unit
 
@@ -179,7 +179,7 @@ def test_token_never_in_audit_payload() -> None:
     ``redact_payload`` before any sink write (SPEC §5/§7.4), so an OAuth token
     that rides a raw broker payload never reaches the ledger / trace / SSE bus.
     """
-    from src.live.audit import LiveActionEvent
+    from src.markets.live.audit import LiveActionEvent
 
     event = LiveActionEvent(
         kind="order_placed",
@@ -212,7 +212,7 @@ def test_token_not_accepted_from_tool_args_or_variables() -> None:
     owns the Authorization header at the transport layer — the agent cannot
     supply a token through the call surface.
     """
-    from src.tools.mcp import MCPRemoteTool, MCPRemoteToolSpec
+    from src.runtime.tools.mcp import MCPRemoteTool, MCPRemoteToolSpec
 
     spec = MCPRemoteToolSpec(
         server_name="robinhood",
@@ -260,8 +260,8 @@ def test_cache_expiry_surfaces_reauth_no_silent_stale_call() -> None:
     from fastmcp.exceptions import McpError
     from mcp import types as mcp_types
 
-    from src.config.schema import MCPServerConfig
-    from src.tools.mcp import MCPServerAdapter
+    from src.platform.config.schema import MCPServerConfig
+    from src.runtime.tools.mcp import MCPServerAdapter
 
     # 401 Unauthorized → an auth failure the provider could not silently refresh.
     auth_error = McpError(

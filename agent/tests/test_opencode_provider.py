@@ -8,16 +8,16 @@ from pathlib import Path
 import httpx
 import pytest
 
-from src.providers.capabilities import get_llm_credentials, get_provider_capabilities
-from src.providers.llm import ChatOpenAIWithReasoning, _targets_opencode
-from src.providers.session_context import (
+from src.runtime.providers.capabilities import get_llm_credentials, get_provider_capabilities
+from src.runtime.providers.llm import ChatOpenAIWithReasoning, _targets_opencode
+from src.runtime.providers.session_context import (
     bind_llm_session_id,
     current_llm_session_id,
     reset_llm_session_id,
 )
 
 _PROVIDERS_JSON = (
-    Path(__file__).resolve().parents[1] / "src" / "providers" / "llm_providers.json"
+    Path(__file__).resolve().parents[1] / "src" / "runtime" / "providers" / "llm_providers.json"
 )
 _GO_URL = "https://opencode.ai/zen/go/v1"
 
@@ -92,14 +92,14 @@ def test_credentials_fall_back_to_go_endpoint(monkeypatch: pytest.MonkeyPatch) -
 
 
 def test_swarm_public_provider_allowlist_includes_opencode() -> None:
-    from src.swarm.models import _PUBLIC_PROVIDERS
+    from src.runtime.swarm.models import _PUBLIC_PROVIDERS
 
     assert "opencode" in _PUBLIC_PROVIDERS
 
 
 def test_cli_onboarding_surfaces_agree() -> None:
-    import cli
-    from cli.onboard import PROVIDERS
+    import src.interfaces.cli as cli
+    from src.interfaces.cli.onboard import PROVIDERS
 
     onboard = next(p for p in PROVIDERS if p.key == "opencode")
     legacy = next(

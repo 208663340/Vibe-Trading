@@ -23,15 +23,15 @@ _AGENT_ROOT = Path(__file__).resolve().parents[4] / "agent"
 if str(_AGENT_ROOT) not in sys.path:
     sys.path.insert(0, str(_AGENT_ROOT))
 
-from src.memory.search_index import MemorySearchIndex
-from src.memory.semantic_links import (
+from src.runtime.memory.search_index import MemorySearchIndex
+from src.runtime.memory.semantic_links import (
     SemanticLinker,
     _tokenize_for_bm25,
     compute_bm25_score,
     compute_idf,
 )
-from src.memory.compression import CompressionPipeline, _tokenize_for_tfidf
-from src.memory.hierarchy import CATEGORIES, MemoryHierarchy
+from src.runtime.memory.compression import CompressionPipeline, _tokenize_for_tfidf
+from src.runtime.memory.hierarchy import CATEGORIES, MemoryHierarchy
 
 from .metrics import mean_reciprocal_rank, ndcg_at_k, precision_at_k
 from .runner import (

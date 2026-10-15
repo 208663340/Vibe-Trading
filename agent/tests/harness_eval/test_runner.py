@@ -6,9 +6,9 @@ import json
 from dataclasses import replace
 from pathlib import Path
 
-from evals.harness.report import aggregate_reports
-from evals.harness.runner import evaluate_case, main
-from evals.harness.schema import EvaluationReport, HarnessCase, VerdictStatus
+from src.runtime.evals.harness.report import aggregate_reports
+from src.runtime.evals.harness.runner import evaluate_case, main
+from src.runtime.evals.harness.schema import EvaluationReport, HarnessCase, VerdictStatus
 
 
 def _by_code(report: EvaluationReport) -> dict[str, object]:

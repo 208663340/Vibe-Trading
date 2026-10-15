@@ -4,15 +4,15 @@ import json
 
 import pandas as pd
 
-from src.market_data import fetch_market_data_json
-from src.swarm.models import SwarmAgentSpec
-from src.swarm.presets import list_presets, load_preset
-from src.swarm.worker import build_worker_prompt
-from src.tools import build_swarm_registry
+from src.markets.market_data import fetch_market_data_json
+from src.runtime.swarm.models import SwarmAgentSpec
+from src.runtime.swarm.presets import list_presets, load_preset
+from src.runtime.swarm.worker import build_worker_prompt
+from src.runtime.tools import build_swarm_registry
 
 
 def test_market_data_tool_exposes_longbridge_source():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     source_schema = MarketDataTool.parameters["properties"]["source"]
     assert "longbridge" in source_schema["enum"]
@@ -305,49 +305,49 @@ def test_worker_prompt_prioritizes_get_market_data_for_ohlcv():
 
 
 def test_market_data_tool_rejects_empty_codes():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes=[], start_date="2026-01-01", end_date="2026-02-01"))
     assert out == {"ok": False, "error": "codes must be a non-empty list of strings"}
 
 
 def test_market_data_tool_rejects_blank_code():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes=[""], start_date="2026-01-01", end_date="2026-02-01"))
     assert out == {"ok": False, "error": "every code must be a non-empty string"}
 
 
 def test_market_data_tool_rejects_non_list_codes():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes="AAPL.US", start_date="2026-01-01", end_date="2026-02-01"))
     assert out == {"ok": False, "error": "codes must be a non-empty list of strings"}
 
 
 def test_market_data_tool_rejects_missing_start_date():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes=["AAPL.US"], end_date="2026-02-01"))
     assert out == {"ok": False, "error": "start_date must be a non-empty YYYY-MM-DD string"}
 
 
 def test_market_data_tool_rejects_malformed_dates():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes=["AAPL.US"], start_date="banana", end_date="2026-02-01"))
     assert out == {"ok": False, "error": "start_date and end_date must be valid YYYY-MM-DD dates"}
 
 
 def test_market_data_tool_rejects_inverted_date_range():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes=["AAPL.US"], start_date="2026-08-21", end_date="2026-08-01"))
     assert out == {"ok": False, "error": "start_date (2026-08-21) must not be after end_date (2026-08-01)"}
 
 
 def test_market_data_tool_rejects_whitespace_only_code():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     # Validation strips codes before the emptiness check, so a whitespace-only
     # code is caught after stripping.
@@ -357,15 +357,15 @@ def test_market_data_tool_rejects_whitespace_only_code():
 
 def test_market_data_tool_rejects_compact_date_form():
     """fromisoformat accepts YYYYMMDD on 3.11+; loaders do not. Reject it."""
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes=["AAPL.US"], start_date="20260101", end_date="2026-02-01"))
     assert out == {"ok": False, "error": "start_date and end_date must be valid YYYY-MM-DD dates"}
 
 
 def test_market_data_tool_rejects_unknown_source():
-    from src.tools.market_data_tool import MarketDataTool
-    from backtest.loaders.registry import VALID_SOURCES
+    from src.runtime.tools.market_data_tool import MarketDataTool
+    from src.backtest.loaders.registry import VALID_SOURCES
 
     out = json.loads(MarketDataTool().execute(codes=["AAPL.US"], start_date="2026-01-01", end_date="2026-02-01", source="bogus"))
     assert out == {"ok": False, "error": f"source must be one of {sorted(VALID_SOURCES)}"}
@@ -379,8 +379,8 @@ def test_market_data_tool_accepts_every_registered_source():
     india_broker, tickerall). The tool's enum must match VALID_SOURCES so the
     tool can never silently drop a loader the registry serves.
     """
-    import src.tools.market_data_tool as mod
-    from backtest.loaders.registry import VALID_SOURCES
+    import src.runtime.tools.market_data_tool as mod
+    from src.backtest.loaders.registry import VALID_SOURCES
     from unittest import mock
 
     enum = set(mod.MarketDataTool.parameters["properties"]["source"]["enum"])
@@ -402,7 +402,7 @@ def test_market_data_tool_accepts_every_registered_source():
 
 
 def test_market_data_tool_rejects_garbage_interval():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes=["AAPL.US"], start_date="2026-01-01", end_date="2026-02-01", interval="BANANA"))
     assert out["ok"] is False
@@ -412,7 +412,7 @@ def test_market_data_tool_rejects_garbage_interval():
 
 def test_market_data_tool_normalizes_interval_case():
     """'1d' is accepted but normalized to canonical '1D' before fetch."""
-    import src.tools.market_data_tool as mod
+    import src.runtime.tools.market_data_tool as mod
     from unittest import mock
 
     calls = []
@@ -422,7 +422,7 @@ def test_market_data_tool_normalizes_interval_case():
 
 
 def test_market_data_tool_rejects_non_int_max_rows():
-    from src.tools.market_data_tool import MarketDataTool
+    from src.runtime.tools.market_data_tool import MarketDataTool
 
     out = json.loads(MarketDataTool().execute(codes=["AAPL.US"], start_date="2026-01-01", end_date="2026-02-01", max_rows="abc"))
     assert out == {"ok": False, "error": "max_rows must be a non-negative integer (0 = all rows)"}
@@ -431,7 +431,7 @@ def test_market_data_tool_rejects_non_int_max_rows():
 def test_market_data_tool_clamps_negative_max_rows_to_default_cap():
     """Negative max_rows is invalid but must never be unbounded (P07 G3ii):
     it is clamped to the default cap before fetching, same as cap_rows."""
-    import src.tools.market_data_tool as mod
+    import src.runtime.tools.market_data_tool as mod
     from unittest import mock
 
     calls = []
@@ -449,7 +449,7 @@ def test_market_data_tool_accepts_minute_intervals():
     Regression: plain .upper() turned valid minute intervals ('1m', '5m',
     '15m', '30m') into '1M'/'30M' which are not in _VALID_INTERVALS.
     """
-    import src.tools.market_data_tool as mod
+    import src.runtime.tools.market_data_tool as mod
     from unittest import mock
 
     calls = []
@@ -468,7 +468,7 @@ def test_market_data_tool_accepts_minute_intervals():
 def test_market_data_tool_serves_month_and_week_spellings():
     """'1M' is one month and '1m' one minute; neither folds onto the other
     (#1480), and weekly/monthly bars reach the fetch as 1W / 1M (#1479)."""
-    import src.tools.market_data_tool as mod
+    import src.runtime.tools.market_data_tool as mod
     from unittest import mock
 
     with mock.patch.object(mod, "fetch_market_data_json", return_value="{}") as fetch:
@@ -487,7 +487,7 @@ def test_market_data_tool_serves_month_and_week_spellings():
 
 def test_canonicalize_interval_keeps_minute_and_month_apart():
     """_canonicalize_interval never maps '1m' and '1M' onto each other (#1480)."""
-    from src.tools.market_data_tool import _INTERVAL_CANON, _canonicalize_interval
+    from src.runtime.tools.market_data_tool import _INTERVAL_CANON, _canonicalize_interval
 
     assert _canonicalize_interval("1m") == "1m"
     assert _canonicalize_interval("1M") == "1M"
@@ -503,7 +503,7 @@ def test_market_data_tool_asks_only_a_us_equity_for_its_suffix():
     """Bare ``AAPL`` returns empty frames from the US loaders, so auto asks for
     ``AAPL.US``; a futures code or a joined crypto pair has the same shape and is
     served as written, and must reach the loaders."""
-    import src.tools.market_data_tool as mod
+    import src.runtime.tools.market_data_tool as mod
     from unittest import mock
 
     with mock.patch.object(mod, "fetch_market_data_json", side_effect=lambda **kw: "{}"):

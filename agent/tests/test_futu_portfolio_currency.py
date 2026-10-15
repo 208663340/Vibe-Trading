@@ -4,11 +4,11 @@ from decimal import Decimal
 
 import pytest
 
-from src.portfolio.config import PortfolioSettingsStore
-from src.portfolio.normalization import normalize_position
-from src.portfolio.service import PORTFOLIO_VALUATION_VERSION, PortfolioService
-from src.portfolio.store import PortfolioStore
-from src.trading.connectors.futu import sdk as futu_sdk
+from src.markets.portfolio.config import PortfolioSettingsStore
+from src.markets.portfolio.normalization import normalize_position
+from src.markets.portfolio.service import PORTFOLIO_VALUATION_VERSION, PortfolioService
+from src.markets.portfolio.store import PortfolioStore
+from src.markets.trading.connectors.futu import sdk as futu_sdk
 
 USD_CNY = Decimal("7")
 USD_HKD = Decimal("8")

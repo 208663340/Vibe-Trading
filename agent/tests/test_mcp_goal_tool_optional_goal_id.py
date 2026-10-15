@@ -24,17 +24,17 @@ import pytest
 
 @pytest.fixture(scope="module")
 def mcp_server():
-    """Import agent/mcp_server.py without executing main()."""
+    """Import agent/src/interfaces/mcp_server.py without executing main()."""
     agent_dir = Path(__file__).resolve().parent.parent
     if str(agent_dir) not in sys.path:
         sys.path.insert(0, str(agent_dir))
-    return importlib.import_module("mcp_server")
+    return importlib.import_module("src.interfaces.mcp_server")
 
 
 @pytest.fixture()
 def fresh_goal_store(mcp_server, tmp_path, monkeypatch):
     """Isolate each test's goal store and process-wide session id."""
-    from src.goal import GoalStore
+    from src.runtime.goal import GoalStore
 
     monkeypatch.setattr(mcp_server, "_goal_store", GoalStore(db_path=tmp_path / "g.db"))
     monkeypatch.setattr(mcp_server, "_mcp_session_id", None)

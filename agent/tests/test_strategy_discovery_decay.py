@@ -1,4 +1,4 @@
-"""Phase 2 decay-classification contract for ``src.strategy_discovery.models``.
+"""Phase 2 decay-classification contract for ``src.research.strategy_discovery.models``.
 
 Pure read-time decay (plan D1-D3): the verdict comes from the evidence row's
 own ``date_ranges`` window end relative to an injected clock — never from
@@ -25,7 +25,7 @@ from datetime import date, timedelta
 import pytest
 
 try:
-    from src.strategy_discovery import models as sd_models
+    from src.research.strategy_discovery import models as sd_models
 
     DECAY_AVAILABLE = True
 except ImportError:
@@ -34,7 +34,7 @@ except ImportError:
 
 requires_decay = pytest.mark.skipif(
     not DECAY_AVAILABLE,
-    reason="waiting on src.strategy_discovery.models decay helpers (issue #969 Phase 2)",
+    reason="waiting on src.research.strategy_discovery.models decay helpers (issue #969 Phase 2)",
 )
 
 #: Fixed window used for boundary math; end-anchored to 2026-01-31.

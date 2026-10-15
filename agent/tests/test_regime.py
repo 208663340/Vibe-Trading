@@ -1,4 +1,4 @@
-"""Tests for backtest/regime.py and the /correlation/regime route.
+"""Tests for src/backtest/regime.py and the /correlation/regime route.
 
 The math tests pin the Mode 1 semantics of the correlation-regime skill:
 edge density in [0, 1] with NaN warmup, hysteresis that suppresses dead-band
@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.regime import (
+from src.backtest.regime import (
     _aligned_returns,
     _fused_episodes,
     compute_edge_density,
@@ -165,7 +165,7 @@ class _ServesPanelLoader:
 
 
 def _install_panel(monkeypatch: pytest.MonkeyPatch, closes: dict[str, np.ndarray]) -> None:
-    from backtest.loaders import registry
+    from src.backtest.loaders import registry
 
     dates = pd.date_range("2024-01-01", periods=len(next(iter(closes.values()))), freq="D")
     _ServesPanelLoader.frames = {
@@ -218,7 +218,7 @@ class TestComputeRegimeTimeline:
             )
 
     def test_fewer_than_two_fetched_assets_raises(self, monkeypatch):
-        from backtest.loaders import registry
+        from src.backtest.loaders import registry
 
         monkeypatch.setattr(registry, "_registered", True)
         monkeypatch.setattr(registry, "LOADER_REGISTRY", {})
@@ -235,7 +235,7 @@ class TestComputeRegimeTimeline:
 @pytest.fixture
 def local_client(monkeypatch: pytest.MonkeyPatch):
     """Loopback client with no API key configured (dev-mode: auth passes)."""
-    import api_server
+    import src.interfaces.api_server as api_server
     from fastapi.testclient import TestClient
 
     monkeypatch.delenv("API_AUTH_KEY", raising=False)
@@ -246,7 +246,7 @@ def local_client(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True)
 def _reset_correlation_limiter():
     """Clear the module-level rate limiter so tests never leak hits into each other."""
-    from src.api import system_routes
+    from src.interfaces.api import system_routes
 
     system_routes._correlation_rate_limiter.reset()
 
@@ -263,7 +263,7 @@ _STUB_RESULT = {
 
 
 def test_regime_route_returns_computation_result(local_client, monkeypatch):
-    import backtest.regime as regime
+    import src.backtest.regime as regime
 
     monkeypatch.setattr(regime, "compute_regime_timeline", lambda **_kwargs: _STUB_RESULT)
     resp = local_client.get("/correlation/regime", params={"codes": "AAPL,SPY"})
@@ -272,7 +272,7 @@ def test_regime_route_returns_computation_result(local_client, monkeypatch):
 
 
 def test_regime_route_requires_auth_for_remote_client(monkeypatch):
-    import api_server
+    import src.interfaces.api_server as api_server
     from fastapi.testclient import TestClient
 
     monkeypatch.setattr(api_server, "_API_KEY", "server-secret")
@@ -311,7 +311,7 @@ def test_regime_route_rejects_days_below_floor(local_client):
 def test_regime_route_value_error_surfaces_and_generic_is_masked(
     local_client, monkeypatch
 ):
-    import backtest.regime as regime
+    import src.backtest.regime as regime
 
     def _bad(**_kwargs):
         raise ValueError("Not enough overlapping history")
@@ -332,8 +332,8 @@ def test_regime_route_value_error_surfaces_and_generic_is_masked(
 
 def test_regime_route_shares_correlation_rate_limit_budget(local_client, monkeypatch):
     """One budget across /correlation and /correlation/regime, per maintainer ask."""
-    import backtest.correlation as corr
-    from src.api import system_routes
+    import src.backtest.correlation as corr
+    from src.interfaces.api import system_routes
 
     monkeypatch.setattr(
         corr,

@@ -13,8 +13,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.tools import background_tools
-from src.tools.background_tools import BackgroundManager
+from src.runtime.tools import background_tools
+from src.runtime.tools.background_tools import BackgroundManager
 
 
 def _execute(manager: BackgroundManager, task_id: str, command: str) -> dict:

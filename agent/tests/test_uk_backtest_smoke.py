@@ -20,8 +20,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backtest.engines.global_equity import GlobalEquityEngine
-from backtest.runner import _create_market_engine
+from src.backtest.engines.global_equity import GlobalEquityEngine
+from src.backtest.runner import _create_market_engine
 
 CODE = "VOD.L"
 

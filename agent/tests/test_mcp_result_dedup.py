@@ -9,8 +9,8 @@ from fastmcp import Client, FastMCP
 from fastmcp.client.client import CallToolResult
 from mcp import types as mcp_types
 
-from src.config.schema import MCPServerConfig
-from src.tools.mcp import (
+from src.platform.config.schema import MCPServerConfig
+from src.runtime.tools.mcp import (
     MCPServerAdapter,
     build_mcp_tool_wrappers,
     compact_result_for_agent,
@@ -126,7 +126,7 @@ def test_text_only_end_to_end_keeps_content_and_text() -> None:
         meta=None,
         data=None,
     )
-    from src.tools.mcp import _normalize_call_tool_result
+    from src.runtime.tools.mcp import _normalize_call_tool_result
 
     normalized = _normalize_call_tool_result(fake)
 
@@ -299,7 +299,7 @@ def test_hydration_fallback_result_is_reduced_to_one_copy() -> None:
         meta=None,
         data=None,
     )
-    from src.tools.mcp import _normalize_call_tool_result
+    from src.runtime.tools.mcp import _normalize_call_tool_result
 
     compact = compact_result_for_agent(_normalize_call_tool_result(fake))
     del state

@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.zoo.academic.corr_rewire import compute
+from src.research.factors.zoo.academic.corr_rewire import compute
 
 N_BARS = 300
 N_BLOC = 5  # correlated bloc members; one extra decoupling asset is added
@@ -97,7 +97,7 @@ def test_warmup_rows_are_nan_then_values_appear() -> None:
 
 def test_declared_warmup_covers_first_valid_row() -> None:
     """``min_warmup_bars`` in the meta must not promise values earlier than real."""
-    from src.factors.zoo.academic.corr_rewire import __alpha_meta__
+    from src.research.factors.zoo.academic.corr_rewire import __alpha_meta__
 
     out = compute(_bloc_panel())
     first_valid = int(np.argmax(out.notna().any(axis=1).to_numpy()))

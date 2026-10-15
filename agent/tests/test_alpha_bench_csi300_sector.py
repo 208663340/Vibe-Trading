@@ -18,8 +18,8 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.tools import alpha_bench_tool as tool
+from src.platform.config.accessor import reset_env_config
+from src.runtime.tools import alpha_bench_tool as tool
 
 _ALPHA_ID = "fund_pb_ind_neutral"
 _META = {"columns_required": ["val:pb"], "requires_sector": True}

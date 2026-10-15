@@ -25,15 +25,15 @@ from pathlib import Path
 
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.memory.lifecycle import MemoryLifecycle
-from src.memory.persistent import PersistentMemory
+from src.platform.config.accessor import reset_env_config
+from src.runtime.memory.lifecycle import MemoryLifecycle
+from src.runtime.memory.persistent import PersistentMemory
 
 
 @pytest.fixture(autouse=True)
 def _reset_fts_singleton():
     """Reset FTS singleton between tests to avoid cross-test contamination."""
-    import src.memory.search_index as si
+    import src.runtime.memory.search_index as si
 
     original = si._shared_index
     si._shared_index = None
@@ -49,7 +49,7 @@ def _reset_fts_singleton():
 @pytest.fixture()
 def fts_db(tmp_path, monkeypatch):
     """Redirect FTS singleton to a temporary database."""
-    import src.memory.search_index as si
+    import src.runtime.memory.search_index as si
 
     db_path = tmp_path / "test_fts.db"
     monkeypatch.setattr(si, "_DEFAULT_DB_PATH", db_path)
@@ -112,7 +112,7 @@ class TestGcCleansSecondaryIndexes:
         )
         pm = PersistentMemory(memory_dir=tmp_path)
         entries = pm._scan_entries()
-        from src.memory.search_index import get_shared_index
+        from src.runtime.memory.search_index import get_shared_index
 
         index = get_shared_index()
         index.rebuild_all([(e.id, e.title, e.description, "", e.body) for e in entries])
@@ -177,7 +177,7 @@ class TestCompressionReindexesFts:
 
         pm = PersistentMemory(memory_dir=tmp_path)
         entries = pm._scan_entries()
-        from src.memory.search_index import get_shared_index
+        from src.runtime.memory.search_index import get_shared_index
 
         index = get_shared_index()
         index.rebuild_all([(e.id, e.title, e.description, "", e.body) for e in entries])

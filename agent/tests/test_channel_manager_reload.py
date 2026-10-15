@@ -9,9 +9,9 @@ from typing import Any
 
 import pytest
 
-import src.channels.manager as manager_module
-from src.channels.bus.queue import MessageBus
-from src.channels.manager import ChannelManager
+import src.interfaces.channels.manager as manager_module
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.manager import ChannelManager
 
 
 class FakeChannel:
@@ -225,7 +225,7 @@ def test_reload_proceeds_when_old_stop_raises_timeout(
             monkeypatch,
             {"fakea": {"enabled": True, "tag": "old", "raise_stop": True}},
         )
-        with caplog.at_level(logging.WARNING, logger="src.channels.manager"):
+        with caplog.at_level(logging.WARNING, logger="src.interfaces.channels.manager"):
             status = dict(
                 await manager.reload_channel("fakea", {"enabled": True, "tag": "new"})
             )
@@ -248,7 +248,7 @@ def test_reload_bounds_a_wedged_stop(
             monkeypatch,
             {"fakea": {"enabled": True, "tag": "old", "hang_stop": True}},
         )
-        with caplog.at_level(logging.WARNING, logger="src.channels.manager"):
+        with caplog.at_level(logging.WARNING, logger="src.interfaces.channels.manager"):
             status = dict(
                 await manager.reload_channel("fakea", {"enabled": True, "tag": "new"})
             )

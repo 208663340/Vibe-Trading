@@ -15,10 +15,10 @@ from pathlib import Path
 
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.memory.persistent import PersistentMemory, MemoryEntry
-from src.memory.lifecycle import MemoryLifecycle
-from src.tools.remember_tool import RememberTool
+from src.platform.config.accessor import reset_env_config
+from src.runtime.memory.persistent import PersistentMemory, MemoryEntry
+from src.runtime.memory.lifecycle import MemoryLifecycle
+from src.runtime.tools.remember_tool import RememberTool
 
 
 # ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ from src.tools.remember_tool import RememberTool
 @pytest.fixture(autouse=True)
 def _reset_fts_singleton():
     """Reset FTS singleton between tests to avoid cross-test contamination."""
-    import src.memory.search_index as si
+    import src.runtime.memory.search_index as si
 
     original = si._shared_index
     si._shared_index = None
@@ -45,7 +45,7 @@ def _reset_fts_singleton():
 @pytest.fixture()
 def fts_db(tmp_path, monkeypatch):
     """Redirect FTS singleton to a temporary database."""
-    import src.memory.search_index as si
+    import src.runtime.memory.search_index as si
 
     db_path = tmp_path / "test_fts.db"
     monkeypatch.setattr(si, "_DEFAULT_DB_PATH", db_path)
@@ -203,8 +203,8 @@ class TestFtsAddThenSearchFinds:
         mem.add("second recall", "evidence retrieval", "project")
         entries = {entry.title: entry for entry in mem.list_entries()}
 
-        from src.memory.search_index import MemoryMatch
-        import src.memory.search_index as search_index
+        from src.runtime.memory.search_index import MemoryMatch
+        import src.runtime.memory.search_index as search_index
 
         class _Index:
             def search(self, query, max_results):
@@ -228,7 +228,7 @@ class TestFtsAddThenSearchFinds:
         self, tmp_path, monkeypatch, fts_db, requested
     ):
         """Expand past stale rows and stop when the real SQLite index ends."""
-        from src.memory.search_index import get_shared_index
+        from src.runtime.memory.search_index import get_shared_index
 
         monkeypatch.setenv("VT_MEMORY_FTS_INDEX", "false")
         reset_env_config()
@@ -369,7 +369,7 @@ class TestFtsRankingRespectsImportanceDecay:
         assert importance["fresh important entry"] > 0.9
         assert importance["stale unimportant entry"] < 0.01
 
-        from src.memory.search_index import get_shared_index
+        from src.runtime.memory.search_index import get_shared_index
         get_shared_index().rebuild_all(
             [(e.id, e.title, e.description, "", e.body) for e in entries]
         )
@@ -392,7 +392,7 @@ class TestFtsRankingRespectsImportanceDecay:
         mem = PersistentMemory(tmp_path)
         entries = mem._scan_entries()
 
-        from src.memory.search_index import get_shared_index
+        from src.runtime.memory.search_index import get_shared_index
         get_shared_index().rebuild_all(
             [(e.id, e.title, e.description, "", e.body) for e in entries]
         )
@@ -580,7 +580,7 @@ class TestRemoveCleansRelationsSidecar:
         assert removed is True
 
         # The sidecar for the removed entry should be gone
-        from src.memory.semantic_links import SemanticLinker
+        from src.runtime.memory.semantic_links import SemanticLinker
         linker = SemanticLinker(tmp_path)
         # Try to find the relations file for any file named like the target
         target_files = list(tmp_path.rglob("*target_entry*"))

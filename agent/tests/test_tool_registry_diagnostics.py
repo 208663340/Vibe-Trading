@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
-from src.agent.tools import ToolRegistry
+from src.runtime.agent.tools import ToolRegistry
 
 
 def test_missing_tool_reports_matching_import_failure() -> None:
@@ -22,7 +22,7 @@ def test_missing_tool_reports_matching_import_failure() -> None:
 
 
 def test_build_registry_surfaces_aggregate_failure_warning(monkeypatch, caplog) -> None:
-    import src.tools as tools_module
+    import src.runtime.tools as tools_module
 
     monkeypatch.setattr(tools_module, "_discover_subclasses", lambda: [])
     monkeypatch.setattr(
@@ -30,7 +30,7 @@ def test_build_registry_surfaces_aggregate_failure_warning(monkeypatch, caplog) 
         "_DISCOVERY_FAILURES",
         {"options_pricing_tool": "ImportError: missing optional dependency"},
     )
-    with caplog.at_level(logging.WARNING, logger="src.tools"):
+    with caplog.at_level(logging.WARNING, logger="src.runtime.tools"):
         registry = tools_module.build_registry()
 
     assert registry.import_failures == {
@@ -49,7 +49,7 @@ def test_discovery_names_each_failed_module_at_warning(monkeypatch, caplog) -> N
     only this per-module record says *which*. Demoting it to DEBUG puts an
     operator back in front of the silent partial registry the issue is about.
     """
-    import src.tools as tools_module
+    import src.runtime.tools as tools_module
 
     real_import = tools_module.importlib.import_module
     target = "sentiment_tool"
@@ -57,7 +57,7 @@ def test_discovery_names_each_failed_module_at_warning(monkeypatch, caplog) -> N
     class _ShimImportlib:
         @staticmethod
         def import_module(name: str):
-            if name == f"src.tools.{target}":
+            if name == f"src.runtime.tools.{target}":
                 raise ImportError("no module named 'nowhere'")
             return real_import(name)
 
@@ -68,7 +68,7 @@ def test_discovery_names_each_failed_module_at_warning(monkeypatch, caplog) -> N
     monkeypatch.setattr(tools_module, "_SUBCLASSES_CACHE", None)
     monkeypatch.setattr(tools_module, "_DISCOVERY_FAILURES", {})
 
-    with caplog.at_level(logging.WARNING, logger="src.tools"):
+    with caplog.at_level(logging.WARNING, logger="src.runtime.tools"):
         tools_module._discover_subclasses()
 
     assert [

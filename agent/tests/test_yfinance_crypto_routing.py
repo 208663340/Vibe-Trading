@@ -8,9 +8,9 @@ ignored and two runs with different fees produced byte-identical metrics.
 
 from __future__ import annotations
 
-from backtest.engines.crypto import CryptoEngine
-from backtest.engines.global_equity import GlobalEquityEngine
-from backtest.runner import _create_market_engine
+from src.backtest.engines.crypto import CryptoEngine
+from src.backtest.engines.global_equity import GlobalEquityEngine
+from src.backtest.runner import _create_market_engine
 
 
 class TestYfinanceCryptoRouting:

@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.config.schema import AgentConfig, MCPServerConfig
-from src.tools import build_registry
-from src.tools.mcp import MCPRemoteTool
+from src.platform.config.schema import AgentConfig, MCPServerConfig
+from src.runtime.tools import build_registry
+from src.runtime.tools.mcp import MCPRemoteTool
 
 
 # ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ def test_mcp_tools_are_injected_and_come_after_local_tools() -> None:
     """MCP tools must be appended after local tools, preserving local order."""
     fake_wrappers = _make_fake_wrappers("demo", ["price_quote", "search"])
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
         config = _make_agent_config({"demo": {"command": "uvx", "args": []}})
         registry = build_registry(agent_config=config)
 
@@ -95,7 +95,7 @@ def test_mcp_tools_registration_order_matches_config_order() -> None:
     """Tools from the same server are registered in discovery order."""
     fake_wrappers = _make_fake_wrappers("alpha", ["tool_a", "tool_b", "tool_c"])
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
         config = _make_agent_config({"alpha": {"command": "uvx", "args": []}})
         registry = build_registry(agent_config=config)
 
@@ -117,7 +117,7 @@ def test_colliding_sanitized_server_names_receive_stable_unique_prefixes() -> No
         assert local_server_name is not None
         return _make_fake_wrappers(local_server_name, ["search"])
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", side_effect=_wrapper_factory):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", side_effect=_wrapper_factory):
         config = _make_agent_config({
             "foo-bar": {"command": "uvx", "args": []},
             "foo_bar": {"command": "uvx", "args": []},
@@ -140,7 +140,7 @@ def test_mcp_tools_are_not_readonly() -> None:
     """All MCP tools injected into the registry must have is_readonly=False."""
     fake_wrappers = _make_fake_wrappers("srv", ["query"])
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
         config = _make_agent_config({"srv": {"command": "uvx", "args": []}})
         registry = build_registry(agent_config=config)
 
@@ -163,11 +163,11 @@ def test_failed_mcp_server_does_not_block_local_tools(
 ) -> None:
     """A server that raises during discovery must be skipped with a warning."""
     with patch(
-        "src.tools.mcp.build_mcp_tool_wrappers",
+        "src.runtime.tools.mcp.build_mcp_tool_wrappers",
         side_effect=RuntimeError("connection refused"),
     ):
         config = _make_agent_config({"broken": {"command": "uvx", "args": []}})
-        with caplog.at_level(logging.WARNING, logger="src.tools"):
+        with caplog.at_level(logging.WARNING, logger="src.runtime.tools"):
             registry = build_registry(agent_config=config)
 
     # Local tools must still be present.
@@ -192,7 +192,7 @@ def test_one_failed_server_does_not_affect_other_mcp_servers() -> None:
             raise RuntimeError("refused")
         return good_wrappers
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", side_effect=_selective_factory):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", side_effect=_selective_factory):
         config = _make_agent_config({
             "broken": {"command": "uvx", "args": []},
             "good": {"command": "uvx", "args": []},
@@ -236,7 +236,7 @@ def test_warn_callback_called_on_server_name_collision() -> None:
         del server_name, server_config
         return _make_fake_wrappers(local_server_name or "x", ["ping"])
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", side_effect=_wrapper_factory):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", side_effect=_wrapper_factory):
         config = _make_agent_config({
             "foo-bar": {"command": "uvx", "args": []},
             "foo_bar": {"command": "uvx", "args": []},
@@ -254,7 +254,7 @@ def test_warn_callback_not_called_when_no_collision() -> None:
     received: list[str] = []
     fake_wrappers = _make_fake_wrappers("alpha", ["tool_a"])
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
         config = _make_agent_config({"alpha": {"command": "uvx", "args": []}})
         build_registry(agent_config=config, warn_callback=received.append)
 
@@ -276,12 +276,12 @@ def test_warn_callback_omitted_still_logs_collision(
         del server_name, server_config
         return _make_fake_wrappers(local_server_name or "x", ["ping"])
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", side_effect=_wrapper_factory):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", side_effect=_wrapper_factory):
         config = _make_agent_config({
             "foo-bar": {"command": "uvx", "args": []},
             "foo_bar": {"command": "uvx", "args": []},
         })
-        with caplog.at_level(logging.WARNING, logger="src.tools"):
+        with caplog.at_level(logging.WARNING, logger="src.runtime.tools"):
             registry = build_registry(agent_config=config)  # no warn_callback — must not raise
 
     mcp_names = [n for n in registry.tool_names if n.startswith("mcp_")]

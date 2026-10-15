@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.channels.msteams import (
+from src.interfaces.channels.msteams import (
     MSTEAMS_MAX_INBOUND_BODY_BYTES,
     msteams_validate_content_length,
 )

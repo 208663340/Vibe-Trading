@@ -1,4 +1,4 @@
-"""Tests for live-runtime triggers (src/live/runtime/triggers.py, SPEC §7.5 c4).
+"""Tests for live-runtime triggers (src/markets/live/runtime/triggers.py, SPEC §7.5 c4).
 
 The decision core is pure — it takes ``now_ms`` as an argument and reads no
 clock — so every market-session / interval / event case is pinned to a fixed
@@ -14,8 +14,8 @@ from typing import Mapping
 
 import pytest
 
-from src.live.runtime import triggers
-from src.live.runtime.triggers import (
+from src.markets.live.runtime import triggers
+from src.markets.live.runtime.triggers import (
     Trigger,
     TriggerKind,
     due_now,

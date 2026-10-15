@@ -1,4 +1,4 @@
-"""Frozen-contract tests for ``src.strategy_discovery.models`` — issue #969.
+"""Frozen-contract tests for ``src.research.strategy_discovery.models`` — issue #969.
 
 The core-package contract (REGIMES, quality ladder, evidence thresholds,
 ``EvidenceRow`` / ``StrategySummary`` shapes, ``coverage_days_from_ranges``,
@@ -18,7 +18,7 @@ import pathlib
 import pytest
 
 try:
-    from src.strategy_discovery import models as sd_models
+    from src.research.strategy_discovery import models as sd_models
 
     MODELS_AVAILABLE = True
 except ImportError:
@@ -27,7 +27,7 @@ except ImportError:
 
 requires_models = pytest.mark.skipif(
     not MODELS_AVAILABLE,
-    reason="waiting on sibling A: src.strategy_discovery.models not landed yet (issue #969)",
+    reason="waiting on sibling A: src.research.strategy_discovery.models not landed yet (issue #969)",
 )
 
 
@@ -287,7 +287,7 @@ def _call_build_warnings(scenario: dict) -> tuple:
     parameter list; this helper tries keyword mapping by known aliases first,
     then positional shapes. A signature that beats every shape fails loudly.
     """
-    assert MODELS_AVAILABLE, "src.strategy_discovery.models not importable"
+    assert MODELS_AVAILABLE, "src.research.strategy_discovery.models not importable"
     bw = sd_models.build_warnings
     aliases = {
         "trades": ("trades", "trades_in_regime", "n_trades", "trade_count"),
@@ -422,4 +422,4 @@ class TestNoSeedCorpusInModels:
         )
         assert (
             yaml_files == []
-        ), f"AC7 violation: seed-corpus YAML files found in src/strategy_discovery: {yaml_files}"
+        ), f"AC7 violation: seed-corpus YAML files found in src/research/strategy_discovery: {yaml_files}"

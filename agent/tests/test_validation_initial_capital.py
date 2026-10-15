@@ -3,8 +3,8 @@
 import pandas as pd
 import pytest
 
-from backtest.models import TradeRecord
-from backtest.validation import monte_carlo_test
+from src.backtest.models import TradeRecord
+from src.backtest.validation import monte_carlo_test
 
 
 def _trades(pnls: list[float]) -> list[TradeRecord]:

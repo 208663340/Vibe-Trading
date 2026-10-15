@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders.qveris_loader import _granularity_tokens, _select_capabilities
+from src.backtest.loaders.qveris_loader import _granularity_tokens, _select_capabilities
 
 
 def _sample_results() -> list[dict]:

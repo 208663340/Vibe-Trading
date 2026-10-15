@@ -4,7 +4,7 @@ import json
 import os
 import stat
 
-from src.channels.feishu import _persist_login_credentials
+from src.interfaces.channels.feishu import _persist_login_credentials
 
 
 def test_persist_login_credentials_preserves_config_and_writes_private_file(tmp_path):

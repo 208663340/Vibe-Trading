@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.memory.persistent import (
+from src.runtime.memory.persistent import (
     DEDUP_WINDOW_SECONDS,
     PersistentMemory,
     content_hash,
@@ -92,15 +92,15 @@ class TestIsDuplicate:
         pm = PersistentMemory(memory_dir=tmp_path)
 
         # First call at t=1000
-        with patch("src.memory.persistent._time.time", return_value=1000.0):
+        with patch("src.runtime.memory.persistent._time.time", return_value=1000.0):
             assert pm.is_duplicate("note", "desc", "body") is False
 
         # Second call still within window (t=1000 + 29s)
-        with patch("src.memory.persistent._time.time", return_value=1029.0):
+        with patch("src.runtime.memory.persistent._time.time", return_value=1029.0):
             assert pm.is_duplicate("note", "desc", "body") is True
 
         # Third call after window expired (t=1000 + 31s)
-        with patch("src.memory.persistent._time.time", return_value=1031.0):
+        with patch("src.runtime.memory.persistent._time.time", return_value=1031.0):
             assert pm.is_duplicate("note", "desc", "body") is False
 
     def test_cross_instance_cache_isolation(self, tmp_path: Path) -> None:
@@ -155,16 +155,16 @@ class TestAddDedup:
         monkeypatch.setenv("VT_MEMORY_QUALITY", "1")
         pm = PersistentMemory(memory_dir=tmp_path)
 
-        with patch("src.memory.persistent._time.time", return_value=1000.0):
+        with patch("src.runtime.memory.persistent._time.time", return_value=1000.0):
             r1 = pm.add("Retry Note", "body", description="retry desc")
         assert r1 is not None
 
         # Within window: blocked
-        with patch("src.memory.persistent._time.time", return_value=1010.0):
+        with patch("src.runtime.memory.persistent._time.time", return_value=1010.0):
             r2 = pm.add("Retry Note", "body", description="retry desc")
         assert r2 is None
 
         # After window: allowed
-        with patch("src.memory.persistent._time.time", return_value=1031.0):
+        with patch("src.runtime.memory.persistent._time.time", return_value=1031.0):
             r3 = pm.add("Retry Note", "body", description="retry desc")
         assert r3 is not None

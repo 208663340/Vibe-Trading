@@ -9,6 +9,7 @@ import pytest
 _TEMPLATE_PATH = (
     Path(__file__).parents[1]
     / "src"
+    / "research"
     / "skills"
     / "cross-market-strategy"
     / "example_signal_engine.py"

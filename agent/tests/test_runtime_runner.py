@@ -21,7 +21,7 @@ from typing import Any, Mapping
 
 import pytest
 
-from src.live.mandate.model import (
+from src.markets.live.mandate.model import (
     AssetClass,
     ConsentMeta,
     HardCaps,
@@ -30,7 +30,7 @@ from src.live.mandate.model import (
     UniverseConstraint,
     MANDATE_SCHEMA_VERSION,
 )
-from src.live.runtime.runner import (
+from src.markets.live.runtime.runner import (
     LiveRunner,
     TICK_ERROR,
     TICK_EXPIRED,
@@ -421,7 +421,7 @@ def test_run_loop_synthesizes_jobs_from_triggers() -> None:
     # No explicit jobs, no durable store entries -> the runner must recompute its
     # watch cadence from the injected triggers (R3) so it actually wakes, instead
     # of starting an empty scheduler that never fires (the C3 integration gap).
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live.runtime.triggers import Trigger
 
     tracker = _OrderTracker()
     sched = _FakeScheduler()
@@ -452,7 +452,7 @@ def test_market_watch_cadence_is_operator_configurable() -> None:
     # The MARKET watch cadence is no longer a hardcoded constant — it is an
     # injectable operational knob (default 60s). A custom value flows into the
     # synthesized job's interval schedule.
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live.runtime.triggers import Trigger
 
     tracker = _OrderTracker()
     sched = _FakeScheduler()
@@ -477,7 +477,7 @@ def test_market_watch_cadence_is_operator_configurable() -> None:
 
 
 def test_market_watch_cadence_defaults_when_nonpositive() -> None:
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live.runtime.triggers import Trigger
 
     tracker = _OrderTracker()
     sched = _FakeScheduler()
@@ -504,8 +504,8 @@ def test_market_watch_cadence_defaults_when_nonpositive() -> None:
 def test_run_loop_resumes_persisted_jobs_over_triggers() -> None:
     # A restart with durable jobs must resume THEM (resume-via-recompute), not
     # re-synthesize from triggers.
-    from src.live.runtime.scheduler import Job
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live.runtime.scheduler import Job
+    from src.markets.live.runtime.triggers import Trigger
 
     tracker = _OrderTracker()
     sched = _FakeScheduler()
@@ -537,7 +537,7 @@ def test_stop_loop_idempotent() -> None:
 
 
 def test_stop_loop_awaits_the_real_scheduler() -> None:
-    from src.live.runtime.scheduler import Scheduler
+    from src.markets.live.runtime.scheduler import Scheduler
 
     async def scenario() -> None:
         async def fire(job) -> None:
@@ -556,8 +556,8 @@ def test_stop_loop_awaits_the_real_scheduler() -> None:
 
 
 def test_default_job_stores_keep_each_brokers_cadence_separate(tmp_path, monkeypatch) -> None:
-    from src.live import paths
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live import paths
+    from src.markets.live.runtime.triggers import Trigger
 
     monkeypatch.setattr(paths, "get_runtime_root", lambda: tmp_path)
     first, second = _FakeScheduler(), _FakeScheduler()
@@ -575,10 +575,10 @@ def test_default_job_stores_keep_each_brokers_cadence_separate(tmp_path, monkeyp
 
 
 def test_default_job_store_migrates_only_its_own_legacy_jobs(tmp_path, monkeypatch) -> None:
-    from src.live import paths
-    from src.live.runtime.jobstore import JobStore
-    from src.live.runtime.scheduler import Job
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live import paths
+    from src.markets.live.runtime.jobstore import JobStore
+    from src.markets.live.runtime.scheduler import Job
+    from src.markets.live.runtime.triggers import Trigger
 
     monkeypatch.setattr(paths, "get_runtime_root", lambda: tmp_path)
     legacy = JobStore()
@@ -602,9 +602,9 @@ def test_default_job_store_migrates_only_its_own_legacy_jobs(tmp_path, monkeypat
 
 def test_real_audit_write_on_halt(monkeypatch, tmp_path) -> None:
     # Isolate the runtime root so the real ledger lands under tmp.
-    monkeypatch.setattr("src.config.paths.Path.home", lambda: tmp_path)
-    from src.live.audit import audit_ledger_path, write_live_action
-    from src.live.halt import trip_halt
+    monkeypatch.setattr("src.platform.config.paths.Path.home", lambda: tmp_path)
+    from src.markets.live.audit import audit_ledger_path, write_live_action
+    from src.markets.live.halt import trip_halt
 
     tracker = _OrderTracker()
     runner = LiveRunner(
@@ -632,7 +632,7 @@ def test_real_audit_write_on_halt(monkeypatch, tmp_path) -> None:
 def test_market_trigger_skips_tick_when_market_closed() -> None:
     # _FIXED_NOW is Monday 08:00 ET, before the 09:30 bell. A market-triggered
     # tick must not trade into a closed session.
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live.runtime.triggers import Trigger
 
     tracker = _OrderTracker()
     runner = _build_runner(tracker, triggers=[Trigger.market("us_equity")])
@@ -645,7 +645,7 @@ def test_market_trigger_skips_tick_when_market_closed() -> None:
 
 
 def test_market_trigger_ticks_when_market_open() -> None:
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live.runtime.triggers import Trigger
 
     tracker = _OrderTracker()
     # Tuesday 10:30 ET, mid-session.
@@ -660,7 +660,7 @@ def test_market_trigger_ticks_when_market_open() -> None:
 
 
 def test_market_gate_open_when_any_market_trigger_is_open() -> None:
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live.runtime.triggers import Trigger
 
     tracker = _OrderTracker()
     # us_equity closed at _FIXED_NOW, crypto is 24/7: the union stays open.
@@ -674,7 +674,7 @@ def test_market_gate_open_when_any_market_trigger_is_open() -> None:
 
 
 def test_interval_only_runner_ignores_the_market_gate() -> None:
-    from src.live.runtime.triggers import Trigger
+    from src.markets.live.runtime.triggers import Trigger
 
     tracker = _OrderTracker()
     runner = _build_runner(tracker, triggers=[Trigger.interval(30_000)])

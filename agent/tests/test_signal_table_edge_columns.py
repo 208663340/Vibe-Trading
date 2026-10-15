@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.channels.signal import _sig_render_table
+from src.interfaces.channels.signal import _sig_render_table
 
 
 def test_sig_render_table_keeps_trailing_empty_column() -> None:

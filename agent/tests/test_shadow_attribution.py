@@ -12,8 +12,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from src.shadow_account.backtester import _compute_attribution, _overtrading_pnl
-from src.shadow_account.models import ShadowProfile, ShadowRule
+from src.markets.shadow_account.backtester import _compute_attribution, _overtrading_pnl
+from src.markets.shadow_account.models import ShadowProfile, ShadowRule
 
 
 def _profile() -> ShadowProfile:

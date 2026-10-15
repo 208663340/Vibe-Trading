@@ -20,8 +20,8 @@ from pathlib import Path
 
 import pytest
 
-import mcp_server
-from src.tools import qveris_tool as qt
+import src.interfaces.mcp_server as mcp_server
+from src.runtime.tools import qveris_tool as qt
 
 # fastmcp wraps the tool; reach the raw callable.
 _qveris_search = getattr(mcp_server.qveris_search, "fn", None) or getattr(

@@ -5,7 +5,7 @@ import math
 import pandas as pd
 import pytest
 
-from backtest.metrics import calc_metrics
+from src.backtest.metrics import calc_metrics
 
 
 @pytest.mark.parametrize(

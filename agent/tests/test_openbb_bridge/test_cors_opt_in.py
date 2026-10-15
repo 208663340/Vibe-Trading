@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-import api_server
-from src.api import security
+import src.interfaces.api_server as api_server
+from src.interfaces.api import security
 
 
 def test_openbb_origin_is_not_trusted_by_default(monkeypatch: pytest.MonkeyPatch) -> None:

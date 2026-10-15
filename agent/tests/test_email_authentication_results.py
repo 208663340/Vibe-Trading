@@ -23,7 +23,7 @@ from __future__ import annotations
 from email import policy
 from email.parser import BytesParser
 
-from src.channels.email import EmailChannel
+from src.interfaces.channels.email import EmailChannel
 
 
 def _parse(raw: bytes):

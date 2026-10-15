@@ -1,4 +1,4 @@
-"""Unit contract for ``src.factors.base.zscore_by_group``.
+"""Unit contract for ``src.research.factors.base.zscore_by_group``.
 
 The shared within-group z-score the industry-neutralized CN value factors run
 on. Expected values are hand-computed (or recomputed with independent numpy
@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.base import zscore_by_group
+from src.research.factors.base import zscore_by_group
 
 _DATES = pd.to_datetime(["2024-01-01", "2024-01-02"])
 _COLS = ["A", "B", "C", "D"]

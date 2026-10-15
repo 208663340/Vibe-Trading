@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from src.goal import (
+from src.runtime.goal import (
     AuditRow,
     EvidenceInput,
     GoalStatus,

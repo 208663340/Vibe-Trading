@@ -14,13 +14,13 @@ from pathlib import Path
 
 import pytest
 
-from src.scheduled_research.executor import ScheduledResearchExecutor
-from src.scheduled_research.models import (
+from src.research.scheduled_research.executor import ScheduledResearchExecutor
+from src.research.scheduled_research.models import (
     DeliveryStatus,
     JobStatus,
     ScheduledResearchJob,
 )
-from src.scheduled_research.store import ScheduledResearchJobStore
+from src.research.scheduled_research.store import ScheduledResearchJobStore
 
 
 class _Sender:

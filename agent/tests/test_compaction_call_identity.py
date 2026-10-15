@@ -8,8 +8,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.agent.context import ContextBuilder
-from src.agent.loop import (
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.loop import (
     AgentLoop,
     COLLAPSE_TEXT_MIN,
     KEEP_RECENT,
@@ -18,8 +18,8 @@ from src.agent.loop import (
     _fix_tool_pairs,
     _is_cleared,
 )
-from src.agent.tools import BaseTool, ToolRegistry
-from src.agent.trace import TraceWriter
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.trace import TraceWriter
 
 
 class _Query(BaseTool):
@@ -309,7 +309,7 @@ def test_auto_compact_reopens_head_but_preserves_tail_gate(
             raise RuntimeError("offline summary failure")
 
         monkeypatch.setattr(h.agent.llm, "chat", fail_summary)
-    monkeypatch.setattr("src.agent.loop._llm_timeout_seconds", lambda: 1)
+    monkeypatch.setattr("src.runtime.agent.loop._llm_timeout_seconds", lambda: 1)
 
     h.agent._auto_compact(h.messages, h.run_dir, h.trace)
 
@@ -330,7 +330,7 @@ def test_auto_compact_summary_call_sees_the_bound_llm_session(harness, monkeypat
     thread starts with an empty context, so the summary call used to go out
     unbound and OpenCode Go saw a second conversation id for the same session.
     """
-    from src.providers.session_context import (
+    from src.runtime.providers.session_context import (
         bind_llm_session_id,
         current_llm_session_id,
         reset_llm_session_id,
@@ -346,7 +346,7 @@ def test_auto_compact_summary_call_sees_the_bound_llm_session(harness, monkeypat
         return SimpleNamespace(content="summary")
 
     monkeypatch.setattr(h.agent.llm, "chat", chat)
-    monkeypatch.setattr("src.agent.loop._llm_timeout_seconds", lambda: 1)
+    monkeypatch.setattr("src.runtime.agent.loop._llm_timeout_seconds", lambda: 1)
     token = bind_llm_session_id("vibe-session-42")
     try:
         h.agent._auto_compact(h.messages, h.run_dir, h.trace)

@@ -11,7 +11,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.loaders.additive_conversion import convert_additive_to_multiplicative
+from src.backtest.loaders.additive_conversion import convert_additive_to_multiplicative
 
 
 def _frame(closes, volumes=None, start="2024-01-01"):
@@ -167,7 +167,7 @@ class TestLoaderWiring:
         )
 
     def test_tencent_converts_and_stamps(self, monkeypatch):
-        from backtest.loaders import tencent_loader
+        from src.backtest.loaders import tencent_loader
 
         raw, additive = _two_action_series()
         self._patch_fetch_pair(monkeypatch, tencent_loader, raw, additive)
@@ -177,7 +177,7 @@ class TestLoaderWiring:
         assert df["close"].iloc[-1] == pytest.approx(99.0, abs=1e-9)
 
     def test_tencent_keeps_additive_when_raw_missing(self, monkeypatch):
-        from backtest.loaders import tencent_loader
+        from src.backtest.loaders import tencent_loader
 
         _, additive = _two_action_series()
         self._patch_fetch_pair(monkeypatch, tencent_loader, None, additive)
@@ -186,7 +186,7 @@ class TestLoaderWiring:
         assert df["close"].tolist() == additive["close"].tolist()
 
     def test_eastmoney_converts_and_stamps(self, monkeypatch):
-        from backtest.loaders import eastmoney_loader
+        from src.backtest.loaders import eastmoney_loader
 
         raw, additive = _two_action_series()
         self._patch_fetch_pair(monkeypatch, eastmoney_loader, raw, additive)
@@ -195,7 +195,7 @@ class TestLoaderWiring:
         assert df.attrs["adjustment"] == "split_dividend"
 
     def test_akshare_converts_and_stamps(self, monkeypatch):
-        from backtest.loaders import akshare_loader
+        from src.backtest.loaders import akshare_loader
 
         raw, additive = _two_action_series()
         self._patch_fetch_pair(monkeypatch, akshare_loader, raw, additive)
@@ -204,7 +204,7 @@ class TestLoaderWiring:
         assert df.attrs["adjustment"] == "split_dividend"
 
     def test_akshare_skips_etf_codes(self, monkeypatch):
-        from backtest.loaders import akshare_loader
+        from src.backtest.loaders import akshare_loader
 
         _, additive = _two_action_series()
         self._patch_fetch_pair(monkeypatch, akshare_loader, None, additive)
@@ -213,7 +213,7 @@ class TestLoaderWiring:
         assert out["510300.SH"]["close"].tolist() == additive["close"].tolist()
 
     def test_tencent_skips_etf_codes(self, monkeypatch):
-        from backtest.loaders import tencent_loader
+        from src.backtest.loaders import tencent_loader
 
         _, additive = _two_action_series()
         self._patch_fetch_pair(monkeypatch, tencent_loader, None, additive)
@@ -221,7 +221,7 @@ class TestLoaderWiring:
         assert out["510300.SH"]["close"].tolist() == additive["close"].tolist()
 
     def test_eastmoney_skips_etf_codes(self, monkeypatch):
-        from backtest.loaders import eastmoney_loader
+        from src.backtest.loaders import eastmoney_loader
 
         _, additive = _two_action_series()
         self._patch_fetch_pair(monkeypatch, eastmoney_loader, None, additive)
@@ -231,8 +231,8 @@ class TestLoaderWiring:
 
 class TestProvenancePrefersFrameStamp:
     def test_frame_adjustment_wins_over_static_table(self, monkeypatch):
-        from backtest.loaders import registry
-        from src.market_data import fetch_market_data
+        from src.backtest.loaders import registry
+        from src.markets.market_data import fetch_market_data
 
         _, additive = _two_action_series()
 
@@ -266,7 +266,7 @@ class TestProvenancePrefersFrameStamp:
 
 class TestRawFetchFailureDegrades:
     def test_tencent_raw_failure_serves_additive(self, monkeypatch):
-        from backtest.loaders import tencent_loader
+        from src.backtest.loaders import tencent_loader
 
         _, additive = _two_action_series()
 
@@ -281,7 +281,7 @@ class TestRawFetchFailureDegrades:
         assert df["close"].tolist() == additive["close"].tolist()
 
     def test_akshare_raw_failure_serves_additive(self, monkeypatch):
-        from backtest.loaders import akshare_loader
+        from src.backtest.loaders import akshare_loader
 
         _, additive = _two_action_series()
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from backtest.run_card import write_run_card
+from src.backtest.run_card import write_run_card
 
 
 def test_content_filter_warnings_surfaced_in_run_card(tmp_path: Path) -> None:
@@ -70,7 +70,7 @@ def test_no_content_filter_warnings_yields_empty_warnings(tmp_path: Path) -> Non
 
 def test_options_engine_surfaces_content_filter_warnings(tmp_path: Path) -> None:
     """End-to-end: options engine passes config content_filter_warnings to run_card."""
-    from backtest.engines.options_portfolio import run_options_backtest
+    from src.backtest.engines.options_portfolio import run_options_backtest
 
     dates = pd.bdate_range("2025-01-01", periods=4)
     bars = pd.DataFrame(
@@ -135,7 +135,7 @@ def test_options_engine_surfaces_content_filter_warnings(tmp_path: Path) -> None
 
 def test_options_engine_no_warnings_yields_empty(tmp_path: Path) -> None:
     """End-to-end: options engine without content_filter_warnings produces empty warnings."""
-    from backtest.engines.options_portfolio import run_options_backtest
+    from src.backtest.engines.options_portfolio import run_options_backtest
 
     dates = pd.bdate_range("2025-01-01", periods=4)
     bars = pd.DataFrame(

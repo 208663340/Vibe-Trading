@@ -19,8 +19,8 @@ import json
 
 import pytest
 
-import mcp_server
-from src.agent.tools import ToolRegistry
+import src.interfaces.mcp_server as mcp_server
+from src.runtime.agent.tools import ToolRegistry
 
 SD_TOOLS = (
     "list_strategies",
@@ -82,7 +82,7 @@ class TestRegistration:
         for name in SD_TOOLS:
             description = getattr(by_name[name], "description", "") or ""
             assert description.strip(), f"{name} must carry an MCP description"
-            assert callable(_unwrapped(name)), f"mcp_server.{name} is not callable"
+            assert callable(_unwrapped(name)), f"src.interfaces.mcp_server.{name} is not callable"
 
 
 @requires_sd_mcp

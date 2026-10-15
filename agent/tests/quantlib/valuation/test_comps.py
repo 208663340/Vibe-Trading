@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.valuation.comps.
+"""Tests for src.research.quantlib.valuation.comps.
 
 The centerpiece is `test_full_hand_computed_example`: four peers and one
 target, worked out with LITERAL ARITHMETIC EXPRESSIONS (e.g. ``1130 / 160``,
@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.quantlib.valuation.comps import (
+from src.research.quantlib.valuation.comps import (
     CALENDARISATION_POLICIES,
     EPS_BASES,
     MIN_ROBUST_COMPS,
@@ -33,7 +33,7 @@ from src.quantlib.valuation.comps import (
     equity_value_from_enterprise_value,
     run_comps,
 )
-from src.quantlib.valuation.contracts import MissingInputError, ValuationError
+from src.research.quantlib.valuation.contracts import MissingInputError, ValuationError
 
 EXACT = 1e-9
 

@@ -3,10 +3,10 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from src.session.events import EventBus
-from src.session.models import Attempt, Session
-from src.session.service import SessionService
-from src.session.store import SessionStore
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import Attempt, Session
+from src.runtime.session.service import SessionService
+from src.runtime.session.store import SessionStore
 
 
 class _DummyIndex:
@@ -21,7 +21,7 @@ def test_completed_reply_persists_runtime_identity_and_elapsed_time(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: _DummyIndex())
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: _DummyIndex())
     store = SessionStore(tmp_path / "sessions")
     event_bus = EventBus()
     service = SessionService(

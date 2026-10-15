@@ -4,17 +4,17 @@ import asyncio
 import json
 from pathlib import Path
 
-from src.channels.bus.events import DeliveryReceipt
-from src.channels.targets import DeliveryTarget
-from src.scheduled_research.executor import ScheduledResearchExecutor
-from src.scheduled_research.models import (
+from src.interfaces.channels.bus.events import DeliveryReceipt
+from src.interfaces.channels.targets import DeliveryTarget
+from src.research.scheduled_research.executor import ScheduledResearchExecutor
+from src.research.scheduled_research.models import (
     DeliveryStatus,
     JobStatus,
     ScheduledResearchJob,
 )
-from src.scheduled_research.store import ScheduledResearchJobStore
-from src.scheduled_research.service import build_job_from_draft, public_job
-from src.tools.scheduled_research_tool import ScheduledResearchTool
+from src.research.scheduled_research.store import ScheduledResearchJobStore
+from src.research.scheduled_research.service import build_job_from_draft, public_job
+from src.runtime.tools.scheduled_research_tool import ScheduledResearchTool
 
 
 def _draft() -> dict:
@@ -31,7 +31,7 @@ def test_proposal_does_not_create_until_surface_commit_and_commit_is_idempotent(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    from src.scheduled_research import proposals
+    from src.research.scheduled_research import proposals
 
     monkeypatch.setenv("VIBE_TRADING_HOME", str(tmp_path))
     store = ScheduledResearchJobStore(tmp_path / "jobs.json")
@@ -41,8 +41,8 @@ def test_proposal_does_not_create_until_surface_commit_and_commit_is_idempotent(
         "scheduler_status",
         lambda: {"enabled": True, "running": True, "executable": True},
     )
-    monkeypatch.setattr("src.scheduled_research.service.time.time", lambda: 1_000)
-    monkeypatch.setattr("src.scheduled_research.proposals.time.time", lambda: 1_000)
+    monkeypatch.setattr("src.research.scheduled_research.service.time.time", lambda: 1_000)
+    monkeypatch.setattr("src.research.scheduled_research.proposals.time.time", lambda: 1_000)
 
     result = json.loads(
         ScheduledResearchTool().execute(action="propose_create", draft=_draft())
@@ -87,7 +87,7 @@ def test_elapsed_end_at_expires_without_dispatch(tmp_path: Path) -> None:
 def test_configured_delivery_keeps_raw_provider_target_out_of_public_payload(
     monkeypatch,
 ) -> None:
-    from src.scheduled_research import service
+    from src.research.scheduled_research import service
 
     target = DeliveryTarget(
         ref="research-team",
@@ -186,10 +186,10 @@ def test_im_confirmation_accepts_english_and_chinese_tokens(
     adapters serve both audiences, and a token set that only matches the
     Chinese words locks English-speaking users out of confirming.
     """
-    from src.channels.bus.events import InboundMessage
-    from src.channels.bus.queue import MessageBus
-    from src.channels.runtime import ChannelRuntime
-    from src.scheduled_research import proposals
+    from src.interfaces.channels.bus.events import InboundMessage
+    from src.interfaces.channels.bus.queue import MessageBus
+    from src.interfaces.channels.runtime import ChannelRuntime
+    from src.research.scheduled_research import proposals
 
     monkeypatch.setenv("VIBE_TRADING_HOME", str(tmp_path))
     store = ScheduledResearchJobStore(tmp_path / "jobs.json")
@@ -199,8 +199,8 @@ def test_im_confirmation_accepts_english_and_chinese_tokens(
         "scheduler_status",
         lambda: {"enabled": True, "running": True, "executable": True},
     )
-    monkeypatch.setattr("src.scheduled_research.service.time.time", lambda: 1_000)
-    monkeypatch.setattr("src.scheduled_research.proposals.time.time", lambda: 1_000)
+    monkeypatch.setattr("src.research.scheduled_research.service.time.time", lambda: 1_000)
+    monkeypatch.setattr("src.research.scheduled_research.proposals.time.time", lambda: 1_000)
 
     runtime = ChannelRuntime(
         bus=MessageBus(),
@@ -238,7 +238,7 @@ def test_im_confirmation_accepts_english_and_chinese_tokens(
 
 
 def test_email_format_survives_human_proposal_commit(tmp_path, monkeypatch):
-    from src.scheduled_research import proposals, service
+    from src.research.scheduled_research import proposals, service
 
     monkeypatch.setenv("VIBE_TRADING_HOME", str(tmp_path))
     store = ScheduledResearchJobStore(tmp_path / "jobs.json")
@@ -260,7 +260,7 @@ def test_email_format_survives_human_proposal_commit(tmp_path, monkeypatch):
 
 def test_origin_format_uses_session_destination(monkeypatch):
     from types import SimpleNamespace
-    import api_server
+    import src.interfaces.api_server as api_server
 
     session = SimpleNamespace(config={"channel": "email", "channel_chat_id": "origin@example.com"})
     monkeypatch.setattr(api_server, "_get_session_service", lambda: SimpleNamespace(get_session=lambda sid: session))
@@ -277,7 +277,7 @@ def test_origin_format_uses_session_destination(monkeypatch):
 
 def test_invalid_format_cannot_create_a_proposal(tmp_path, monkeypatch):
     import pytest
-    from src.scheduled_research import service
+    from src.research.scheduled_research import service
 
     monkeypatch.setenv("VIBE_TRADING_HOME", str(tmp_path))
     monkeypatch.setattr(service.time, "time", lambda: 1000)
@@ -297,9 +297,9 @@ def test_invalid_format_cannot_create_a_proposal(tmp_path, monkeypatch):
 def test_cli_confirmation_displays_format_and_legacy_relay_preserves_it(monkeypatch):
     from io import StringIO
     from rich.console import Console
-    from cli.main import _render_scheduled_proposal
-    from cli._legacy import _scheduled_proposal_from_tool_result
-    from src.scheduled_research import proposals
+    from src.interfaces.cli.main import _render_scheduled_proposal
+    from src.interfaces.cli._legacy import _scheduled_proposal_from_tool_result
+    from src.research.scheduled_research import proposals
 
     for fmt, label in [("html", "HTML"), ("pdf", "PDF"), (None, "纯文本")]:
         proposal = {"operation": "create", "job": {"title": "Research", "delivery": {"channel": "email", "format": fmt}}}

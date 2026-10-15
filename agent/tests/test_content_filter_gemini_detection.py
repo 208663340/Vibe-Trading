@@ -18,8 +18,8 @@ from __future__ import annotations
 import pytest
 from langchain_core.messages import AIMessage
 
-from src.providers.chat import ChatLLM
-from src.providers.content_filter import (
+from src.runtime.providers.chat import ChatLLM
+from src.runtime.providers.content_filter import (
     GEMINI_SAFETY_FINISH_REASONS,
     is_content_filter_triggered,
 )

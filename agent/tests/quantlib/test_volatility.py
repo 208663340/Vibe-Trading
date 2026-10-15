@@ -2,12 +2,12 @@
 
 import math
 import pytest
-from src.quantlib.volatility import (
+from src.research.quantlib.volatility import (
     heston_characteristic_function,
     heston_price,
     heston_feller_condition,
 )
-from src.quantlib.options import bs_price, implied_volatility
+from src.research.quantlib.options import bs_price, implied_volatility
 
 
 class TestHestonModel:

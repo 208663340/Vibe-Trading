@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from src.config.paths import get_runtime_root
+from src.platform.config.paths import get_runtime_root
 
 
 def test_runtime_root_defaults_to_home(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -54,7 +54,7 @@ def test_home_override_rejects_unc_paths(monkeypatch: pytest.MonkeyPatch) -> Non
 
 def test_legacy_swarm_runs_kept_in_run_root_allowlist() -> None:
     """Un-migrated legacy swarm runs must stay reachable, like legacy runs/uploads."""
-    from src.tools.path_utils import _agent_root, _default_run_roots
+    from src.runtime.tools.path_utils import _agent_root, _default_run_roots
 
     roots = [p.resolve() for p in _default_run_roots()]
 
@@ -64,7 +64,7 @@ def test_legacy_swarm_runs_kept_in_run_root_allowlist() -> None:
 def test_state_dir_helpers_live_under_runtime_root(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from src.config.paths import (
+    from src.platform.config.paths import (
         get_runs_dir,
         get_sessions_dir,
         get_swarm_runs_dir,
@@ -83,8 +83,8 @@ def test_state_dir_helpers_live_under_runtime_root(
 def test_shadow_account_dirs_live_under_runtime_root(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from src.shadow_account.storage import profiles_dir, reports_dir, runs_dir
-    from src.tools.path_utils import _default_run_roots
+    from src.markets.shadow_account.storage import profiles_dir, reports_dir, runs_dir
+    from src.runtime.tools.path_utils import _default_run_roots
 
     root = tmp_path / "state-root"
     monkeypatch.setenv("VIBE_TRADING_HOME", str(root))
@@ -99,8 +99,8 @@ def test_shadow_account_dirs_live_under_runtime_root(
 
 
 def test_legacy_cli_constants_derive_from_runtime_root() -> None:
-    from cli import _legacy
-    from src.config import paths
+    from src.interfaces.cli import _legacy
+    from src.platform.config import paths
 
     assert _legacy.SESSIONS_DIR == paths.get_sessions_dir()
     assert _legacy.RUNS_DIR == paths.get_runs_dir()
@@ -109,16 +109,16 @@ def test_legacy_cli_constants_derive_from_runtime_root() -> None:
 
 
 def test_agent_loop_constants_derive_from_runtime_root() -> None:
-    from src.agent import loop
-    from src.config import paths
+    from src.runtime.agent import loop
+    from src.platform.config import paths
 
     assert loop.RUNS_DIR == paths.get_runs_dir()
     assert loop.SESSIONS_DIR == paths.get_sessions_dir()
 
 
 def test_api_constants_derive_from_runtime_root() -> None:
-    from src.api import helpers, uploads_routes
-    from src.config import paths
+    from src.interfaces.api import helpers, uploads_routes
+    from src.platform.config import paths
 
     assert helpers.RUNS_DIR == paths.get_runs_dir()
     assert helpers.SESSIONS_DIR == paths.get_sessions_dir()
@@ -130,12 +130,12 @@ def test_api_swarm_runtime_uses_swarm_runs_root(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The HTTP API swarm store must share swarm_runs_root() with CLI/MCP."""
-    from src.api import swarm_routes
-    from src.swarm.store import swarm_runs_root
+    from src.interfaces.api import swarm_routes
+    from src.runtime.swarm.store import swarm_runs_root
 
     monkeypatch.setattr(swarm_routes, "_swarm_runtime", None)
     monkeypatch.setattr(
-        "src.config.load_swarm_agent_config", lambda *a, **k: object()
+        "src.platform.config.load_swarm_agent_config", lambda *a, **k: object()
     )
 
     runtime = swarm_routes._get_swarm_runtime()
@@ -144,8 +144,8 @@ def test_api_swarm_runtime_uses_swarm_runs_root(
 
 
 def test_swarm_runs_root_derives_from_runtime_root() -> None:
-    from src.config import paths
-    from src.swarm.store import swarm_runs_root
+    from src.platform.config import paths
+    from src.runtime.swarm.store import swarm_runs_root
 
     assert swarm_runs_root() == paths.get_swarm_runs_dir()
 
@@ -153,7 +153,7 @@ def test_swarm_runs_root_derives_from_runtime_root() -> None:
 def test_trace_lookup_searches_runtime_root(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from src.agent.trace import TraceWriter
+    from src.runtime.agent.trace import TraceWriter
 
     root = tmp_path / "state-root"
     monkeypatch.setenv("VIBE_TRADING_HOME", str(root))
@@ -167,7 +167,7 @@ def test_trace_lookup_searches_runtime_root(
 def test_upload_handle_resolves_to_runtime_uploads_dir(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from src.tools.path_utils import _import_candidate
+    from src.runtime.tools.path_utils import _import_candidate
 
     root = tmp_path / "state-root"
     monkeypatch.setenv("VIBE_TRADING_HOME", str(root))
@@ -182,7 +182,7 @@ def test_upload_handle_resolves_to_runtime_uploads_dir(
 def test_sandbox_roots_follow_home_override(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from src.tools.path_utils import allowed_file_roots, allowed_write_roots
+    from src.runtime.tools.path_utils import allowed_file_roots, allowed_write_roots
 
     root = tmp_path / "state-root"
     monkeypatch.setenv("VIBE_TRADING_HOME", str(root))
@@ -202,8 +202,8 @@ def test_sessions_db_and_goal_db_follow_home_override(
     """The FTS index and goal store must live beside the sessions they index."""
     import importlib
 
-    from src.goal import store as goal_store
-    from src.session import search
+    from src.runtime.goal import store as goal_store
+    from src.runtime.session import search
 
     root = tmp_path / "state-root"
     monkeypatch.setenv("VIBE_TRADING_HOME", str(root))
@@ -225,7 +225,7 @@ def test_banner_session_probe_follows_home_override(
 
     import importlib
 
-    cli_main = importlib.import_module("cli.main")
+    cli_main = importlib.import_module("src.interfaces.cli.main")
 
     root = tmp_path / "state-root"
     root.mkdir()
@@ -242,7 +242,7 @@ def test_welcome_panel_reports_runtime_root_as_workspace(
 ) -> None:
     from rich.console import Console
 
-    from cli import _legacy
+    from src.interfaces.cli import _legacy
 
     monkeypatch.setattr(_legacy, "get_runtime_root", lambda: Path("/RTROOT"))
 
@@ -255,7 +255,7 @@ def test_welcome_panel_reports_runtime_root_as_workspace(
 def test_state_dir_helpers_do_not_create_directories(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from src.config.paths import get_runs_dir, get_sessions_dir
+    from src.platform.config.paths import get_runs_dir, get_sessions_dir
 
     root = tmp_path / "state-root"
     monkeypatch.setenv("VIBE_TRADING_HOME", str(root))

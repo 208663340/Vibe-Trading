@@ -14,7 +14,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 
 def test_alpha021_no_signal_before_declared_warmup():

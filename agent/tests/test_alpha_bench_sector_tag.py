@@ -13,8 +13,8 @@ import logging
 import pandas as pd
 import pytest
 
-import src.tools.alpha_bench_tool as tool
-from src.factors.registry import Registry, SkipAlpha
+import src.runtime.tools.alpha_bench_tool as tool
+from src.research.factors.registry import Registry, SkipAlpha
 
 
 def _fake_loader(codes: list[str]) -> object:
@@ -41,7 +41,7 @@ def _fake_loader(codes: list[str]) -> object:
 
 def _patch(monkeypatch: pytest.MonkeyPatch, codes: list[str], sectors: dict[str, str]) -> None:
     monkeypatch.setattr(tool, "_fetch_sp500_constituents", lambda: (codes, sectors))
-    monkeypatch.setattr("src.market_data.get_loader", lambda _source: lambda: _fake_loader(codes))
+    monkeypatch.setattr("src.markets.market_data.get_loader", lambda _source: lambda: _fake_loader(codes))
 
 
 def test_sector_frame_matches_the_close_frame(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -56,7 +56,7 @@ KNOWN_MUTATING_MCP_TOOLS = frozenset(
 
 
 def _import_mcp_server():
-    """Import ``agent/mcp_server.py`` without executing ``main()``.
+    """Import ``agent/src/interfaces/mcp_server.py`` without executing ``main()``.
 
     Returns:
         The imported mcp_server module.
@@ -64,9 +64,9 @@ def _import_mcp_server():
     agent_dir = Path(__file__).resolve().parent.parent
     if str(agent_dir) not in sys.path:
         sys.path.insert(0, str(agent_dir))
-    if "mcp_server" in sys.modules:
-        return sys.modules["mcp_server"]
-    return importlib.import_module("mcp_server")
+    if "src.interfaces.mcp_server" in sys.modules:
+        return sys.modules["src.interfaces.mcp_server"]
+    return importlib.import_module("src.interfaces.mcp_server")
 
 
 def _mcp_tools() -> dict[str, Any]:
@@ -113,7 +113,7 @@ def test_mirrored_tool_names_match_the_agent_side_registry() -> None:
     registry does not have, which only shows up as a 'Tool not found' envelope
     at call time.
     """
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
 
@@ -176,7 +176,7 @@ def test_mirrored_tools_announce_the_same_result_envelope(name: str) -> None:
 
 def test_order_placing_tools_are_never_exposed_via_mcp() -> None:
     """Order placement / cancellation must never appear on the MCP surface."""
-    from src.tools.trading_connector_tool import (
+    from src.runtime.tools.trading_connector_tool import (
         TradingCancelOrderTool,
         TradingPlaceOrderTool,
     )
@@ -198,7 +198,7 @@ def test_no_unexpected_mutating_tool_is_exposed_via_mcp() -> None:
     (KNOWN_MUTATING_MCP_TOOLS); anything else showing up here means a mutating
     tool was newly exposed, which is a red-line violation.
     """
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
 

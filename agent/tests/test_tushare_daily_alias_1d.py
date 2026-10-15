@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
-from backtest.loaders.tushare import DataLoader
+from src.backtest.loaders.tushare import DataLoader
 
 
 def _daily_frame() -> pd.DataFrame:
@@ -31,7 +31,7 @@ def test_lowercase_1d_uses_daily_path_not_minutes() -> None:
     with patch.object(loader, "_fetch_daily_frame", return_value=daily) as mock_daily:
         with patch.object(loader, "_fetch_minutes") as mock_mins:
             with patch(
-                "backtest.loaders.tushare.cached_loader_fetch",
+                "src.backtest.loaders.tushare.cached_loader_fetch",
                 side_effect=lambda **kw: kw["fetch"](),
             ):
                 out = loader.fetch(

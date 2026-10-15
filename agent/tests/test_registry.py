@@ -10,9 +10,9 @@ from unittest.mock import patch
 
 import pytest
 
-from backtest.loaders import registry
-from backtest.loaders.base import DataLoaderProtocol, NoAvailableSourceError
-from backtest.loaders.registry import (
+from src.backtest.loaders import registry
+from src.backtest.loaders.base import DataLoaderProtocol, NoAvailableSourceError
+from src.backtest.loaders.registry import (
     _ensure_registered,
     FALLBACK_CHAINS,
     LOADER_REGISTRY,
@@ -128,16 +128,16 @@ def test_concurrent_cold_readers_wait_for_registration(
     real_import = importlib.import_module
 
     def controlled_import(name: str, package: str | None = None) -> ModuleType:
-        if not name.startswith("backtest.loaders."):
+        if not name.startswith("src.backtest.loaders."):
             return real_import(name, package)
         imports.append(name)
-        if name == "backtest.loaders.tushare":
+        if name == "src.backtest.loaders.tushare":
             importing.set()
             if not release.wait(5):
                 raise RuntimeError("loader import was never released")
-        if name == "backtest.loaders.okx":
+        if name == "src.backtest.loaders.okx":
             raise ImportError("optional dependency unavailable")
-        if name == "backtest.loaders.local_loader":
+        if name == "src.backtest.loaders.local_loader":
             register(_FakeAvailableLoader)
         return ModuleType(name)
 
@@ -381,7 +381,7 @@ class TestValidSources:
     def test_covers_all_registered_loaders(self) -> None:
         """Every registered loader name must be an accepted config source so a
         new loader can never be silently rejected by config validation."""
-        from backtest.loaders.registry import _ensure_registered
+        from src.backtest.loaders.registry import _ensure_registered
 
         _ensure_registered()
         missing = set(LOADER_REGISTRY) - VALID_SOURCES

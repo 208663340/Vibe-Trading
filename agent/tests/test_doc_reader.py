@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.tools.doc_reader_tool import read_document
+from src.runtime.tools.doc_reader_tool import read_document
 
 
 def _call(path: Path, pages: str = "") -> dict:

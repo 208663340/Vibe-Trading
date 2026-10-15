@@ -6,7 +6,7 @@ session ever returned. The Output Principles answer both, and they are literal
 template text so that no per-session input can edit them.
 
 Prompt text is an instruction, not a gate. The middle section covers the part of
-that contract ``src.agent.grounding`` decides mechanically before an answer is
+that contract ``src.runtime.agent.grounding`` decides mechanically before an answer is
 released, and — just as importantly — pins the false-positive envelope, because
 a gate that rejects correct answers costs three LLM round trips and then hands
 the user a fallback.
@@ -25,10 +25,10 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.context import _SYSTEM_PROMPT, ContextBuilder
-from src.agent.grounding import GroundingLedger
-from src.agent.memory import WorkspaceMemory
-from src.agent.skills import (
+from src.runtime.agent.context import _SYSTEM_PROMPT, ContextBuilder
+from src.runtime.agent.grounding import GroundingLedger
+from src.runtime.agent.memory import WorkspaceMemory
+from src.runtime.agent.skills import (
     SkillsLoader,
     ancestor_titles,
     find_section,
@@ -36,9 +36,9 @@ from src.agent.skills import (
     qualified_path,
     split_sections,
 )
-from src.agent.tools import ToolRegistry
-from src.config.limits import TOOL_RESULT_LIMIT
-from src.tools.load_skill_tool import LoadSkillTool
+from src.runtime.agent.tools import ToolRegistry
+from src.platform.config.limits import TOOL_RESULT_LIMIT
+from src.runtime.tools.load_skill_tool import LoadSkillTool
 
 pytestmark = pytest.mark.unit
 

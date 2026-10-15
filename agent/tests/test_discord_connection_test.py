@@ -25,10 +25,10 @@ from typing import Any
 import httpx
 import pytest
 
-import src.channels.discord as discord_channel
-from src.channels import discord_probe
-from src.channels.bus.queue import MessageBus
-from src.channels.discord import DISCORD_AVAILABLE, DiscordChannel, DiscordConfig
+import src.interfaces.channels.discord as discord_channel
+from src.interfaces.channels import discord_probe
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.discord import DISCORD_AVAILABLE, DiscordChannel, DiscordConfig
 
 USERS_ME_URL = "https://discord.com/api/v10/users/@me"
 BOT_TOKEN = "fake-bot-token-do-not-leak-1234567890"

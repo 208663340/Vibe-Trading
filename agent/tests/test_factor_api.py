@@ -7,8 +7,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import runs_routes
+import src.interfaces.api_server as api_server
+from src.interfaces.api import runs_routes
 from tests.module_os_helpers import patch_module_os
 
 

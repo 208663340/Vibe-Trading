@@ -9,9 +9,9 @@ from types import SimpleNamespace
 import pandas as pd
 import pytest
 
-import backtest.runner as runner
-from backtest.loaders.base import NoAvailableSourceError
-from src.ui_services import reconstruct_price_series
+import src.backtest.runner as runner
+from src.backtest.loaders.base import NoAvailableSourceError
+from src.interfaces.ui_services import reconstruct_price_series
 
 
 @pytest.mark.parametrize("source", ["yahoo", "auto"])

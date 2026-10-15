@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from src.config.accessor import reset_env_config
+from src.platform.config.accessor import reset_env_config
 
 
 def _has_rapid_ocr() -> bool:
@@ -77,7 +77,7 @@ class TestOcrIntegration:
         img.save(str(pdf_path), "PDF", resolution=100.0)
 
         # Now run _read_pdf on this synthetic scanned PDF
-        from src.tools.doc_reader_tool import _read_pdf
+        from src.runtime.tools.doc_reader_tool import _read_pdf
 
         result_json = _read_pdf(pdf_path, "")
         result = json.loads(result_json)
@@ -96,7 +96,7 @@ class TestOcrEngineDiscovery:
 
     def test_builtin_engines_discoverable(self):
         """Built-in engines should be discoverable via _all_engines()."""
-        from src.tools.ocr.engine import _all_engines
+        from src.runtime.tools.ocr.engine import _all_engines
 
         engines = _all_engines()
         assert "rapid" in engines, "rapid engine not registered"
@@ -104,7 +104,7 @@ class TestOcrEngineDiscovery:
 
     def test_rapid_engine_availability(self):
         """RapidOCR engine availability matches installation state."""
-        from src.tools.ocr.engine import _all_engines
+        from src.runtime.tools.ocr.engine import _all_engines
 
         engines = _all_engines()
         rapid = engines["rapid"]()
@@ -116,7 +116,7 @@ class TestOcrEngineDiscovery:
         monkeypatch.setenv("VIBE_TRADING_OCR_ENGINE", "auto")
         reset_env_config()
 
-        from src.tools.ocr.engine import get_ocr_engine
+        from src.runtime.tools.ocr.engine import get_ocr_engine
 
         engine = get_ocr_engine()
         if engine is not None:

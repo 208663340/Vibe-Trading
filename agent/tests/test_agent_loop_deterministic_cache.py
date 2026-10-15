@@ -15,11 +15,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.agent.context import ContextBuilder
-from src.agent.loop import AgentLoop
-from src.agent.tools import BaseTool, ToolRegistry
-from src.agent.trace import TraceWriter
-from src.tools.financial_rigor_tool import FinancialRigorTool
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.trace import TraceWriter
+from src.runtime.tools.financial_rigor_tool import FinancialRigorTool
 
 
 class _CountingTool(BaseTool):
@@ -194,7 +194,7 @@ def test_cache_hit_still_passes_the_identity_gate(agent_factory) -> None:
     today either way. Any later tool marked deterministic that does carry
     one would otherwise skip identity checks from its second call onward.
     """
-    from src.agent.grounding import ToolAuthorization
+    from src.runtime.agent.grounding import ToolAuthorization
 
     tool = _CountingTool(deterministic=True)
     agent, run_dir, _ = agent_factory(tool)

@@ -15,8 +15,8 @@ from typing import Any
 
 import pytest
 
-from src.live.mandate.model import AssetClass, InstrumentType
-from src.trading.connectors.mt5.symbols import (
+from src.markets.live.mandate.model import AssetClass, InstrumentType
+from src.markets.trading.connectors.mt5.symbols import (
     classify_mt5_symbol,
     is_forex_pair,
     normalize_base,
@@ -198,17 +198,17 @@ class FakeMT5:
 
 @pytest.fixture
 def fake_mt5(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> FakeMT5:
-    from src.trading.connectors.mt5 import _client
+    from src.markets.trading.connectors.mt5 import _client
 
     fake = FakeMT5()
     monkeypatch.setattr(_client, "_require_mt5", lambda: fake)
     monkeypatch.setattr(_client, "get_runtime_root", lambda: tmp_path)
-    monkeypatch.setattr("src.live.paths.get_runtime_root", lambda: tmp_path)
+    monkeypatch.setattr("src.markets.live.paths.get_runtime_root", lambda: tmp_path)
     return fake
 
 
 def _paper_config(**extra: Any):
-    from src.trading.connectors.mt5._client import MT5Config
+    from src.markets.trading.connectors.mt5._client import MT5Config
 
     payload: dict[str, Any] = {
         "login": 12345,
@@ -250,7 +250,7 @@ class TestNormalizeBase:
 def test_symbol_search_uses_selected_terminal_without_account_or_write_calls(
     fake_mt5: FakeMT5, query: str
 ) -> None:
-    from src.trading.connectors.mt5 import sdk
+    from src.markets.trading.connectors.mt5 import sdk
 
     def forbidden_account_read() -> Any:
         raise AssertionError("symbol search must not read account information")
@@ -286,7 +286,7 @@ def test_symbol_search_uses_selected_terminal_without_account_or_write_calls(
 
 
 def test_symbol_search_without_terminal_path_fails_closed(fake_mt5: FakeMT5) -> None:
-    from src.trading.connectors.mt5 import sdk
+    from src.markets.trading.connectors.mt5 import sdk
 
     result = sdk.search_instruments("XAUUSD", config=_paper_config())
 
@@ -344,7 +344,7 @@ class TestClassifyMt5Symbol:
 
 class TestConfig:
     def test_from_mapping_defaults(self) -> None:
-        from src.trading.connectors.mt5._client import MT5Config
+        from src.markets.trading.connectors.mt5._client import MT5Config
 
         cfg = MT5Config.from_mapping({})
         assert cfg.profile == "paper"
@@ -356,20 +356,20 @@ class TestConfig:
         assert cfg.max_order_notional_usd == pytest.approx(10_000.0)
 
     def test_from_mapping_rejects_unknown_profile(self) -> None:
-        from src.trading.connectors.mt5._client import MT5Config, MT5ConfigError
+        from src.markets.trading.connectors.mt5._client import MT5Config, MT5ConfigError
 
         with pytest.raises(MT5ConfigError):
             MT5Config.from_mapping({"profile": "yolo"})
 
     def test_live_profiles_map_to_live_environment(self) -> None:
-        from src.trading.connectors.mt5._client import MT5Config
+        from src.markets.trading.connectors.mt5._client import MT5Config
 
         assert MT5Config.from_mapping({"profile": "live"}).environment == "live"
         assert MT5Config.from_mapping({"profile": "live-readonly"}).environment == "live"
         assert MT5Config.from_mapping({"profile": "live"}).is_demo is False
 
     def test_build_config_precedence(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import _client
+        from src.markets.trading.connectors.mt5 import _client
 
         _client.save_config(_paper_config())
         cfg = _client.build_config({"profile": "live-readonly"}, {"server": "Exness-MT5Real2"})
@@ -378,7 +378,7 @@ class TestConfig:
         assert cfg.server == "Exness-MT5Real2"  # explicit override wins
 
     def test_save_and_load_round_trip(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import _client
+        from src.markets.trading.connectors.mt5 import _client
 
         path = _client.save_config(_paper_config())
         assert path.name == "mt5.json"
@@ -388,7 +388,7 @@ class TestConfig:
         assert loaded.symbol_suffix == "m"
 
     def test_public_config_redacts_secrets(self) -> None:
-        from src.trading.connectors.mt5._client import _public_config
+        from src.markets.trading.connectors.mt5._client import _public_config
 
         public = _public_config(_paper_config())
         text = str(public)
@@ -399,7 +399,7 @@ class TestConfig:
 
 class TestAvailability:
     def test_mt5_available_false_when_import_fails(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from src.trading.connectors.mt5 import _client
+        from src.markets.trading.connectors.mt5 import _client
 
         def _missing() -> Any:
             raise _client.MT5DependencyError("MetaTrader5 is not installed")
@@ -410,7 +410,7 @@ class TestAvailability:
     def test_reads_return_error_envelope_when_sdk_missing(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        from src.trading.connectors.mt5 import _client, sdk
+        from src.markets.trading.connectors.mt5 import _client, sdk
 
         def _missing() -> Any:
             raise _client.MT5DependencyError("MetaTrader5 is not installed (Windows-only)")
@@ -422,14 +422,14 @@ class TestAvailability:
         assert "MetaTrader5" in result["error"]
 
     def test_check_status_reports_unconfigured(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         report = sdk.check_status(sdk.build_config({"profile": "paper"}))
         assert report["status"] == "error"
         assert "not configured" in report["error"]
 
     def test_check_status_happy_path(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         report = sdk.check_status(_paper_config())
         assert report["status"] == "ok"
@@ -445,7 +445,7 @@ class TestAvailability:
 
 class TestIdentityGuard:
     def _positions_via(self, cfg) -> dict[str, Any]:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         return sdk.get_positions(cfg)
 
@@ -483,7 +483,7 @@ class TestIdentityGuard:
 
 class TestQuantityNotionalUsd:
     def _size(self, symbol: str, lots: float) -> float | None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         return sdk.quantity_notional_usd(_paper_config(), symbol, lots)
 
@@ -519,7 +519,7 @@ class TestQuantityNotionalUsd:
 
 class TestReads:
     def test_account_snapshot_fields(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         result = sdk.get_account_snapshot(_paper_config())
         assert result["status"] == "ok"
@@ -531,7 +531,7 @@ class TestReads:
         assert account["is_demo"] is True
 
     def test_positions_carry_usd_market_value(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         fake_mt5.positions = [
             SimpleNamespace(
@@ -548,7 +548,7 @@ class TestReads:
         assert row["market_value"] == pytest.approx(10_800.0)
 
     def test_position_market_value_none_when_unpriceable(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         fake_mt5.positions = [
             SimpleNamespace(
@@ -563,7 +563,7 @@ class TestReads:
         assert result["positions"][0]["market_value"] is None
 
     def test_quote_omits_zero_last(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         result = sdk.get_quote("EUR/USD", config=_paper_config())
         assert result["status"] == "ok"
@@ -574,7 +574,7 @@ class TestReads:
         assert "last" not in quote
 
     def test_history_maps_rows_and_timeframes(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         fake_mt5.rates["EURUSDm"] = [
             {"time": 1_750_000_000, "open": 1.07, "high": 1.09, "low": 1.06,
@@ -588,7 +588,7 @@ class TestReads:
         assert fake_mt5.rates_calls[-1][1] == FakeMT5.TIMEFRAME_H1
 
     def test_minute_and_month_periods_differ(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         fake_mt5.rates["EURUSDm"] = []
         sdk.get_historical_bars("EURUSD", config=_paper_config(), period="1m", limit=5)
@@ -597,7 +597,7 @@ class TestReads:
         assert fake_mt5.rates_calls[-1][1] == FakeMT5.TIMEFRAME_MN1
 
     def test_pending_orders_read(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         fake_mt5.pending_orders = [
             SimpleNamespace(
@@ -618,7 +618,7 @@ class TestReads:
 
 class TestPlaceOrder:
     def _place(self, fake: FakeMT5, **kwargs: Any) -> dict[str, Any]:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         defaults: dict[str, Any] = {
             "symbol": "EURUSD", "side": "buy", "quantity": 0.05,
@@ -694,7 +694,7 @@ class TestPlaceOrder:
         assert fake_mt5.order_send_requests == []
 
     def test_symbol_max_volume_errors_instead_of_clamping(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         # Connector guards sit above the symbol cap, so the symbol's own
         # volume_max is the binding constraint: 150 lots asked, 100 allowed.
@@ -709,7 +709,7 @@ class TestPlaceOrder:
         assert fake_mt5.order_send_requests == []
 
     def test_notional_over_symbol_max_volume_errors(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         # 20M USD / (100k * 1.08 per lot) ~= 185 lots, over the symbol's 100.
         cfg = _paper_config(max_order_volume=500.0, max_order_notional_usd=100_000_000.0)
@@ -727,7 +727,7 @@ class TestPlaceOrder:
         assert self._place(fake_mt5, quantity=0.05, notional=1000.0)["status"] == "error"
 
     def test_unconfigured_errors_before_sdk(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         result = sdk.place_order(
             sdk.build_config({"profile": "paper"}),
@@ -751,7 +751,7 @@ class TestPlaceOrder:
 
 class TestCancelOrder:
     def test_pending_ticket_removed(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         fake_mt5.pending_orders = [
             SimpleNamespace(
@@ -768,7 +768,7 @@ class TestCancelOrder:
         assert request["order"] == 888
 
     def test_position_ticket_closed_with_opposite_deal(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         fake_mt5.positions = [
             SimpleNamespace(
@@ -787,7 +787,7 @@ class TestCancelOrder:
         assert request["volume"] == pytest.approx(0.1)
 
     def test_close_volume_capped_at_position(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         fake_mt5.positions = [
             SimpleNamespace(
@@ -803,14 +803,14 @@ class TestCancelOrder:
         assert request["type"] == FakeMT5.ORDER_TYPE_BUY  # opposite of short
 
     def test_unknown_ticket_errors(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         result = sdk.cancel_order(_paper_config(), "31337")
         assert result["status"] == "error"
         assert fake_mt5.order_send_requests == []
 
     def test_non_integer_ticket_errors(self, fake_mt5: FakeMT5) -> None:
-        from src.trading.connectors.mt5 import sdk
+        from src.markets.trading.connectors.mt5 import sdk
 
         result = sdk.cancel_order(_paper_config(), "abc")
         assert result["status"] == "error"
@@ -829,7 +829,7 @@ class TestRateToDictSerialization:
 
         import numpy as np
 
-        from src.trading.connectors.mt5.reads import _rate_to_dict
+        from src.markets.trading.connectors.mt5.reads import _rate_to_dict
 
         # Simulate a numpy structured array row as returned by MT5 SDK.
         dt = np.dtype([
@@ -863,7 +863,7 @@ class TestRateToDictSerialization:
         """Plain dict input produces native Python types and is JSON-serializable."""
         import json
 
-        from src.trading.connectors.mt5.reads import _rate_to_dict
+        from src.markets.trading.connectors.mt5.reads import _rate_to_dict
 
         rate = {
             "time": 1_750_000_000,
@@ -889,7 +889,7 @@ class TestRateToDictSerialization:
         """None values pass through without raising and remain JSON-serializable."""
         import json
 
-        from src.trading.connectors.mt5.reads import _rate_to_dict
+        from src.markets.trading.connectors.mt5.reads import _rate_to_dict
 
         rate = {
             "time": None,
@@ -917,8 +917,8 @@ class TestRateToDictSerialization:
 
 class TestProfilesAndRegistration:
     def test_four_profiles_registered(self) -> None:
-        from src.trading.profiles import list_profiles
-        from src.trading.types import READ_CAPABILITIES
+        from src.markets.trading.profiles import list_profiles
+        from src.markets.trading.types import READ_CAPABILITIES
 
         profiles = {p.id: p for p in list_profiles()}
         for pid in ("mt5-paper-sdk", "mt5-live-sdk-readonly", "mt5-paper-trade", "mt5-live-trade"):
@@ -936,7 +936,7 @@ class TestProfilesAndRegistration:
         assert "orders.place.requires_mandate" in profiles["mt5-live-trade"].capabilities
 
     def test_check_connection_unconfigured_degrades(self, fake_mt5: FakeMT5) -> None:
-        from src.trading import service
+        from src.markets.trading import service
 
         report = service.check_connection("mt5-paper-sdk")
         assert report["status"] == "error"
@@ -945,16 +945,16 @@ class TestProfilesAndRegistration:
         assert report["transport"] == "broker_sdk"
 
     def test_order_classification_forex_and_cfd(self) -> None:
-        from src.trading.service import _order_classification
+        from src.markets.trading.service import _order_classification
 
         assert _order_classification("mt5", "EURUSDm") == (InstrumentType.FOREX, AssetClass.FOREX)
         assert _order_classification("mt5", "EUR/USD") == (InstrumentType.FOREX, AssetClass.FOREX)
         assert _order_classification("mt5", "XAUUSD") == (InstrumentType.CFD, None)
 
     def test_classification_map_fail_closed(self) -> None:
-        from src.live import registry
-        from src.live.classification import ToolClass, classify_tool
-        from src.trading.connectors.mt5.classification import MT5_TOOL_CLASS
+        from src.markets.live import registry
+        from src.markets.live.classification import ToolClass, classify_tool
+        from src.markets.trading.connectors.mt5.classification import MT5_TOOL_CLASS
 
         assert registry._BROKER_CURATED_MAPS["mt5"] is MT5_TOOL_CLASS
         for op in ("order_send", "order_check", "place_order", "cancel_order", "close_position"):
@@ -964,8 +964,8 @@ class TestProfilesAndRegistration:
         assert classify_tool("mystery_op", None, MT5_TOOL_CLASS) is not ToolClass.READ
 
     def test_paper_place_via_service(self, fake_mt5: FakeMT5) -> None:
-        from src.trading import service
-        from src.trading.connectors.mt5 import _client
+        from src.markets.trading import service
+        from src.markets.trading.connectors.mt5 import _client
 
         _client.save_config(_paper_config())
         result = service.place_order("EURUSD", "mt5-paper-trade", side="buy", quantity=0.05)
@@ -974,18 +974,18 @@ class TestProfilesAndRegistration:
         assert len(fake_mt5.order_send_requests) == 1
 
     def test_live_place_blocked_without_mandate(self, fake_mt5: FakeMT5, monkeypatch: pytest.MonkeyPatch) -> None:
-        from src.trading import service
-        from src.trading.connectors.mt5 import _client
+        from src.markets.trading import service
+        from src.markets.trading.connectors.mt5 import _client
 
         _client.save_config(_paper_config(profile="live"))
-        monkeypatch.setattr("src.live.sdk_order_gate.load_mandate", lambda broker: None)
+        monkeypatch.setattr("src.markets.live.sdk_order_gate.load_mandate", lambda broker: None)
         result = service.place_order("EURUSD", "mt5-live-trade", side="buy", quantity=0.05)
         assert result["status"] == "blocked"
         assert fake_mt5.order_send_requests == []  # gate blocks before any SDK call
 
 
 def test_catalog_ambiguity_is_not_silently_selected(fake_mt5):
-    from src.trading.connectors.mt5 import sdk
+    from src.markets.trading.connectors.mt5 import sdk
     fake_mt5.symbols["XAUUSDz"] = SimpleNamespace(name="XAUUSDz")
     result = sdk.search_instruments("XAUUSD", config=_paper_config(terminal_path="C:/mt5/terminal64.exe", symbol_suffix=""))
     assert result["status"] == "error"
@@ -995,7 +995,7 @@ def test_catalog_ambiguity_is_not_silently_selected(fake_mt5):
 
 
 def test_catalog_exact_native_case_preserved(fake_mt5):
-    from src.trading.connectors.mt5 import sdk
+    from src.markets.trading.connectors.mt5 import sdk
     fake_mt5.symbols["XAUUSDz"] = SimpleNamespace(name="XAUUSDz")
     result = sdk.search_instruments("XAUUSDz", config=_paper_config(terminal_path="C:/mt5/terminal64.exe"))
     assert result["instruments"][0]["native_symbol"] == "XAUUSDz"
@@ -1004,7 +1004,7 @@ def test_catalog_exact_native_case_preserved(fake_mt5):
 
 
 def test_catalog_failure_is_redacted_and_detached(fake_mt5):
-    from src.trading.connectors.mt5 import sdk
+    from src.markets.trading.connectors.mt5 import sdk
     def failing(*args, **kwargs):
         raise RuntimeError("private broker credential")
     fake_mt5.symbol_info = failing
@@ -1015,7 +1015,7 @@ def test_catalog_failure_is_redacted_and_detached(fake_mt5):
 
 
 def test_catalog_shutdown_does_not_hide_success(fake_mt5):
-    from src.trading.connectors.mt5 import sdk
+    from src.markets.trading.connectors.mt5 import sdk
     def failing():
         raise RuntimeError("detach failed")
     fake_mt5.shutdown = failing
@@ -1025,7 +1025,7 @@ def test_catalog_shutdown_does_not_hide_success(fake_mt5):
 
 @pytest.mark.parametrize("timeout", [float("nan"), float("inf"), -1.0, 0.0])
 def test_catalog_invalid_timeout_does_not_attach(fake_mt5, timeout):
-    from src.trading.connectors.mt5 import sdk
+    from src.markets.trading.connectors.mt5 import sdk
     from dataclasses import replace
     cfg = replace(_paper_config(terminal_path="C:/mt5/terminal64.exe"), timeout=timeout)
     result = sdk.search_instruments("XAUUSD", config=cfg)

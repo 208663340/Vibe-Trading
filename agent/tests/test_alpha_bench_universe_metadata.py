@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pandas as pd
 import pytest
 
-from src.tools import alpha_bench_tool as tool
+from src.runtime.tools import alpha_bench_tool as tool
 
 
 def _daily_frame() -> pd.DataFrame:
@@ -172,7 +172,7 @@ def test_sp500_source_date_matches_the_roster(
             return {}
 
     monkeypatch.setattr(tool, "_fetch_sp500_constituents", lambda: (codes, {}))
-    monkeypatch.setattr("src.market_data.get_loader", lambda _source: _Loader)
+    monkeypatch.setattr("src.markets.market_data.get_loader", lambda _source: _Loader)
 
     panel = tool._load_sp500_panel("2024-01-01", "2024-01-31")
 

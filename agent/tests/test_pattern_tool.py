@@ -1,7 +1,7 @@
 """Tests for the chart pattern recognition tool.
 
 Covers the deterministic pattern-detection functions in
-``src.tools.pattern_tool`` (peaks/valleys, candlestick, support/resistance,
+``src.runtime.tools.pattern_tool`` (peaks/valleys, candlestick, support/resistance,
 trend slope, head-and-shoulders, double top/bottom, triangle, broadening)
 and the ``run_pattern`` dispatch + error paths.
 """
@@ -14,7 +14,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.tools.pattern_tool import (
+from src.runtime.tools.pattern_tool import (
     broadening,
     candlestick_patterns,
     double_top_bottom,

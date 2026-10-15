@@ -6,7 +6,7 @@ table) + the §9 audit discoverability fix:
 * ``connector start`` / ``connector stop`` dispatch to their handlers and
   relay to the R6 surface endpoints (``POST /live/runner/start|stop``).
 * Connector live status surfaces runner liveness + last-tick from the liveness
-  contract (``src.live.runtime.liveness``), degrading cleanly when the runtime
+  contract (``src.markets.live.runtime.liveness``), degrading cleanly when the runtime
   module is not yet present.
 * The slash registry / ``/help`` / typeahead completer now include
   ``connector`` / ``halt`` / ``resume`` (previously undiscoverable surface actions),
@@ -30,11 +30,11 @@ from unittest.mock import patch
 
 import pytest
 
-import src.live.paths as live_paths
+import src.markets.live.paths as live_paths
 
 # ``cli/__init__.py`` re-exports ``main`` as a function, shadowing the submodule
 # for attribute access; import the module object directly (mirrors test_cli_live).
-main = importlib.import_module("cli.main")
+main = importlib.import_module("src.interfaces.cli.main")
 InteractiveContext = main.InteractiveContext
 
 
@@ -52,39 +52,39 @@ def live_root(tmp_path: Path):
 
 @pytest.fixture()
 def fake_liveness():
-    """Inject a stub ``src.live.runtime.liveness`` module (R1 lands concurrently).
+    """Inject a stub ``src.markets.live.runtime.liveness`` module (R1 lands concurrently).
 
     Yields a dict the test can mutate to control ``is_runner_alive`` /
     ``last_tick`` return values. The real module is restored on teardown.
     """
     state: Dict[str, Any] = {"alive": True, "tick": datetime.now(timezone.utc)}
-    mod = types.ModuleType("src.live.runtime.liveness")
+    mod = types.ModuleType("src.markets.live.runtime.liveness")
     mod.is_runner_alive = lambda runner_id: bool(state["alive"])  # type: ignore[attr-defined]
     mod.last_tick = lambda runner_id: state["tick"]  # type: ignore[attr-defined]
 
-    saved = sys.modules.get("src.live.runtime.liveness")
-    sys.modules["src.live.runtime.liveness"] = mod
+    saved = sys.modules.get("src.markets.live.runtime.liveness")
+    sys.modules["src.markets.live.runtime.liveness"] = mod
     try:
         yield state
     finally:
         if saved is not None:
-            sys.modules["src.live.runtime.liveness"] = saved
+            sys.modules["src.markets.live.runtime.liveness"] = saved
         else:
-            sys.modules.pop("src.live.runtime.liveness", None)
+            sys.modules.pop("src.markets.live.runtime.liveness", None)
 
 
 @pytest.fixture()
 def no_liveness():
-    """Force ``src.live.runtime.liveness`` import to fail (module absent)."""
-    saved = sys.modules.get("src.live.runtime.liveness")
-    sys.modules["src.live.runtime.liveness"] = None  # type: ignore[assignment]
+    """Force ``src.markets.live.runtime.liveness`` import to fail (module absent)."""
+    saved = sys.modules.get("src.markets.live.runtime.liveness")
+    sys.modules["src.markets.live.runtime.liveness"] = None  # type: ignore[assignment]
     try:
         yield
     finally:
         if saved is not None:
-            sys.modules["src.live.runtime.liveness"] = saved
+            sys.modules["src.markets.live.runtime.liveness"] = saved
         else:
-            sys.modules.pop("src.live.runtime.liveness", None)
+            sys.modules.pop("src.markets.live.runtime.liveness", None)
 
 
 class _FakeResp:
@@ -105,34 +105,34 @@ class _FakeResp:
 
 class TestRunnerDispatch:
     def _dispatch(self, argv: List[str]) -> int:
-        from cli._legacy import _build_parser, _dispatch_connector
+        from src.interfaces.cli._legacy import _build_parser, _dispatch_connector
 
         args = _build_parser().parse_args(argv)
         return _dispatch_connector(args)
 
     def test_run_routes_to_handler(self) -> None:
-        with patch("cli._legacy.cmd_connector_start", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_start", return_value=0) as m:
             assert self._dispatch(["connector", "start", "robinhood-live-mcp"]) == 0
         m.assert_called_once_with("robinhood-live-mcp")
 
     def test_start_default_profile_none(self) -> None:
-        with patch("cli._legacy.cmd_connector_start", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_start", return_value=0) as m:
             self._dispatch(["connector", "start"])
         m.assert_called_once_with(None)
 
     def test_start_routes_to_handler(self) -> None:
-        with patch("cli._legacy.cmd_connector_start", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_start", return_value=0) as m:
             self._dispatch(["connector", "start", "robinhood-live-mcp"])
         m.assert_called_once_with("robinhood-live-mcp")
 
     def test_stop_routes_to_handler(self) -> None:
-        with patch("cli._legacy.cmd_connector_stop", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_stop", return_value=0) as m:
             self._dispatch(["connector", "stop"])
         m.assert_called_once_with(None)
 
     def test_subparsers_registered(self) -> None:
         """start/stop parse without error (the parser knows them)."""
-        from cli._legacy import _build_parser
+        from src.interfaces.cli._legacy import _build_parser
 
         parser = _build_parser()
         for verb in ("start", "stop"):
@@ -149,7 +149,7 @@ class TestRunnerControlEndpoints:
     def test_live_status_request_sends_configured_bearer_token(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        from cli._legacy import _live_api_call
+        from src.interfaces.cli._legacy import _live_api_call
 
         captured: Dict[str, Any] = {}
 
@@ -166,7 +166,7 @@ class TestRunnerControlEndpoints:
         assert captured["headers"] == {"Authorization": "Bearer live-secret"}
 
     def test_start_posts_to_runner_start(self) -> None:
-        from cli._legacy import EXIT_SUCCESS, cmd_live_start
+        from src.interfaces.cli._legacy import EXIT_SUCCESS, cmd_live_start
 
         captured: Dict[str, Any] = {}
 
@@ -189,7 +189,7 @@ class TestRunnerControlEndpoints:
     def test_connector_start_message_uses_connector_status(
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import EXIT_SUCCESS, cmd_connector_start
+        from src.interfaces.cli._legacy import EXIT_SUCCESS, cmd_connector_start
 
         def _post(
             url: str,
@@ -209,7 +209,7 @@ class TestRunnerControlEndpoints:
     def test_connector_start_rejects_readonly_ibkr_mcp(
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import EXIT_USAGE_ERROR, cmd_connector_start
+        from src.interfaces.cli._legacy import EXIT_USAGE_ERROR, cmd_connector_start
 
         assert cmd_connector_start("ibkr-live-official-mcp-readonly") == EXIT_USAGE_ERROR
 
@@ -217,7 +217,7 @@ class TestRunnerControlEndpoints:
         assert "does not support live runner management" in out
 
     def test_stop_posts_to_runner_stop(self) -> None:
-        from cli._legacy import EXIT_SUCCESS, cmd_live_stop
+        from src.interfaces.cli._legacy import EXIT_SUCCESS, cmd_live_stop
 
         captured: Dict[str, Any] = {}
 
@@ -237,7 +237,7 @@ class TestRunnerControlEndpoints:
         assert captured["body"]["broker"] == "robinhood"
 
     def test_start_server_unreachable_is_run_failed(self) -> None:
-        from cli._legacy import EXIT_RUN_FAILED, cmd_live_start
+        from src.interfaces.cli._legacy import EXIT_RUN_FAILED, cmd_live_start
 
         def _boom(
             url: str,
@@ -252,7 +252,7 @@ class TestRunnerControlEndpoints:
 
     def test_run_foreground_starts_then_stops(self, fake_liveness: Dict[str, Any]) -> None:
         """`live run` relays a foreground start, tails liveness, then stops."""
-        from cli._legacy import EXIT_SUCCESS, cmd_live_run
+        from src.interfaces.cli._legacy import EXIT_SUCCESS, cmd_live_run
 
         calls: List[str] = []
 
@@ -269,7 +269,7 @@ class TestRunnerControlEndpoints:
                 fake_liveness["alive"] = False
             return _FakeResp({"runner_id": "live-robinhood", "status": "ok"})
 
-        import cli._legacy as legacy
+        import src.interfaces.cli._legacy as legacy
 
         # _legacy uses its own ``time`` import; patch that one so the tail loop
         # does not actually sleep.
@@ -289,7 +289,7 @@ class TestStatusLiveness:
     def test_status_shows_running(
         self, live_root: Path, fake_liveness: Dict[str, Any], capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import cmd_live_status
+        from src.interfaces.cli._legacy import cmd_live_status
 
         fake_liveness["alive"] = True
         fake_liveness["tick"] = datetime.now(timezone.utc) - timedelta(seconds=5)
@@ -302,7 +302,7 @@ class TestStatusLiveness:
     def test_status_shows_stopped(
         self, live_root: Path, fake_liveness: Dict[str, Any], capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import cmd_live_status
+        from src.interfaces.cli._legacy import cmd_live_status
 
         fake_liveness["alive"] = False
         cmd_live_status("robinhood")
@@ -313,7 +313,7 @@ class TestStatusLiveness:
         self, live_root: Path, no_liveness: None, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Status must not crash if the runtime parcel hasn't landed yet."""
-        from cli._legacy import cmd_live_status
+        from src.interfaces.cli._legacy import cmd_live_status
 
         assert cmd_live_status("robinhood") == 0
         out = capsys.readouterr().out
@@ -325,10 +325,10 @@ class TestConnectorStatusReadiness:
     def test_remote_live_status_fails_when_not_configured(
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import EXIT_RUN_FAILED, cmd_connector_status
+        from src.interfaces.cli._legacy import EXIT_RUN_FAILED, cmd_connector_status
 
         with patch(
-            "src.config.loader.load_agent_config",
+            "src.platform.config.loader.load_agent_config",
             return_value=types.SimpleNamespace(mcp_servers={}),
         ):
             assert cmd_connector_status("robinhood-live-mcp") == EXIT_RUN_FAILED
@@ -340,7 +340,7 @@ class TestConnectorStatusReadiness:
     def test_remote_live_status_fails_when_not_authorized(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import EXIT_RUN_FAILED, cmd_connector_status
+        from src.interfaces.cli._legacy import EXIT_RUN_FAILED, cmd_connector_status
 
         server = types.SimpleNamespace(
             url="https://example.invalid/mcp",
@@ -348,9 +348,9 @@ class TestConnectorStatusReadiness:
             enabled_tools=["*"],
         )
         with patch(
-            "src.config.loader.load_agent_config",
+            "src.platform.config.loader.load_agent_config",
             return_value=types.SimpleNamespace(mcp_servers={"robinhood": server}),
-        ), patch("src.live.registry.has_cached_oauth_token", return_value=False):
+        ), patch("src.markets.live.registry.has_cached_oauth_token", return_value=False):
             assert cmd_connector_status("robinhood-live-mcp") == EXIT_RUN_FAILED
 
         out = capsys.readouterr().out
@@ -365,19 +365,19 @@ class TestConnectorStatusReadiness:
 
 class TestSlashDiscoverability:
     def test_registry_includes_connector_group(self) -> None:
-        from cli.commands.slash_router import SLASH_COMMANDS
+        from src.interfaces.cli.commands.slash_router import SLASH_COMMANDS
 
         names = {c.name for c in SLASH_COMMANDS}
         assert {"connector", "halt", "resume"} <= names
 
     def test_find_exact_resolves_new_commands(self) -> None:
-        from cli.commands.slash_router import find_exact
+        from src.interfaces.cli.commands.slash_router import find_exact
 
         for name in ("connector", "halt", "resume"):
             assert find_exact(name) is not None
 
     def test_stop_is_alias_of_halt(self) -> None:
-        from cli.commands.slash_router import find_exact
+        from src.interfaces.cli.commands.slash_router import find_exact
 
         cmd = find_exact("stop")
         assert cmd is not None
@@ -385,7 +385,7 @@ class TestSlashDiscoverability:
 
     def test_match_commands_surfaces_in_typeahead(self) -> None:
         """The completer ranks via match_commands — the connector group must appear."""
-        from cli.commands.slash_router import match_commands
+        from src.interfaces.cli.commands.slash_router import match_commands
 
         names = {c.name for c in match_commands("/ha")}
         assert "halt" in names
@@ -395,7 +395,7 @@ class TestSlashDiscoverability:
     def test_completer_yields_connector_group(self) -> None:
         from prompt_toolkit.document import Document
 
-        from cli.completer import SlashCompleter
+        from src.interfaces.cli.completer import SlashCompleter
 
         comp = SlashCompleter()
         completions = list(
@@ -406,7 +406,7 @@ class TestSlashDiscoverability:
 
     def test_help_lists_connector_group(self, capsys: pytest.CaptureFixture[str]) -> None:
         """``/help`` renders the registry — the connector group must be present."""
-        from cli.commands import help as help_cmd
+        from src.interfaces.cli.commands import help as help_cmd
 
         # help.py binds SLASH_COMMANDS at import; our registration runs at
         # cli.main import (already done above) so the bound tuple includes them.
@@ -418,11 +418,11 @@ class TestSlashDiscoverability:
         assert "/resume" in out
 
     def test_registration_is_idempotent(self) -> None:
-        from cli.commands.slash_router import SLASH_COMMANDS
+        from src.interfaces.cli.commands.slash_router import SLASH_COMMANDS
 
         before = len(SLASH_COMMANDS)
         main._register_live_slash_commands()
-        from cli.commands.slash_router import SLASH_COMMANDS as after_tuple
+        from src.interfaces.cli.commands.slash_router import SLASH_COMMANDS as after_tuple
 
         assert len(after_tuple) == before  # no duplicate rows
 
@@ -434,7 +434,7 @@ class TestSlashDiscoverability:
 
 class TestReplResumeIntercept:
     def test_resume_clears_halt(self, live_root: Path) -> None:
-        from src.live.halt import halt_flag_set, trip_halt
+        from src.markets.live.halt import halt_flag_set, trip_halt
 
         trip_halt(by="cli", reason="test")
         assert halt_flag_set("robinhood") is True
@@ -454,7 +454,7 @@ class TestReplResumeIntercept:
 class TestReplConnectorBridge:
     def test_connector_bridges_to_dispatch_connector(self) -> None:
         console = main.get_console()
-        with patch("cli._legacy._dispatch_connector", return_value=0) as disp:
+        with patch("src.interfaces.cli._legacy._dispatch_connector", return_value=0) as disp:
             main._run_connector_command_from_repl(console, ["status", "robinhood-live-mcp"])
         disp.assert_called_once()
         parsed = disp.call_args.args[0]
@@ -463,14 +463,14 @@ class TestReplConnectorBridge:
 
     def test_bare_connector_defaults_to_status(self) -> None:
         console = main.get_console()
-        with patch("cli._legacy._dispatch_connector", return_value=0) as disp:
+        with patch("src.interfaces.cli._legacy._dispatch_connector", return_value=0) as disp:
             main._run_connector_command_from_repl(console, [])
         parsed = disp.call_args.args[0]
         assert parsed.connector_command == "status"
 
     def test_connector_start_bridges_to_start_handler(self) -> None:
         console = main.get_console()
-        with patch("cli._legacy.cmd_connector_start", return_value=0) as start:
+        with patch("src.interfaces.cli._legacy.cmd_connector_start", return_value=0) as start:
             main._run_connector_command_from_repl(console, ["start"])
         start.assert_called_once_with(None)
 
@@ -505,11 +505,11 @@ class TestResumeByIdDispatch:
 
     def test_resume_needs_exactly_two_args(self) -> None:
         """Too few or too many args should fall through to the legacy dispatcher."""
-        with patch("cli._legacy.main", return_value=1) as legacy:
+        with patch("src.interfaces.cli._legacy.main", return_value=1) as legacy:
             main.main(["resume"])
         legacy.assert_called_once()
         legacy.reset_mock()
 
-        with patch("cli._legacy.main", return_value=1) as legacy:
+        with patch("src.interfaces.cli._legacy.main", return_value=1) as legacy:
             main.main(["resume", "sess_x", "extra"])
         legacy.assert_called_once()

@@ -7,7 +7,7 @@ yielded a negative relative difference (< 0.05).
 """
 
 import pandas as pd
-from src.tools.pattern_tool import head_and_shoulders
+from src.runtime.tools.pattern_tool import head_and_shoulders
 
 
 def test_head_and_shoulders_negative_prices_requires_abs_avg():

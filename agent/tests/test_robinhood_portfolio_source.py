@@ -14,12 +14,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api import connection_routes
-from src.portfolio.config import PortfolioSettingsStore
-from src.portfolio.service import PortfolioService
-from src.portfolio.store import PortfolioStore
-from src.trading.connections import ConnectionStore, is_portfolio_connection_profile
-from src.trading.profiles import profile_by_id
+from src.interfaces.api import connection_routes
+from src.markets.portfolio.config import PortfolioSettingsStore
+from src.markets.portfolio.service import PortfolioService
+from src.markets.portfolio.store import PortfolioStore
+from src.markets.trading.connections import ConnectionStore, is_portfolio_connection_profile
+from src.markets.trading.profiles import profile_by_id
 from tests import robinhood_mcp_helpers as rh
 
 pytestmark = pytest.mark.unit
@@ -62,10 +62,10 @@ def broker(monkeypatch: pytest.MonkeyPatch) -> _Broker:
         auth=SimpleNamespace(cache_dir="/tmp/vibe-token"),
     )
     monkeypatch.setattr(
-        "src.config.loader.load_agent_config", lambda: SimpleNamespace(mcp_servers={"robinhood": server})
+        "src.platform.config.loader.load_agent_config", lambda: SimpleNamespace(mcp_servers={"robinhood": server})
     )
-    monkeypatch.setattr("src.live.registry.has_cached_oauth_token", lambda *_: True)
-    monkeypatch.setattr("src.tools.mcp.MCPServerAdapter", fake.adapter_class())
+    monkeypatch.setattr("src.markets.live.registry.has_cached_oauth_token", lambda *_: True)
+    monkeypatch.setattr("src.runtime.tools.mcp.MCPServerAdapter", fake.adapter_class())
     return fake
 
 

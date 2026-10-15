@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from src.channels.config import load_channels_config
-from src.config import (
+from src.interfaces.channels.config import load_channels_config
+from src.platform.config import (
     AgentConfig,
     MCPServerConfig,
     get_config_path,
@@ -20,7 +20,7 @@ from src.config import (
     load_runtime_agent_config,
     sanitize_session_overrides,
 )
-from src.config.schema import (
+from src.platform.config.schema import (
     ROBINHOOD_AGENT_CONFIG_PATH,
     ROBINHOOD_MCP_SERVER_SEED,
     format_robinhood_mcp_server_seed_json,
@@ -364,12 +364,12 @@ def test_get_data_dir_uses_explicit_config_parent(tmp_path: Path) -> None:
 def test_robinhood_safe_seed_loads_and_discovers_enabled_tools_without_warnings(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    mcp = pytest.importorskip("src.tools.mcp")
+    mcp = pytest.importorskip("src.runtime.tools.mcp")
     config = AgentConfig.model_validate(_robinhood_seed_config())
     server = config.mcp_servers["robinhood"]
     seed_tools = tuple(ROBINHOOD_MCP_SERVER_SEED["enabled_tools"])
 
-    with caplog.at_level(logging.WARNING, logger="src.tools.mcp"):
+    with caplog.at_level(logging.WARNING, logger="src.runtime.tools.mcp"):
         tools = mcp.build_mcp_tool_wrappers(
             "robinhood",
             server,
@@ -410,7 +410,7 @@ def test_live_authorize_missing_robinhood_config_prints_safe_seed(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    from cli._legacy import EXIT_USAGE_ERROR, cmd_live_authorize
+    from src.interfaces.cli._legacy import EXIT_USAGE_ERROR, cmd_live_authorize
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
@@ -430,7 +430,7 @@ def test_live_authorize_wildcard_robinhood_config_prints_safe_seed(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    from cli._legacy import EXIT_USAGE_ERROR, cmd_live_authorize
+    from src.interfaces.cli._legacy import EXIT_USAGE_ERROR, cmd_live_authorize
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     config_path = tmp_path / ".vibe-trading" / "agent.json"
@@ -464,7 +464,7 @@ def test_live_authorize_wildcard_robinhood_config_prints_safe_seed(
 def test_mcp_robinhood_wildcard_zero_tools_warning_names_safe_allowlist(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    mcp = pytest.importorskip("src.tools.mcp")
+    mcp = pytest.importorskip("src.runtime.tools.mcp")
     server = MCPServerConfig.model_validate(
         {
             "type": "streamableHttp",
@@ -474,7 +474,7 @@ def test_mcp_robinhood_wildcard_zero_tools_warning_names_safe_allowlist(
         }
     )
 
-    with caplog.at_level(logging.WARNING, logger="src.tools.mcp"):
+    with caplog.at_level(logging.WARNING, logger="src.runtime.tools.mcp"):
         tools = mcp.build_mcp_tool_wrappers(
             "robinhood",
             server,
@@ -513,7 +513,7 @@ def test_sanitize_strips_snake_case_key_by_default() -> None:
 def test_sanitize_logs_warning_when_stripping(caplog: pytest.LogCaptureFixture) -> None:
     raw = {"mcpServers": {"s": {"command": "uvx"}}}
 
-    with caplog.at_level(logging.WARNING, logger="src.config.loader"):
+    with caplog.at_level(logging.WARNING, logger="src.platform.config.loader"):
         sanitize_session_overrides(raw)
 
     assert "mcpServers" in caplog.text

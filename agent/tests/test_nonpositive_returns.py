@@ -25,7 +25,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.metrics import bar_returns, buy_and_hold_return
+from src.backtest.metrics import bar_returns, buy_and_hold_return
 
 FIXTURE = Path(__file__).parent / "fixtures" / "negative_close_bars.csv"
 
@@ -158,7 +158,7 @@ def test_buy_and_hold_survives_a_negative_bar_mid_series() -> None:
 
 
 def test_undefined_bars_are_logged(delu: pd.Series, caplog) -> None:
-    with caplog.at_level(logging.WARNING, logger="backtest.metrics"):
+    with caplog.at_level(logging.WARNING, logger="src.backtest.metrics"):
         bar_returns(delu, label="DE-LU")
 
     assert "DE-LU" in caplog.text
@@ -166,7 +166,7 @@ def test_undefined_bars_are_logged(delu: pd.Series, caplog) -> None:
 
 
 def test_clean_series_log_nothing(caplog) -> None:
-    with caplog.at_level(logging.WARNING, logger="backtest.metrics"):
+    with caplog.at_level(logging.WARNING, logger="src.backtest.metrics"):
         bar_returns(pd.Series([1.0, 2.0, 3.0]), label="SPY")
 
     assert caplog.text == ""

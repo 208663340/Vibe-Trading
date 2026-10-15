@@ -1,6 +1,6 @@
 """Phase 2 refresh-surface contract for ``refresh_strategy_evidence`` (#969).
 
-Covers the agent tool in ``src.tools.strategy_discovery_tool``: the strict
+Covers the agent tool in ``src.runtime.tools.strategy_discovery_tool``: the strict
 envelope on the ok path (fixture run dirs in the REAL engine artifact schema,
 reused from ``test_strategy_discovery_harness`` — no second schema), the
 exactly-one-source rule, both manifest shapes (object with ``runs`` + bare
@@ -25,8 +25,8 @@ from pathlib import Path
 import pytest
 
 try:
-    from src.strategy_discovery.evidence_store import EvidenceStore
-    from src.tools import strategy_discovery_tool as sdt
+    from src.research.strategy_discovery.evidence_store import EvidenceStore
+    from src.runtime.tools import strategy_discovery_tool as sdt
 
     from tests.test_strategy_discovery_harness import (
         ALL_TRADE_DAYS,
@@ -393,7 +393,7 @@ class TestEntryValidation:
         # A rebuild is a full statement of the evidence — but entries refused
         # at the validation boundary never reach the rebuild, so a fully
         # invalid manifest must NOT clear the existing cache.
-        from src.strategy_discovery.models import EvidenceRow
+        from src.research.strategy_discovery.models import EvidenceRow
 
         store = _store()
         store.upsert_rows(
@@ -426,7 +426,7 @@ class TestRegistryDiscovery:
     def test_auto_discovered_and_executable_through_registry(
         self, runs_root: Path
     ) -> None:
-        from src.tools import build_registry
+        from src.runtime.tools import build_registry
 
         registry = build_registry()
         assert TOOL_NAME in registry.tool_names

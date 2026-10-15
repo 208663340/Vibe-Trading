@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.quantlib.microstructure import kyles_lambda, roll_effective_spread, vpin
+from src.research.quantlib.microstructure import kyles_lambda, roll_effective_spread, vpin
 
 
 @pytest.mark.parametrize("bad", [np.nan, np.inf, -np.inf])

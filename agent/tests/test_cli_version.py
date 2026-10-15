@@ -11,7 +11,7 @@ from __future__ import annotations
 import tomllib
 from pathlib import Path
 
-from cli import _version
+from src.interfaces.cli import _version
 
 _PYPROJECT = Path(__file__).resolve().parents[2] / "pyproject.toml"
 

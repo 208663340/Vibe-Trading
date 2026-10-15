@@ -13,10 +13,10 @@ from typing import Any
 
 import pytest
 
-from src.live.classification import ToolClass
-from src.trading import profiles, service
-from src.trading.connectors.toss import sdk as toss
-from src.trading.connectors.toss.classification import TOSS_TOOL_CLASS
+from src.markets.live.classification import ToolClass
+from src.markets.trading import profiles, service
+from src.markets.trading.connectors.toss import sdk as toss
+from src.markets.trading.connectors.toss.classification import TOSS_TOOL_CLASS
 
 pytestmark = pytest.mark.unit
 

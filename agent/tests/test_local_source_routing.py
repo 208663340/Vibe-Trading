@@ -14,12 +14,12 @@ from typing import Dict, List
 import pandas as pd
 import pytest
 
-from backtest.benchmark import resolve_benchmark
-from backtest.loaders.registry import _NO_NETWORK_FALLBACK_SOURCES
-from backtest.engines.china_a import ChinaAEngine
-from backtest.engines.crypto import CryptoEngine
-from backtest.engines.global_equity import GlobalEquityEngine
-from backtest.runner import _create_market_engine
+from src.backtest.benchmark import resolve_benchmark
+from src.backtest.loaders.registry import _NO_NETWORK_FALLBACK_SOURCES
+from src.backtest.engines.china_a import ChinaAEngine
+from src.backtest.engines.crypto import CryptoEngine
+from src.backtest.engines.global_equity import GlobalEquityEngine
+from src.backtest.runner import _create_market_engine
 
 
 class TestLocalSourceEngineRouting:
@@ -120,7 +120,7 @@ class TestBenchmarkLoaderForwarding:
         self, monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         fallback = _FakeLoader([100.0, 103.0])
-        monkeypatch.setattr("backtest.benchmark.YfinanceLoader", lambda: fallback)
+        monkeypatch.setattr("src.backtest.benchmark.YfinanceLoader", lambda: fallback)
 
         result = resolve_benchmark(
             strategy_codes=["BBD-B.TO"],
@@ -139,7 +139,7 @@ class TestBenchmarkLoaderForwarding:
         def _no_network() -> None:
             raise AssertionError("yfinance loader must not be created")
 
-        monkeypatch.setattr("backtest.benchmark.YfinanceLoader", _no_network)
+        monkeypatch.setattr("src.backtest.benchmark.YfinanceLoader", _no_network)
 
         loader = _FakeLoader([100.0, 110.0])
         result = resolve_benchmark(
@@ -169,7 +169,7 @@ class TestBenchmarkLoaderForwarding:
         def _no_network() -> None:
             raise AssertionError("yfinance loader must not be created")
 
-        monkeypatch.setattr("backtest.benchmark.YfinanceLoader", _no_network)
+        monkeypatch.setattr("src.backtest.benchmark.YfinanceLoader", _no_network)
 
         result = resolve_benchmark(
             strategy_codes=["AAPL.US"],
@@ -186,7 +186,7 @@ class TestBenchmarkLoaderForwarding:
         self, monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         fallback = _FakeLoader([100.0, 105.0])
-        monkeypatch.setattr("backtest.benchmark.YfinanceLoader", lambda: fallback)
+        monkeypatch.setattr("src.backtest.benchmark.YfinanceLoader", lambda: fallback)
 
         result = resolve_benchmark(
             strategy_codes=["600519.SH"],
@@ -205,7 +205,7 @@ class TestBenchmarkLoaderForwarding:
         self, monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         fallback = _FakeLoader([100.0, 102.0])
-        monkeypatch.setattr("backtest.benchmark.YfinanceLoader", lambda: fallback)
+        monkeypatch.setattr("src.backtest.benchmark.YfinanceLoader", lambda: fallback)
 
         result = resolve_benchmark(
             strategy_codes=["AAPL.US"],
@@ -239,8 +239,8 @@ class TestNoNetworkFallbackIsPerSymbolToo:
     def test_missing_symbol_raises_instead_of_reaching_the_network(
         self, monkeypatch: pytest.MonkeyPatch, source: str,
     ) -> None:
-        from backtest.loaders.base import NoAvailableSourceError
-        from backtest.runner import fetch_data_map
+        from src.backtest.loaders.base import NoAvailableSourceError
+        from src.backtest.runner import fetch_data_map
 
         served = _FakeLoader([100.0, 101.0])
 
@@ -248,11 +248,11 @@ class TestNoNetworkFallbackIsPerSymbolToo:
             return {"AAPL.US": served.fetch(["AAPL.US"], *a, **k)["AAPL.US"]}
 
         monkeypatch.setattr(
-            "backtest.runner._get_loader",
+            "src.backtest.runner._get_loader",
             lambda name: lambda: type("L", (), {"name": source, "fetch": staticmethod(_only_first)})(),
         )
         monkeypatch.setattr(
-            "backtest.runner.LOADER_REGISTRY",
+            "src.backtest.runner.LOADER_REGISTRY",
             {"yahoo": lambda: (_ for _ in ()).throw(AssertionError("must not fall back"))},
         )
 
@@ -267,7 +267,7 @@ class TestNoNetworkFallbackIsPerSymbolToo:
         用一个可控的假 loader 顶替链上的 yahoo，绝不触网——断言的是「回落被
         尝试了」，不是「网络能通」。
         """
-        from backtest.runner import fetch_data_map
+        from src.backtest.runner import fetch_data_map
 
         index = pd.date_range("2023-01-03", periods=2, freq="D")
         bars = pd.DataFrame({"open": [1.0, 1.0], "high": [1.0, 1.0],
@@ -293,9 +293,9 @@ class TestNoNetworkFallbackIsPerSymbolToo:
                 reached.extend(codes)
                 return {c: bars.copy() for c in codes}
 
-        monkeypatch.setattr("backtest.runner._get_loader", lambda source: _Primary)
-        monkeypatch.setattr("backtest.runner.LOADER_REGISTRY", {"yahoo": _Fallback})
-        monkeypatch.setattr("backtest.runner.FALLBACK_CHAINS", {"us_equity": ["yahoo"]})
+        monkeypatch.setattr("src.backtest.runner._get_loader", lambda source: _Primary)
+        monkeypatch.setattr("src.backtest.runner.LOADER_REGISTRY", {"yahoo": _Fallback})
+        monkeypatch.setattr("src.backtest.runner.FALLBACK_CHAINS", {"us_equity": ["yahoo"]})
 
         result = fetch_data_map(self._config(source="tencent"))
 

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from backtest.risk_xray import compute_risk_xray
+from src.backtest.risk_xray import compute_risk_xray
 
 
 def test_risk_xray_returns_do_not_bridge_missing_prices():

@@ -2,7 +2,7 @@
 
 Covers ``scaffold_signal_engine`` (contract-correct stub generation) and
 ``link_autopilot_backtest`` (run-card metrics -> hypothesis link) in
-``src.tools.autopilot_tool``.
+``src.runtime.tools.autopilot_tool``.
 """
 
 from __future__ import annotations
@@ -15,8 +15,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.hypotheses import HypothesisRegistry
-from src.tools.autopilot_tool import (
+from src.research.hypotheses import HypothesisRegistry
+from src.runtime.tools.autopilot_tool import (
     LinkAutopilotBacktestTool,
     ScaffoldSignalEngineTool,
     _get_hypothesis,

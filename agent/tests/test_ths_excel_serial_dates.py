@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from src.tools.trade_journal_parsers import parse_tonghuashun
+from src.runtime.tools.trade_journal_parsers import parse_tonghuashun
 
 
 def test_parse_tonghuashun_excel_serial_datetime() -> None:

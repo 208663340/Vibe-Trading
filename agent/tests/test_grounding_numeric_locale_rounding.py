@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.grounding import GroundingLedger
-from src.agent.grounding.figures import (
+from src.runtime.agent.grounding import GroundingLedger
+from src.runtime.agent.grounding.figures import (
     Declaration,
     FiguresBlock,
     _numbers,

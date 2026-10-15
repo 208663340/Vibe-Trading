@@ -35,10 +35,10 @@ def _volume_from(loader_cls) -> float | None:
 
 
 def test_a_share_volume_consistent_across_sources():
-    from backtest.loaders.baostock_loader import DataLoader as BaostockLoader
-    from backtest.loaders.eastmoney_loader import DataLoader as EastmoneyLoader
-    from backtest.loaders.mootdx_loader import DataLoader as MootdxLoader
-    from backtest.loaders.tencent_loader import DataLoader as TencentLoader
+    from src.backtest.loaders.baostock_loader import DataLoader as BaostockLoader
+    from src.backtest.loaders.eastmoney_loader import DataLoader as EastmoneyLoader
+    from src.backtest.loaders.mootdx_loader import DataLoader as MootdxLoader
+    from src.backtest.loaders.tencent_loader import DataLoader as TencentLoader
 
     candidates = [
         ("tencent", TencentLoader),

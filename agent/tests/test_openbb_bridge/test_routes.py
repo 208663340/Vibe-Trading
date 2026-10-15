@@ -7,10 +7,10 @@ from fastapi.testclient import TestClient
 
 pytest.importorskip("openbb_ai")
 
-import api_server
+import src.interfaces.api_server as api_server
 from openbb_ai.helpers import message_chunk
 from openbb_ai.models import LlmClientMessage, QueryRequest
-from src.openbb_bridge import routes as bridge_routes
+from src.interfaces.openbb_bridge import routes as bridge_routes
 
 
 def _local_client() -> TestClient:

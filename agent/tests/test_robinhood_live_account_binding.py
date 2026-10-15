@@ -18,11 +18,11 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-import src.live.paths as paths
-from src.live import order_guard
-from src.live.mandate.store import load_mandate
-from src.tools.propose_mandate_tool import ProposeMandateProfilesTool
+import src.interfaces.api_server as api_server
+import src.markets.live.paths as paths
+from src.markets.live import order_guard
+from src.markets.live.mandate.store import load_mandate
+from src.runtime.tools.propose_mandate_tool import ProposeMandateProfilesTool
 from tests import robinhood_mcp_helpers as rh
 from tests.test_mandate_enforcement import _mandate, _spec, _write_mandate
 

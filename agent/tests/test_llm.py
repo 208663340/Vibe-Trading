@@ -11,12 +11,12 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from src.providers.capabilities import (
+from src.runtime.providers.capabilities import (
     get_llm_credentials,
     get_provider_capabilities,
     provider_env_names,
 )
-from src.providers.llm import ChatOpenAIWithReasoning, _sync_provider_env, build_llm
+from src.runtime.providers.llm import ChatOpenAIWithReasoning, _sync_provider_env, build_llm
 
 
 class TestProviderCapabilityAliases:
@@ -132,7 +132,7 @@ class TestSyncProviderEnv:
     def _run_sync(self, env: dict[str, str]) -> dict[str, str]:
         """Run _sync_provider_env with a clean env and return relevant keys."""
         # Reset the dotenv guard so it doesn't skip
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True  # pretend already loaded
 
@@ -343,7 +343,7 @@ class TestSyncProviderEnv:
 
 
 def test_build_anthropic_uses_messages_api_proxy() -> None:
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     llm_mod._dotenv_loaded = True
     captured: dict[str, object] = {}
@@ -411,7 +411,7 @@ def _make_fake_anthropic_base():
 
 
 def test_anthropic_temperature_self_heal_drops_and_retries() -> None:
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     llm_mod._ANTHROPIC_TEMPERATURE_UNSUPPORTED.discard("deprecates-temp")
     base = _make_fake_anthropic_base()
@@ -430,7 +430,7 @@ def test_anthropic_temperature_self_heal_drops_and_retries() -> None:
 
 
 def test_anthropic_temperature_preserved_for_supported_model() -> None:
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     llm_mod._ANTHROPIC_TEMPERATURE_UNSUPPORTED.discard("supports-temp")
     base = _make_fake_anthropic_base()
@@ -446,7 +446,7 @@ def test_anthropic_temperature_preserved_for_supported_model() -> None:
 
 
 def test_is_anthropic_temperature_unsupported_error_matching() -> None:
-    from src.providers.llm import _is_anthropic_temperature_unsupported_error
+    from src.runtime.providers.llm import _is_anthropic_temperature_unsupported_error
 
     assert _is_anthropic_temperature_unsupported_error(
         RuntimeError("`temperature` is deprecated for this model.")
@@ -512,7 +512,7 @@ def _openai_compat_sse(text: str, model: str) -> bytes:
 )
 def test_openai_compat_temperature_self_heal_drops_and_retries() -> None:
     """A 400 on `temperature` gets one retry without it, remembered for later calls."""
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     calls: list[dict] = []
 
@@ -559,7 +559,7 @@ def test_openai_compat_temperature_self_heal_drops_and_retries() -> None:
 )
 def test_openai_compat_temperature_preserved_for_supported_model() -> None:
     """Models that accept `temperature` keep it; nothing is remembered."""
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     calls: list[dict] = []
 
@@ -597,7 +597,7 @@ def test_openai_compat_temperature_preserved_for_supported_model() -> None:
 )
 def test_openai_compat_stream_temperature_self_heals_and_is_remembered() -> None:
     """A streaming 400 on `temperature` retries without it; later streams skip it."""
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     calls: list[dict] = []
 
@@ -644,7 +644,7 @@ def test_openai_compat_stream_temperature_self_heals_and_is_remembered() -> None
 )
 def test_openai_compat_agenerate_temperature_self_heals() -> None:
     """The async generate path mirrors the sync temperature self-heal."""
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     calls: list[dict] = []
 
@@ -692,7 +692,7 @@ class TestMinimaxTemperature:
 
     def test_minimax_temperature_clamped_from_zero(self) -> None:
         """When LANGCHAIN_TEMPERATURE=0.0 and provider=minimax, temperature must be clamped to 0.01."""
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True
 
@@ -718,7 +718,7 @@ class TestMinimaxTemperature:
 
     def test_minimax_positive_temperature_preserved(self) -> None:
         """When an explicit positive temperature is set, it should be preserved."""
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True
 
@@ -745,7 +745,7 @@ class TestDisableHttpProxy:
     """The proxy opt-out must cover both OpenAI SDK execution paths."""
 
     def test_build_llm_passes_sync_and_async_direct_clients(self) -> None:
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True
         captured: dict[str, object] = {}
@@ -778,7 +778,7 @@ class TestDisableHttpProxy:
         assert "http_socket_options" not in captured
 
     def test_build_llm_leaves_default_transport_when_disabled(self) -> None:
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True
         captured: dict[str, object] = {}
@@ -803,7 +803,7 @@ class TestDisableHttpProxy:
 
     def test_direct_clients_do_not_install_environment_proxy_mounts(self) -> None:
         import asyncio
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         env = {
             "HTTP_PROXY": "http://proxy.invalid:8080",
@@ -829,7 +829,7 @@ class TestKimiTemperature:
     """Kimi reasoning models reject any temperature other than 1."""
 
     def _capture_temperature(self, model: str, configured_temp: str) -> float:
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
         llm_mod._dotenv_loaded = True
 
         captured: dict[str, float] = {}
@@ -874,7 +874,7 @@ class TestReasoningEffortPassthrough:
     selected explicitly."""
 
     def _capture(self, env: dict[str, str]) -> dict:
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True
 
@@ -941,7 +941,7 @@ class TestKimiCodingProvider:
         )
 
     def test_env_mapping_to_openai_vars(self) -> None:
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True
 
@@ -964,7 +964,7 @@ class TestKimiCodingProvider:
             assert os.environ.get("OPENAI_API_BASE") == "https://api.kimi.com/coding/v1"
 
     def _build_and_capture(self, temperature: str) -> dict:
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True
 
@@ -1048,7 +1048,7 @@ class TestGetLlmCredentials:
 
     def test_build_llm_receives_normalized_ollama_base_url(self) -> None:
         """The runtime constructor must not reintroduce Ollama's raw root (#1069)."""
-        import src.providers.llm as llm_mod
+        import src.runtime.providers.llm as llm_mod
 
         llm_mod._dotenv_loaded = True
         captured: dict[str, object] = {}
@@ -1145,7 +1145,7 @@ def _make_relocating_anthropic_base():
 
 
 def test_anthropic_temperature_self_heal_strips_relocated_extra_body() -> None:
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     llm_mod._ANTHROPIC_TEMPERATURE_UNSUPPORTED.discard("deprecates-temp")
     safe_cls = llm_mod._make_temperature_safe_anthropic(
@@ -1169,7 +1169,7 @@ def test_anthropic_temperature_self_heal_strips_relocated_extra_body() -> None:
 
 
 def test_anthropic_temperature_self_heal_keeps_other_extra_body_keys() -> None:
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     llm_mod._ANTHROPIC_TEMPERATURE_UNSUPPORTED.discard("deprecates-temp")
     safe_cls = llm_mod._make_temperature_safe_anthropic(
@@ -1184,7 +1184,7 @@ def test_anthropic_temperature_self_heal_keeps_other_extra_body_keys() -> None:
 
 
 def test_anthropic_relocated_temperature_preserved_for_supported_model() -> None:
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     llm_mod._ANTHROPIC_TEMPERATURE_UNSUPPORTED.discard("supports-temp")
     safe_cls = llm_mod._make_temperature_safe_anthropic(

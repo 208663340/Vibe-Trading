@@ -10,13 +10,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.tools.get_fundamentals_tool import GetFundamentalsTool
+from src.runtime.tools.get_fundamentals_tool import GetFundamentalsTool
 
 
 def _install_loader(monkeypatch: pytest.MonkeyPatch, func) -> None:
-    module = types.ModuleType("backtest.loaders.fundamentals_loader")
+    module = types.ModuleType("src.backtest.loaders.fundamentals_loader")
     module.load_fundamental_panel = func
-    monkeypatch.setitem(sys.modules, "backtest.loaders.fundamentals_loader", module)
+    monkeypatch.setitem(sys.modules, "src.backtest.loaders.fundamentals_loader", module)
 
 
 def test_get_fundamentals_tool_success_envelope(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -95,7 +95,7 @@ def _assert_row_zscore_properties(result: pd.DataFrame) -> None:
 
 
 def test_fund_roe_compute_cross_sectional_zscore() -> None:
-    from src.factors.zoo.fundamental.roe import compute
+    from src.research.factors.zoo.fundamental.roe import compute
 
     result = compute({"fund:roe": _panel([[1.0, 2.0, 3.0], [2.0, 4.0, 6.0]])})
 
@@ -104,7 +104,7 @@ def test_fund_roe_compute_cross_sectional_zscore() -> None:
 
 
 def test_fund_gross_profitability_compute_cross_sectional_zscore() -> None:
-    from src.factors.zoo.fundamental.gross_profitability import compute
+    from src.research.factors.zoo.fundamental.gross_profitability import compute
 
     result = compute(
         {"fund:gross_profitability": _panel([[3.0, 6.0, 9.0], [4.0, 8.0, 12.0]])}
@@ -115,7 +115,7 @@ def test_fund_gross_profitability_compute_cross_sectional_zscore() -> None:
 
 
 def test_fund_asset_growth_compute_is_inverted_zscore() -> None:
-    from src.factors.zoo.fundamental.asset_growth import compute
+    from src.research.factors.zoo.fundamental.asset_growth import compute
 
     result = compute(
         {"fund:asset_growth": _panel([[0.01, 0.02, 0.03], [0.10, 0.20, 0.30]])}
@@ -126,7 +126,7 @@ def test_fund_asset_growth_compute_is_inverted_zscore() -> None:
 
 
 def test_fund_earnings_yield_compute_hybrid_zscore_and_safe_division() -> None:
-    from src.factors.zoo.fundamental.earnings_yield import compute
+    from src.research.factors.zoo.fundamental.earnings_yield import compute
 
     result = compute(
         {

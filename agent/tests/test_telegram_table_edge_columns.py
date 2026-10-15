@@ -49,7 +49,7 @@ def _stub_telegram_deps() -> None:
 
 _stub_telegram_deps()
 
-from src.channels.telegram import _render_table_box  # noqa: E402
+from src.interfaces.channels.telegram import _render_table_box  # noqa: E402
 
 
 def test_render_table_box_keeps_trailing_empty_column() -> None:

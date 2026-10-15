@@ -16,11 +16,11 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.china_a import ChinaAEngine
-from backtest.engines.china_futures import ChinaFuturesEngine
-from backtest.engines.global_futures import GlobalFuturesEngine
-from backtest.engines.india_equity import IndiaEquityEngine
-from backtest.models import Position
+from src.backtest.engines.china_a import ChinaAEngine
+from src.backtest.engines.china_futures import ChinaFuturesEngine
+from src.backtest.engines.global_futures import GlobalFuturesEngine
+from src.backtest.engines.india_equity import IndiaEquityEngine
+from src.backtest.models import Position
 
 _BASE = 100.0
 

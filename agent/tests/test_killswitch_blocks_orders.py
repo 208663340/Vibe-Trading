@@ -14,9 +14,9 @@ from typing import Any
 
 import pytest
 
-import src.live.paths as paths
-from src.live.halt import trip_halt
-from src.live.mandate.model import (
+import src.markets.live.paths as paths
+from src.markets.live.halt import trip_halt
+from src.markets.live.mandate.model import (
     MANDATE_SCHEMA_VERSION,
     AssetClass,
     ConsentMeta,
@@ -25,8 +25,8 @@ from src.live.mandate.model import (
     Mandate,
     UniverseConstraint,
 )
-from src.live.order_guard import LiveOrderGuardTool
-from src.tools.mcp import MCPRemoteTool, MCPRemoteToolSpec
+from src.markets.live.order_guard import LiveOrderGuardTool
+from src.runtime.tools.mcp import MCPRemoteTool, MCPRemoteToolSpec
 from tests import robinhood_mcp_helpers as rh
 
 

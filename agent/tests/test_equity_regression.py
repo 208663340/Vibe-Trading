@@ -5,8 +5,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from backtest.engines.base import BaseEngine
-from backtest.models import Position
+from src.backtest.engines.base import BaseEngine
+from src.backtest.models import Position
 
 
 class _StubEngine(BaseEngine):

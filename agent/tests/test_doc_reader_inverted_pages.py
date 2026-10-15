@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.tools.doc_reader_tool import _parse_pages
+from src.runtime.tools.doc_reader_tool import _parse_pages
 
 
 def test_inverted_page_range_raises() -> None:

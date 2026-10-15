@@ -28,46 +28,46 @@ import pytest
 
 class TestSlashRouter:
     def test_find_exact_known(self) -> None:
-        from cli.commands.slash_router import find_exact
+        from src.interfaces.cli.commands.slash_router import find_exact
 
         cmd = find_exact("help")
         assert cmd is not None
         assert cmd.name == "help"
 
     def test_find_exact_alias(self) -> None:
-        from cli.commands.slash_router import find_exact
+        from src.interfaces.cli.commands.slash_router import find_exact
 
         cmd = find_exact("q")
         assert cmd is not None and cmd.name == "quit"
 
     def test_find_exact_unknown_returns_none(self) -> None:
-        from cli.commands.slash_router import find_exact
+        from src.interfaces.cli.commands.slash_router import find_exact
 
         assert find_exact("definitely-not-a-real-command") is None
 
     def test_match_prefix(self) -> None:
-        from cli.commands.slash_router import match_commands
+        from src.interfaces.cli.commands.slash_router import match_commands
 
         matches = [c.name for c in match_commands("/cl")]
         assert "clear" in matches
 
     def test_match_subsequence(self) -> None:
-        from cli.commands.slash_router import match_commands
+        from src.interfaces.cli.commands.slash_router import match_commands
 
         # ``hsto`` is a subsequence of ``history``.
         matches = [c.name for c in match_commands("/hsto")]
         assert "history" in matches
 
     def test_match_returns_empty_for_non_slash(self) -> None:
-        from cli.commands.slash_router import match_commands
+        from src.interfaces.cli.commands.slash_router import match_commands
 
         assert match_commands("plain text") == []
 
     def test_handler_module_uses_cli_package(self) -> None:
-        from cli.commands.slash_router import SLASH_COMMANDS
+        from src.interfaces.cli.commands.slash_router import SLASH_COMMANDS
 
         for cmd in SLASH_COMMANDS:
-            assert cmd.handler_module.startswith("cli."), (
+            assert cmd.handler_module.startswith("src.interfaces.cli."), (
                 f"{cmd.name!r} handler_module {cmd.handler_module!r} should "
                 "live under the ``cli`` package root, not ``agent.cli``."
             )
@@ -80,22 +80,22 @@ class TestSlashRouter:
 
 class TestMainRouting:
     def test_extract_max_iter_space_separated(self) -> None:
-        from cli.main import _extract_max_iter
+        from src.interfaces.cli.main import _extract_max_iter
 
         assert _extract_max_iter(["chat", "--max-iter", "77"], default=50) == 77
 
     def test_extract_max_iter_equals_separated(self) -> None:
-        from cli.main import _extract_max_iter
+        from src.interfaces.cli.main import _extract_max_iter
 
         assert _extract_max_iter(["--max-iter=12"], default=50) == 12
 
     def test_extract_max_iter_default(self) -> None:
-        from cli.main import _extract_max_iter
+        from src.interfaces.cli.main import _extract_max_iter
 
         assert _extract_max_iter([], default=42) == 42
 
     def test_non_interactive_subcommands_route_to_legacy(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         # Force a TTY so the only signal that drops the interactive path
         # is the recognised subcommand.
@@ -105,7 +105,7 @@ class TestMainRouting:
             assert _is_interactive_invocation([sub]) is False, sub
 
     def test_legacy_flags_route_to_legacy(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
@@ -113,14 +113,14 @@ class TestMainRouting:
             assert _is_interactive_invocation([flag]) is False, flag
 
     def test_chat_is_interactive(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
         assert _is_interactive_invocation(["chat"]) is True
 
     def test_empty_argv_is_interactive(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
@@ -128,7 +128,7 @@ class TestMainRouting:
 
     def test_unknown_positional_routes_to_legacy(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Unknown bare tokens must delegate to legacy so argparse reports the typo."""
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
@@ -136,7 +136,7 @@ class TestMainRouting:
             assert _is_interactive_invocation([token]) is False, token
 
     def test_piped_stdin_disables_interactive(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: False)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
@@ -144,7 +144,7 @@ class TestMainRouting:
 
     def test_chat_with_supported_max_iter(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """``chat`` with a parseable --max-iter belongs to the REPL."""
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
@@ -153,7 +153,7 @@ class TestMainRouting:
 
     def test_chat_help_routes_to_legacy(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """``chat --help`` / ``-h`` must reach legacy argparse for the help screen."""
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
@@ -162,7 +162,7 @@ class TestMainRouting:
 
     def test_chat_with_bad_max_iter_routes_to_legacy(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """A non-integer ``--max-iter`` must reach argparse so it can complain."""
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
@@ -171,7 +171,7 @@ class TestMainRouting:
 
     def test_chat_with_extra_positional_routes_to_legacy(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Extra positionals on ``chat`` are user errors — let argparse say so."""
-        from cli.main import _is_interactive_invocation
+        from src.interfaces.cli.main import _is_interactive_invocation
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("sys.stdout.isatty", lambda: True)
@@ -182,7 +182,7 @@ class TestMainRouting:
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         """Interactive startup must accept the provider loader's project-local `.env`."""
-        cli_main = importlib.import_module("cli.main")
+        cli_main = importlib.import_module("src.interfaces.cli.main")
 
         home_env = tmp_path / "home" / ".vibe-trading" / ".env"
         project_env = tmp_path / "agent" / ".env"
@@ -205,7 +205,7 @@ class TestMainRouting:
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         """The startup banner should show the same project-local model the loader uses."""
-        cli_main = importlib.import_module("cli.main")
+        cli_main = importlib.import_module("src.interfaces.cli.main")
 
         home_env = tmp_path / "home" / ".vibe-trading" / ".env"
         project_env = tmp_path / "agent" / ".env"
@@ -228,7 +228,7 @@ class TestMainRouting:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Typing a chat message at the resume prompt must not discard it."""
-        cli_main = importlib.import_module("cli.main")
+        cli_main = importlib.import_module("src.interfaces.cli.main")
         session = SimpleNamespace(session_id="sess_1", title="hello")
         store = SimpleNamespace(list_sessions=lambda limit=1: [session])
 
@@ -243,7 +243,7 @@ class TestMainRouting:
     def test_resume_prompt_explicit_new_answers_start_new_session(
         self, monkeypatch: pytest.MonkeyPatch, answer: str
     ) -> None:
-        cli_main = importlib.import_module("cli.main")
+        cli_main = importlib.import_module("src.interfaces.cli.main")
         session = SimpleNamespace(session_id="sess_1", title="hello")
         store = SimpleNamespace(list_sessions=lambda limit=1: [session])
 
@@ -277,7 +277,7 @@ class TestMainDispatch:
         """
         from pathlib import Path
 
-        import cli
+        import src.interfaces.cli as cli
 
         captured: dict[str, Any] = {}
 
@@ -317,7 +317,7 @@ class TestMainDispatch:
         self, monkeypatch: pytest.MonkeyPatch, argv: list[str]
     ) -> None:
         """Every non-REPL argv shape must reach ``_legacy.main`` untouched."""
-        from cli.main import main as cli_main_fn
+        from src.interfaces.cli.main import main as cli_main_fn
 
         # Force a TTY so the only reason these argv shapes don't enter the
         # REPL is the chat-gate / flag / subcommand routing.
@@ -330,7 +330,7 @@ class TestMainDispatch:
             captured["argv"] = list(passed_argv)
             return 0
 
-        from cli import _legacy
+        from src.interfaces.cli import _legacy
 
         monkeypatch.setattr(_legacy, "main", fake_legacy_main)
 
@@ -347,30 +347,30 @@ class TestMainDispatch:
 
 class TestInputHelpers:
     def test_balanced_brackets(self) -> None:
-        from cli.input import _has_unbalanced_brackets
+        from src.interfaces.cli.input import _has_unbalanced_brackets
 
         assert _has_unbalanced_brackets("hello world") is False
         assert _has_unbalanced_brackets("foo(bar)") is False
         assert _has_unbalanced_brackets("[1,2,{3:4}]") is False
 
     def test_unbalanced_open(self) -> None:
-        from cli.input import _has_unbalanced_brackets
+        from src.interfaces.cli.input import _has_unbalanced_brackets
 
         assert _has_unbalanced_brackets("def f(x:\n  return") is True
 
     def test_strings_ignored(self) -> None:
-        from cli.input import _has_unbalanced_brackets
+        from src.interfaces.cli.input import _has_unbalanced_brackets
 
         # The unbalanced ``(`` sits inside a string literal.
         assert _has_unbalanced_brackets('print("a (b c")') is False
 
     def test_strip_surrogates_keeps_plain_text(self) -> None:
-        from cli.input import _strip_surrogates
+        from src.interfaces.cli.input import _strip_surrogates
 
         assert _strip_surrogates("hello") == "hello"
 
     def test_strip_surrogates_drops_lone_half(self) -> None:
-        from cli.input import _strip_surrogates
+        from src.interfaces.cli.input import _strip_surrogates
 
         # \ud83d alone is a lone high surrogate.
         cleaned = _strip_surrogates("a\ud83db")
@@ -378,20 +378,20 @@ class TestInputHelpers:
         assert cleaned.startswith("a") and cleaned.endswith("b")
 
     def test_ctrl_c_within_window_returns_false_when_unset(self) -> None:
-        from cli.input import ctrl_c_within_window
+        from src.interfaces.cli.input import ctrl_c_within_window
 
         session = SimpleNamespace()
         assert ctrl_c_within_window(session) is False
 
     def test_ctrl_c_within_window_uses_state(self) -> None:
-        from cli.input import ctrl_c_within_window
+        from src.interfaces.cli.input import ctrl_c_within_window
 
         state = SimpleNamespace(last_press_ts=time.monotonic())
         session = SimpleNamespace(vibe_ctrl_c_state=state)
         assert ctrl_c_within_window(session, window_sec=2.0) is True
 
     def test_ctrl_c_window_expires(self) -> None:
-        from cli.input import ctrl_c_within_window
+        from src.interfaces.cli.input import ctrl_c_within_window
 
         state = SimpleNamespace(last_press_ts=time.monotonic() - 10.0)
         session = SimpleNamespace(vibe_ctrl_c_state=state)
@@ -414,14 +414,14 @@ class TestCtrlCTwoPress:
     """
 
     def test_first_press_returns_false(self) -> None:
-        from cli.input import _CtrlCState
+        from src.interfaces.cli.input import _CtrlCState
 
         state = _CtrlCState()
         # First press → no prior press → must report "not in window".
         assert state.record_press_and_check_window(window_sec=2.0) is False
 
     def test_second_press_within_window_returns_true(self) -> None:
-        from cli.input import _CtrlCState
+        from src.interfaces.cli.input import _CtrlCState
 
         state = _CtrlCState()
         state.record_press_and_check_window(window_sec=2.0)  # first press
@@ -429,7 +429,7 @@ class TestCtrlCTwoPress:
         assert state.record_press_and_check_window(window_sec=2.0) is True
 
     def test_second_press_after_window_returns_false(self) -> None:
-        from cli.input import _CtrlCState
+        from src.interfaces.cli.input import _CtrlCState
 
         state = _CtrlCState()
         # Simulate a first press well in the past.
@@ -439,7 +439,7 @@ class TestCtrlCTwoPress:
         assert state.record_press_and_check_window(window_sec=2.0) is False
 
     def test_window_check_reads_cached_decision(self) -> None:
-        from cli.input import _CtrlCState, ctrl_c_within_window
+        from src.interfaces.cli.input import _CtrlCState, ctrl_c_within_window
 
         state = _CtrlCState()
         # Simulate the keybinding's press-time decision.
@@ -460,24 +460,24 @@ class TestSlashTypoSuggestions:
     """``/historu`` and ``/jurnal`` must surface ``history`` / ``journal``."""
 
     def test_single_char_typo_history(self) -> None:
-        from cli.main import _suggest_commands
+        from src.interfaces.cli.main import _suggest_commands
 
         assert "history" in _suggest_commands("historu")
 
     def test_single_char_typo_journal(self) -> None:
-        from cli.main import _suggest_commands
+        from src.interfaces.cli.main import _suggest_commands
 
         assert "journal" in _suggest_commands("jurnal")
 
     def test_close_to_quit(self) -> None:
-        from cli.main import _suggest_commands
+        from src.interfaces.cli.main import _suggest_commands
 
         # ``quti`` is a transposition of ``quit`` — subsequence scoring
         # misses this; difflib edit-distance catches it.
         assert "quit" in _suggest_commands("quti")
 
     def test_no_match_returns_empty(self) -> None:
-        from cli.main import _suggest_commands
+        from src.interfaces.cli.main import _suggest_commands
 
         suggestions = _suggest_commands("xyzqwerty")
         # Either empty, or no obviously-wrong entry. The contract is
@@ -494,7 +494,7 @@ class TestChatCommandsAreActionable:
     """``/journal`` and ``/shadow`` queue real prompts, not "Coming soon"."""
 
     def test_journal_with_path_queues_prompt(self) -> None:
-        from cli.commands.chat import cmd_journal
+        from src.interfaces.cli.commands.chat import cmd_journal
 
         ctx = SimpleNamespace(pending_prompt=None)
         rc = cmd_journal(ctx, "trades.csv")
@@ -504,7 +504,7 @@ class TestChatCommandsAreActionable:
         assert "trades.csv" in ctx.pending_prompt
 
     def test_journal_without_path_prints_usage(self) -> None:
-        from cli.commands.chat import cmd_journal
+        from src.interfaces.cli.commands.chat import cmd_journal
 
         ctx = SimpleNamespace(pending_prompt=None)
         rc = cmd_journal(ctx)
@@ -514,7 +514,7 @@ class TestChatCommandsAreActionable:
         assert ctx.pending_prompt is None
 
     def test_shadow_without_args_opens_dashboard(self) -> None:
-        from cli.commands.chat import cmd_shadow
+        from src.interfaces.cli.commands.chat import cmd_shadow
 
         ctx = SimpleNamespace(pending_prompt=None)
         rc = cmd_shadow(ctx)
@@ -523,7 +523,7 @@ class TestChatCommandsAreActionable:
         assert "shadow" in ctx.pending_prompt.lower()
 
     def test_shadow_with_path_trains(self) -> None:
-        from cli.commands.chat import cmd_shadow
+        from src.interfaces.cli.commands.chat import cmd_shadow
 
         ctx = SimpleNamespace(pending_prompt=None)
         rc = cmd_shadow(ctx, "trades.csv")
@@ -533,7 +533,7 @@ class TestChatCommandsAreActionable:
         assert "shadow" in ctx.pending_prompt.lower()
 
     def test_debug_toggles_flag(self) -> None:
-        from cli.commands.chat import cmd_debug
+        from src.interfaces.cli.commands.chat import cmd_debug
 
         ctx = SimpleNamespace(debug=False)
         cmd_debug(ctx)
@@ -549,19 +549,19 @@ class TestChatCommandsAreActionable:
 
 class TestHintBar:
     def test_left_only(self) -> None:
-        from cli.components.hint_bar import render_hint_bar
+        from src.interfaces.cli.components.hint_bar import render_hint_bar
 
         bar = render_hint_bar("hello", width=20)
         assert "hello" in bar.plain
 
     def test_left_right_fit(self) -> None:
-        from cli.components.hint_bar import render_hint_bar
+        from src.interfaces.cli.components.hint_bar import render_hint_bar
 
         bar = render_hint_bar("L", "R", width=10).plain
         assert bar.startswith("L") and bar.endswith("R")
 
     def test_truncation_preserves_right(self) -> None:
-        from cli.components.hint_bar import render_hint_bar
+        from src.interfaces.cli.components.hint_bar import render_hint_bar
 
         bar = render_hint_bar("a very long left segment", "Ctrl+C", width=20).plain
         assert bar.endswith("Ctrl+C")
@@ -569,14 +569,14 @@ class TestHintBar:
 
 class TestToolEventRender:
     def test_running_status(self) -> None:
-        from cli.components.tool_event import render_tool_event
+        from src.interfaces.cli.components.tool_event import render_tool_event
 
         text = render_tool_event("get_financials", {"query": "AAPL"}, status="running")
         assert "Financials" in text.plain
         assert "AAPL" in text.plain
 
     def test_ok_with_duration(self) -> None:
-        from cli.components.tool_event import render_tool_event
+        from src.interfaces.cli.components.tool_event import render_tool_event
 
         text = render_tool_event(
             "run_backtest",
@@ -588,13 +588,13 @@ class TestToolEventRender:
         assert "1.4s" in text.plain
 
     def test_error_renders(self) -> None:
-        from cli.components.tool_event import render_tool_event
+        from src.interfaces.cli.components.tool_event import render_tool_event
 
         text = render_tool_event("load_skill", {"name": "x"}, status="error")
         assert "x" in text.plain
 
     def test_unknown_status_degrades(self) -> None:
-        from cli.components.tool_event import render_tool_event
+        from src.interfaces.cli.components.tool_event import render_tool_event
 
         # Unknown statuses should not raise — they degrade to "running".
         text = render_tool_event("foo", None, status="bogus")  # type: ignore[arg-type]
@@ -608,7 +608,7 @@ class TestToolEventRender:
 
 class TestWorkingIndicator:
     def test_pick_verb_returns_string(self) -> None:
-        from cli.components.working_indicator import _pick_verb
+        from src.interfaces.cli.components.working_indicator import _pick_verb
 
         verb = _pick_verb()
         assert isinstance(verb, str) and verb
@@ -621,7 +621,7 @@ class TestWorkingIndicator:
 
 class TestPackageCompat:
     def test_cli_reexports_legacy_helpers(self) -> None:
-        import cli
+        import src.interfaces.cli as cli
 
         # Historically the tests reached into ``cli._render_env_content``
         # and ``cli.cmd_memory_list``; the package keeps re-exporting

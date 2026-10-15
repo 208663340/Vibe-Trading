@@ -1,6 +1,6 @@
 """Tests for the Sina US-equity daily OHLCV loader.
 
-All HTTP is mocked at :func:`backtest.loaders._http.throttled_get` (imported into
+All HTTP is mocked at :func:`src.backtest.loaders._http.throttled_get` (imported into
 the loader module as ``sina_loader.throttled_get``), so no test touches a live
 Sina endpoint.
 """
@@ -13,7 +13,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from backtest.loaders.sina_loader import (
+from src.backtest.loaders.sina_loader import (
     DataLoader,
     _bars_to_frame,
     _is_us_equity,
@@ -153,7 +153,7 @@ def test_fetch_returns_frame_for_us_symbol() -> None:
         '{"d":"2024-01-03","o":"10.5","h":"12.0","l":"10.0","c":"11.5","v":"2000"}]'
     )
     with patch(
-        "backtest.loaders.sina_loader.throttled_get",
+        "src.backtest.loaders.sina_loader.throttled_get",
         return_value=_fake_response(raw),
     ) as mock_get:
         out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-31")
@@ -169,7 +169,7 @@ def test_fetch_returns_frame_for_us_symbol() -> None:
 
 
 def test_fetch_skips_non_us_symbols_without_http() -> None:
-    with patch("backtest.loaders.sina_loader.throttled_get") as mock_get:
+    with patch("src.backtest.loaders.sina_loader.throttled_get") as mock_get:
         out = DataLoader().fetch(["600519.SH", "00700.HK", "BTC-USDT"], "2024-01-01", "2024-01-31")
     assert out == {}
     mock_get.assert_not_called()
@@ -183,7 +183,7 @@ def test_fetch_one_symbol_failure_does_not_abort_batch() -> None:
             raise RuntimeError("network blip")
         return _fake_response(good)
 
-    with patch("backtest.loaders.sina_loader.throttled_get", side_effect=side_effect):
+    with patch("src.backtest.loaders.sina_loader.throttled_get", side_effect=side_effect):
         out = DataLoader().fetch(["BAD.US", "AAPL.US"], "2024-01-01", "2024-01-31")
 
     assert "BAD.US" not in out
@@ -192,7 +192,7 @@ def test_fetch_one_symbol_failure_does_not_abort_batch() -> None:
 
 def test_fetch_non_2xx_status_skips_symbol() -> None:
     with patch(
-        "backtest.loaders.sina_loader.throttled_get",
+        "src.backtest.loaders.sina_loader.throttled_get",
         return_value=_fake_response("var x=([]);", status_ok=False),
     ):
         out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-31")
@@ -219,7 +219,7 @@ def test_is_available_always_true() -> None:
 
 
 def test_register_decorator_added_sina_to_registry() -> None:
-    from backtest.loaders.registry import LOADER_REGISTRY
+    from src.backtest.loaders.registry import LOADER_REGISTRY
 
     assert LOADER_REGISTRY.get("sina") is DataLoader
     assert DataLoader.markets == {"us_equity"}

@@ -10,8 +10,8 @@ down the entire goal/strategy read path.
 
 from __future__ import annotations
 
-from src.goal.store import _json_loads as goal_json_loads
-from src.strategy_store.sqlite_store import _json_loads as strategy_json_loads
+from src.runtime.goal.store import _json_loads as goal_json_loads
+from src.research.strategy_store.sqlite_store import _json_loads as strategy_json_loads
 
 
 def test_goal_json_loads_valid_json() -> None:

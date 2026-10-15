@@ -37,11 +37,11 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
-import mcp_server
-from src.config.schema import AgentConfig
-from src.providers.chat import LLMResponse
-from src.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask
-from src.swarm.worker import run_worker
+import src.interfaces.mcp_server as mcp_server
+from src.platform.config.schema import AgentConfig
+from src.runtime.providers.chat import LLMResponse
+from src.runtime.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask
+from src.runtime.swarm.worker import run_worker
 
 
 # --------------------------------------------------------------------------- #
@@ -155,13 +155,13 @@ def test_run_swarm_variables_are_template_data_only_never_config(
         return boot_cfg
 
     monkeypatch.setattr(
-        "src.config.load_swarm_agent_config", _loader_returns_sentinel
+        "src.platform.config.load_swarm_agent_config", _loader_returns_sentinel
     )
 
     # Step 2 — pin the SwarmStore base dir to a tmp path so the test
     # never touches the repo-level ``.swarm/runs`` directory.
     monkeypatch.setattr(
-        "src.swarm.store.swarm_runs_root", lambda: tmp_path / "swarm_runs"
+        "src.runtime.swarm.store.swarm_runs_root", lambda: tmp_path / "swarm_runs"
     )
 
     captured: dict[str, Any] = {}
@@ -198,7 +198,7 @@ def test_run_swarm_variables_are_template_data_only_never_config(
                 created_at="2026-05-25T00:00:00+00:00",
             )
 
-    monkeypatch.setattr("src.swarm.runtime.SwarmRuntime", _SpyRuntime)
+    monkeypatch.setattr("src.runtime.swarm.runtime.SwarmRuntime", _SpyRuntime)
 
     # ``_build_run_payload`` calls store.load_run(run_id) which won't know
     # about our stub run — short-circuit it so the test focuses on the
@@ -380,8 +380,8 @@ def test_unknown_mcp_server_tool_drops_cleanly_with_attack_shaped_variables(
     }
 
     with (
-        patch("src.tools.mcp.build_mcp_tool_wrappers", side_effect=_spy_build_mcp_tool_wrappers),
-        patch("src.swarm.worker.ChatLLM", llm_factory),
+        patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", side_effect=_spy_build_mcp_tool_wrappers),
+        patch("src.runtime.swarm.worker.ChatLLM", llm_factory),
         caplog.at_level(logging.WARNING),
     ):
         result = run_worker(

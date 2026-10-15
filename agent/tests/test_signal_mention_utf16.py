@@ -3,7 +3,7 @@ translated to Python (code-point) indices before slicing message text."""
 
 from __future__ import annotations
 
-from src.channels.signal import SignalChannel, _utf16_offset_to_index
+from src.interfaces.channels.signal import SignalChannel, _utf16_offset_to_index
 
 
 def test_utf16_offset_to_index_accounts_for_supplementary_plane_chars() -> None:

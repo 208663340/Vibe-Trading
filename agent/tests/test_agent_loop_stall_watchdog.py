@@ -12,10 +12,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.agent.loop import AgentLoop
-from src.agent.tools import ToolRegistry
-from src.agent.trace import TraceWriter
-from src.core.state import RunStateStore
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.tools import ToolRegistry
+from src.runtime.agent.trace import TraceWriter
+from src.platform.core.state import RunStateStore
 
 
 class _FastEvent(threading.Event):
@@ -171,7 +171,7 @@ def test_watchdog_of_a_finished_run_does_not_fail_the_next_one(
 
 def test_stall_timeout_env_alias_resolves_and_zero_disables() -> None:
     """The documented off switch must be reachable by its real env name."""
-    from src.config.env_schema import AgentTuningConfig
+    from src.platform.config.env_schema import AgentTuningConfig
 
     assert AgentTuningConfig().vibe_trading_run_stall_timeout_seconds == 1800.0
     disabled = AgentTuningConfig(VIBE_TRADING_RUN_STALL_TIMEOUT_SECONDS="0")

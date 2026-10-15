@@ -14,10 +14,10 @@ from __future__ import annotations
 
 import pytest
 
-from src.trading.connectors.dhan import sdk as dhan_sdk
-from src.trading.connectors.shoonya import sdk as shoonya_sdk
-from src.trading.connectors.upbit import sdk as upbit_sdk
-from src.trading.connectors.zerodha import sdk as zerodha_sdk
+from src.markets.trading.connectors.dhan import sdk as dhan_sdk
+from src.markets.trading.connectors.shoonya import sdk as shoonya_sdk
+from src.markets.trading.connectors.upbit import sdk as upbit_sdk
+from src.markets.trading.connectors.zerodha import sdk as zerodha_sdk
 
 _CONNECTORS = [
     pytest.param(zerodha_sdk, zerodha_sdk.ZerodhaConfig, {"symbol": "RELIANCE"}, id="zerodha"),

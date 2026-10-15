@@ -14,7 +14,7 @@ import argparse
 
 import pytest
 
-from cli import _legacy
+from src.interfaces.cli import _legacy
 
 pytestmark = pytest.mark.unit
 
@@ -36,7 +36,7 @@ def test_dispatch_connector_loads_dotenv_before_running_the_subcommand(
         return 0
 
     monkeypatch.setattr(
-        "src.providers.llm._ensure_dotenv", lambda: calls.append("dotenv")
+        "src.runtime.providers.llm._ensure_dotenv", lambda: calls.append("dotenv")
     )
     monkeypatch.setattr(_legacy, "cmd_connector_list", _record_list)
 
@@ -50,7 +50,7 @@ def test_connector_path_resolves_longbridge_credentials_from_dotenv(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
     """Credentials living only in the ``.env`` file resolve after a dispatch."""
-    from src.trading.connectors.longbridge.credentials import (
+    from src.markets.trading.connectors.longbridge.credentials import (
         resolve_longbridge_credentials,
     )
 
@@ -68,8 +68,8 @@ def test_connector_path_resolves_longbridge_credentials_from_dotenv(
 
     for name in _CREDENTIAL_ENV_VARS:
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr("src.providers.llm._ENV_CANDIDATES", [env_file])
-    monkeypatch.setattr("src.providers.llm._dotenv_loaded", False)
+    monkeypatch.setattr("src.runtime.providers.llm._ENV_CANDIDATES", [env_file])
+    monkeypatch.setattr("src.runtime.providers.llm._dotenv_loaded", False)
     monkeypatch.setattr(_legacy, "cmd_connector_list", lambda: 0)
 
     before = resolve_longbridge_credentials(runtime_root=runtime_root)
@@ -88,7 +88,7 @@ def test_dispatch_connector_never_overrides_a_real_environment_variable(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
     """``override=False``: an exported variable outranks the ``.env`` file."""
-    from src.trading.connectors.longbridge.credentials import (
+    from src.markets.trading.connectors.longbridge.credentials import (
         resolve_longbridge_credentials,
     )
 
@@ -105,8 +105,8 @@ def test_dispatch_connector_never_overrides_a_real_environment_variable(
     monkeypatch.setenv("LONGBRIDGE_APP_KEY", "key-from-shell")
     monkeypatch.delenv("LONGBRIDGE_APP_SECRET", raising=False)
     monkeypatch.delenv("LONGBRIDGE_ACCESS_TOKEN", raising=False)
-    monkeypatch.setattr("src.providers.llm._ENV_CANDIDATES", [env_file])
-    monkeypatch.setattr("src.providers.llm._dotenv_loaded", False)
+    monkeypatch.setattr("src.runtime.providers.llm._ENV_CANDIDATES", [env_file])
+    monkeypatch.setattr("src.runtime.providers.llm._dotenv_loaded", False)
     monkeypatch.setattr(_legacy, "cmd_connector_list", lambda: 0)
 
     _legacy._dispatch_connector(argparse.Namespace(connector_command="list"))

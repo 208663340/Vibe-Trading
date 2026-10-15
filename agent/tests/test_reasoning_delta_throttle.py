@@ -60,9 +60,9 @@ def _build_agent(llm: Any, events: list, tmp_run_dir: Path):
     Returns:
         Configured AgentLoop instance.
     """
-    from src.agent.loop import AgentLoop
-    from src.memory.persistent import PersistentMemory
-    from src.tools import build_registry
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
 
     pm = PersistentMemory()
     agent = AgentLoop(

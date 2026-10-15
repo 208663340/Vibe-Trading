@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.tools.trade_journal_parsers import load_dataframe, parse_eastmoney, parse_file
+from src.runtime.tools.trade_journal_parsers import load_dataframe, parse_eastmoney, parse_file
 
 
 def test_parse_eastmoney_stringified_excel_day_serial() -> None:

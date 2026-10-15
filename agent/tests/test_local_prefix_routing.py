@@ -16,11 +16,11 @@ import pandas as pd
 import pytest
 import yaml
 
-import backtest.loaders.local_loader as local_loader
-import backtest.runner as runner
-from backtest.engines._market_hooks import _is_china_futures, code_currency
-from backtest.loaders.base import NoAvailableSourceError
-from backtest.loaders.registry import _ensure_registered
+import src.backtest.loaders.local_loader as local_loader
+import src.backtest.runner as runner
+from src.backtest.engines._market_hooks import _is_china_futures, code_currency
+from src.backtest.loaders.base import NoAvailableSourceError
+from src.backtest.loaders.registry import _ensure_registered
 
 pytestmark = pytest.mark.unit
 

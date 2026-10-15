@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from backtest.engines.options_portfolio import run_options_backtest
+from src.backtest.engines.options_portfolio import run_options_backtest
 
 _DATES = pd.bdate_range("2025-01-01", periods=4)
 _BARS = pd.DataFrame(

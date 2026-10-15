@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 
 GOLDENS_DIR = Path(__file__).resolve().parent / "fixtures" / "goldens"

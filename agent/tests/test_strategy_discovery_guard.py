@@ -1,4 +1,4 @@
-"""Frozen-contract tests for ``src.strategy_discovery.guard`` — issue #969.
+"""Frozen-contract tests for ``src.research.strategy_discovery.guard`` — issue #969.
 
 The phantom-tool guard (AC2) validates that every Strategy Discovery tool
 referenced by prompt routing text is actually registered, and fails safe:
@@ -17,10 +17,10 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.tools import BaseTool, ToolRegistry
 
 try:
-    from src.strategy_discovery import guard as sd_guard
+    from src.research.strategy_discovery import guard as sd_guard
 
     GUARD_AVAILABLE = True
 except ImportError:
@@ -29,7 +29,7 @@ except ImportError:
 
 requires_guard = pytest.mark.skipif(
     not GUARD_AVAILABLE,
-    reason="waiting on sibling A: src.strategy_discovery.guard not landed yet (issue #969)",
+    reason="waiting on sibling A: src.research.strategy_discovery.guard not landed yet (issue #969)",
 )
 
 EXPECTED_TOOLS = (
@@ -120,6 +120,7 @@ class TestRoutingBlock:
 SKILL_MD_PATH = (
     Path(__file__).resolve().parents[1]
     / "src"
+    / "research"
     / "skills"
     / "strategy-discovery"
     / "SKILL.md"
@@ -148,7 +149,7 @@ class TestSkillMdNamesOnlyRegisteredTools:
     """
 
     def test_intersection_is_exactly_the_four_tools(self) -> None:
-        from src.tools import build_registry
+        from src.runtime.tools import build_registry
 
         text = SKILL_MD_PATH.read_text(encoding="utf-8")
         tokens = set(_TOOL_TOKEN_RE.findall(text))

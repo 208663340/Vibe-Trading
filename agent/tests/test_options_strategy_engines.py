@@ -14,9 +14,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.options_portfolio import run_options_backtest
+from src.backtest.engines.options_portfolio import run_options_backtest
 
-_PATH = Path(__file__).parents[1] / "src" / "skills" / "options-strategy" / "example_signal_engine.py"
+_PATH = Path(__file__).parents[1] / "src" / "research" / "skills" / "options-strategy" / "example_signal_engine.py"
 _spec = spec_from_file_location("options_strategy_engines", _PATH)
 engines = module_from_spec(_spec)
 _spec.loader.exec_module(engines)

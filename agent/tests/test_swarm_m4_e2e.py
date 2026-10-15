@@ -28,11 +28,11 @@ from unittest.mock import patch
 from fastmcp.client.client import CallToolResult
 from mcp import types as mcp_types
 
-from src.config.schema import MCPServerConfig
-from src.providers.chat import LLMResponse, ToolCallRequest
-from src.swarm.models import SwarmAgentSpec, SwarmEvent, SwarmTask
-from src.swarm.worker import run_worker
-from src.tools.mcp import build_mcp_tool_wrappers
+from src.platform.config.schema import MCPServerConfig
+from src.runtime.providers.chat import LLMResponse, ToolCallRequest
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmEvent, SwarmTask
+from src.runtime.swarm.worker import run_worker
+from src.runtime.tools.mcp import build_mcp_tool_wrappers
 
 
 # --------------------------------------------------------------------------- #
@@ -273,14 +273,14 @@ def test_run_worker_uses_remote_mcp_tool_and_report_cites_canned_data(
 
     with (
         patch(
-            "src.swarm.worker.build_swarm_registry",
+            "src.runtime.swarm.worker.build_swarm_registry",
             wraps=lambda tool_names, *, agent_config=None, include_shell_tools=False, skill_allowlist=None: _registry_with_remote(
                 tool_names,
                 remote_tools,
                 include_shell_tools=include_shell_tools,
             ),
         ),
-        patch("src.swarm.worker.ChatLLM", llm_factory),
+        patch("src.runtime.swarm.worker.ChatLLM", llm_factory),
     ):
         result = run_worker(
             agent_spec=_agent_spec(
@@ -357,12 +357,12 @@ def test_two_agents_with_distinct_servers_only_see_their_own_remote_tools(
 
         with (
             patch(
-                "src.swarm.worker.build_swarm_registry",
+                "src.runtime.swarm.worker.build_swarm_registry",
                 wraps=lambda tool_names, *, agent_config=None, include_shell_tools=False, skill_allowlist=None: _registry_with_remote(
                     tool_names, remote_tools, include_shell_tools=include_shell_tools,
                 ),
             ),
-            patch("src.swarm.worker.ChatLLM", llm_factory),
+            patch("src.runtime.swarm.worker.ChatLLM", llm_factory),
         ):
             run_worker(
                 agent_spec=_agent_spec(agent_id=agent_id, tools=whitelist),
@@ -452,12 +452,12 @@ def test_tool_call_events_carry_mcp_metadata_and_redact_sensitive_arguments(
 
     with (
         patch(
-            "src.swarm.worker.build_swarm_registry",
+            "src.runtime.swarm.worker.build_swarm_registry",
             wraps=lambda tool_names, *, agent_config=None, include_shell_tools=False, skill_allowlist=None: _registry_with_remote(
                 tool_names, remote_tools, include_shell_tools=include_shell_tools,
             ),
         ),
-        patch("src.swarm.worker.ChatLLM", llm_factory),
+        patch("src.runtime.swarm.worker.ChatLLM", llm_factory),
     ):
         run_worker(
             agent_spec=_agent_spec(
@@ -542,12 +542,12 @@ def test_remote_tool_transport_failure_does_not_crash_worker(tmp_path: Path) -> 
 
     with (
         patch(
-            "src.swarm.worker.build_swarm_registry",
+            "src.runtime.swarm.worker.build_swarm_registry",
             wraps=lambda tool_names, *, agent_config=None, include_shell_tools=False, skill_allowlist=None: _registry_with_remote(
                 tool_names, remote_tools, include_shell_tools=include_shell_tools,
             ),
         ),
-        patch("src.swarm.worker.ChatLLM", llm_factory),
+        patch("src.runtime.swarm.worker.ChatLLM", llm_factory),
     ):
         result = run_worker(
             agent_spec=_agent_spec(
@@ -595,7 +595,7 @@ def _registry_with_remote(
     what the M2 path does in production, just without spinning up a real
     MCP server discovery cycle inside the test.
     """
-    from src.tools import build_swarm_registry as _real
+    from src.runtime.tools import build_swarm_registry as _real
 
     registry = _real(tool_names, agent_config=None, include_shell_tools=include_shell_tools)
     whitelist = set(tool_names)

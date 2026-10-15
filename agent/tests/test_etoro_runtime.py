@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
+import src.interfaces.api_server as api_server
 
 pytestmark = pytest.mark.unit
 

@@ -19,9 +19,9 @@ from typing import Any
 import httpx
 import pytest
 
-from src.channels.base import BaseChannel
-from src.channels.bus.queue import MessageBus
-from src.channels.dingtalk import DINGTALK_AVAILABLE, DingTalkChannel
+from src.interfaces.channels.base import BaseChannel
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.dingtalk import DINGTALK_AVAILABLE, DingTalkChannel
 
 TOKEN_URL = "https://api.dingtalk.com/v1.0/oauth2/accessToken"
 CLIENT_ID = "ding-client-id-1234567890"
@@ -36,8 +36,8 @@ _REAL_ASYNC_CLIENT = httpx.AsyncClient
 # Modules whose optional SDK is absent are skipped at runtime rather than
 # removed from the parametrization, so coverage grows wherever deps are installed.
 _DEFAULT_CHANNEL_CANDIDATES: list[tuple[str, str]] = [
-    ("src.channels.telegram", "TelegramChannel"),
-    ("src.channels.wecom", "WecomChannel"),
+    ("src.interfaces.channels.telegram", "TelegramChannel"),
+    ("src.interfaces.channels.wecom", "WecomChannel"),
 ]
 
 

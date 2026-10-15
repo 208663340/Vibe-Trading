@@ -12,10 +12,10 @@ from pathlib import Path
 
 import pytest
 
-from cli import _legacy
-from src.agent.trace import TraceWriter
-from src.goal import GoalStore
-from src.tools.goal_tool import StartResearchGoalTool
+from src.interfaces.cli import _legacy
+from src.runtime.agent.trace import TraceWriter
+from src.runtime.goal import GoalStore
+from src.runtime.tools.goal_tool import StartResearchGoalTool
 
 
 @pytest.fixture()
@@ -93,7 +93,7 @@ def test_ensure_session_id_survives_an_unwritable_store(sessions_dir, monkeypatc
         def __init__(self, *a, **kw) -> None:
             raise OSError("disk gone")
 
-    monkeypatch.setattr("src.session.store.SessionStore", _Boom)
+    monkeypatch.setattr("src.runtime.session.store.SessionStore", _Boom)
 
     assert _legacy._ensure_session_id("prompt")
 
@@ -154,8 +154,8 @@ def test_cmd_session_chat_passes_the_session_it_was_given(
     sessions_dir, monkeypatch
 ) -> None:
     """The id was already in scope as a parameter and simply was not forwarded."""
-    from src.session.models import Session
-    from src.session.store import SessionStore
+    from src.runtime.session.models import Session
+    from src.runtime.session.store import SessionStore
 
     store = SessionStore(base_dir=sessions_dir)
     session = Session(title="existing")

@@ -10,8 +10,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.trading.connectors.ibkr import local
-from src.tools.trading_connector_tool import TradingPositionsTool
+from src.markets.trading.connectors.ibkr import local
+from src.runtime.tools.trading_connector_tool import TradingPositionsTool
 
 pytestmark = pytest.mark.unit
 
@@ -174,7 +174,7 @@ def test_service_uses_persisted_ibkr_local_config(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
     """Configured local endpoint values must survive later connector calls."""
-    from src.trading import service
+    from src.markets.trading import service
 
     monkeypatch.setattr(local, "get_runtime_root", lambda: tmp_path)
     local.save_config(
@@ -204,10 +204,10 @@ def test_service_uses_persisted_ibkr_local_config(
 
 
 def test_cli_connector_routes_to_handler() -> None:
-    from cli._legacy import _build_parser, _dispatch_connector
+    from src.interfaces.cli._legacy import _build_parser, _dispatch_connector
 
     args = _build_parser().parse_args(["connector", "check", "ibkr-paper-local", "--account", "DU12345"])
-    with patch("cli._legacy.cmd_connector_check", return_value=0) as handler:
+    with patch("src.interfaces.cli._legacy.cmd_connector_check", return_value=0) as handler:
         assert _dispatch_connector(args) == 0
     handler.assert_called_once_with(
         "ibkr-paper-local",
@@ -219,10 +219,10 @@ def test_cli_connector_routes_to_handler() -> None:
 
 
 def test_cli_connector_check_passes_account_to_backend() -> None:
-    from cli._legacy import cmd_connector_check
+    from src.interfaces.cli._legacy import cmd_connector_check
 
     report = {"status": "ok", "ports": [], "target": {}, "sdk": {"installed": True}}
-    with patch("src.trading.service.check_connection", return_value=report) as check:
+    with patch("src.markets.trading.service.check_connection", return_value=report) as check:
         assert cmd_connector_check("ibkr-paper-local", account="DU12345") == 0
     check.assert_called_once_with(
         "ibkr-paper-local",

@@ -12,17 +12,17 @@ from pathlib import Path
 
 import pytest
 
-from src.trading import local_plugins
-from src.trading.connections import (
+from src.markets.trading import local_plugins
+from src.markets.trading.connections import (
     ConnectionStore,
     is_portfolio_connection_profile,
     readonly_profile_catalog,
 )
-from src.trading.credentials import CredentialStore
-from src.trading.local_plugins import clear_plugin_cache, discover_plugins
-from src.trading.plugin_scaffold import scaffold_connector
-from src.trading.profiles import profile_by_id
-from src.trading.types import TradingProfile
+from src.markets.trading.credentials import CredentialStore
+from src.markets.trading.local_plugins import clear_plugin_cache, discover_plugins
+from src.markets.trading.plugin_scaffold import scaffold_connector
+from src.markets.trading.profiles import profile_by_id
+from src.markets.trading.types import TradingProfile
 
 ROOT = Path(__file__).resolve().parents[2]
 AGENT_DIR = ROOT / "agent"
@@ -111,8 +111,8 @@ def test_connection_modules_import_without_keyring_installed() -> None:
         "lambda name, path=None, target=None: "
         "(_ for _ in ()).throw(ModuleNotFoundError(name)) "
         "if name.split('.')[0] == 'keyring' else None)})());"
-        "import src.trading.connections, src.trading.profiles, "
-        "src.api.connection_routes;"
+        "import src.markets.trading.connections, src.markets.trading.profiles, "
+        "src.interfaces.api.connection_routes;"
         "print('imported')"
     )
     env = os.environ.copy()
@@ -237,7 +237,7 @@ def test_discovery_only_profile_cannot_back_a_portfolio_connection(
         readonly=True,
         config={"server": "test"},
     )
-    monkeypatch.setattr("src.trading.connections.profile_by_id", lambda _: profile)
+    monkeypatch.setattr("src.markets.trading.connections.profile_by_id", lambda _: profile)
     assert profile.readonly is True
     assert profile.capabilities == ("mcp.read.discovery",)
     assert is_portfolio_connection_profile(profile) is False

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.channels.dingtalk import DingTalkChannel
+from src.interfaces.channels.dingtalk import DingTalkChannel
 
 
 def _channel(
@@ -36,7 +36,7 @@ def _channel(
     channel._http = http
 
     monkeypatch.setattr(
-        "src.channels.utils.get_media_dir", lambda name: tmp_path / name
+        "src.interfaces.channels.utils.get_media_dir", lambda name: tmp_path / name
     )
     return channel
 

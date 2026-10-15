@@ -17,13 +17,13 @@ from unittest.mock import patch
 
 import pytest
 
-from src.tools.backtest_summary import (
+from src.runtime.tools.backtest_summary import (
     MAX_PREVIEW_POINTS,
     build_backtest_summary,
     collect_ohlcv_paths,
     try_build_backtest_summary,
 )
-from src.tools.backtest_tool import run_backtest
+from src.runtime.tools.backtest_tool import run_backtest
 
 CARD_METRICS = {
     "sharpe": 1.25,
@@ -132,8 +132,8 @@ class _FakeRunResult:
 
 def _run_tool(run_dir: Path, result: _FakeRunResult) -> dict:
     with (
-        patch("src.tools.backtest_tool.emit_progress"),
-        patch("src.tools.backtest_tool.Runner") as runner_cls,
+        patch("src.runtime.tools.backtest_tool.emit_progress"),
+        patch("src.runtime.tools.backtest_tool.Runner") as runner_cls,
     ):
         runner_cls.return_value.execute.return_value = result
         return json.loads(run_backtest(str(run_dir)))
@@ -496,7 +496,7 @@ def test_ohlcv_paths_skip_external_symlinks_and_directories(summary_run_dir, tmp
 
 
 def test_real_run_card_structured_metrics_reach_summary(summary_run_dir):
-    from backtest.run_card import write_run_card
+    from src.backtest.run_card import write_run_card
     card = write_run_card(summary_run_dir, {"codes": ["BTC-USDT"]}, {
         "sharpe": 1.25, "unfilled_plan_rejections_by_symbol": {"BTC-USDT": 2},
         "validation": {"passed": False}, "warnings": ["annualisation adjusted"],
@@ -508,7 +508,7 @@ def test_real_run_card_structured_metrics_reach_summary(summary_run_dir):
 
 
 def test_long_equity_summary_survives_model_delivery(summary_run_dir):
-    from src.config.limits import TOOL_RESULT_LIMIT, truncate_tool_result
+    from src.platform.config.limits import TOOL_RESULT_LIMIT, truncate_tool_result
     _write_equity_csv(summary_run_dir / "artifacts/equity.csv", _equity_rows(10000))
     result = _run_tool(summary_run_dir, _FakeRunResult(success=True, exit_code=0, stdout="x" * 4000, stderr="y" * 4000))
     delivered = json.dumps(result, ensure_ascii=False)
@@ -521,7 +521,7 @@ def test_long_equity_summary_survives_model_delivery(summary_run_dir):
 
 
 def test_oversized_metrics_summary_reports_omission(summary_run_dir):
-    from src.config.limits import TOOL_RESULT_LIMIT
+    from src.platform.config.limits import TOOL_RESULT_LIMIT
     card = _run_card()
     card["structured_metrics"] = {"detail": "x" * TOOL_RESULT_LIMIT}
     (summary_run_dir / "run_card.json").write_text(json.dumps(card))

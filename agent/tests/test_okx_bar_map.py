@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.okx.sdk import _BAR_MAP
+from src.markets.trading.connectors.okx.sdk import _BAR_MAP
 
 
 def test_project_hour_tokens_map_to_hour_not_daily() -> None:

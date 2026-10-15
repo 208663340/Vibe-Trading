@@ -3,7 +3,7 @@
 The ``data-routing`` skill is the single ROUTER and its Source Overview table
 enumerates the registered backtest data sources by name. This test parses those
 names straight from the markdown and asserts they form a strict **subset** of
-``backtest.loaders.registry.VALID_SOURCES`` — so the doc can never name a source
+``src.backtest.loaders.registry.VALID_SOURCES`` — so the doc can never name a source
 the code does not actually register (code-first invariant).
 """
 
@@ -12,12 +12,12 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from backtest.loaders.registry import VALID_SOURCES
+from src.backtest.loaders.registry import VALID_SOURCES
 
 # SKILL.md lives next to the loader registry under the source tree:
-# agent/backtest/loaders/registry.py -> agent/src/skills/data-routing/SKILL.md
+# agent/src/backtest/loaders/registry.py -> agent/src/research/skills/data-routing/SKILL.md
 _AGENT_ROOT = Path(__file__).resolve().parents[1]
-_SKILL_PATH = _AGENT_ROOT / "src" / "skills" / "data-routing" / "SKILL.md"
+_SKILL_PATH = _AGENT_ROOT / "src" / "research" / "skills" / "data-routing" / "SKILL.md"
 
 # A Source Overview row looks like ``| tushare | A-shares ... |``; the source name
 # is the first pipe-delimited cell. We collect only rows whose first cell is a bare
@@ -130,8 +130,8 @@ def test_capability_market_coverage_matches_tool_descriptions() -> None:
     expected markets from the tools themselves so the doc can never under-state
     coverage again.
     """
-    from src.tools.financial_statements_tool import FinancialStatementsTool
-    from src.tools.stock_news_tool import StockNewsTool
+    from src.runtime.tools.financial_statements_tool import FinancialStatementsTool
+    from src.runtime.tools.stock_news_tool import StockNewsTool
 
     coverage = _capability_markets_in_skill()
     tools = {

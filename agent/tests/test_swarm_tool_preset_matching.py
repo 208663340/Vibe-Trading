@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-import src.tools.swarm_tool as swarm_tool
+import src.runtime.tools.swarm_tool as swarm_tool
 
 
 def test_explicit_preset_name_wins_over_keyword_scoring() -> None:

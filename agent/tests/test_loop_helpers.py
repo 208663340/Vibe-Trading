@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 
-from src.agent.loop import (
+from src.runtime.agent.loop import (
     KEEP_RECENT,
     COLLAPSE_PRESERVE_RECENT,
     COLLAPSE_TEXT_MIN,
@@ -560,7 +560,7 @@ class TestArchiveBacktestResult:
 
 def test_llm_timeout_seconds_default_and_override(monkeypatch) -> None:
     """The LLM call timeout reads config and honors a module-level override."""
-    import src.agent.tuning as tuning_module
+    import src.runtime.agent.tuning as tuning_module
 
     assert _llm_timeout_seconds() > 0
     monkeypatch.setattr(tuning_module, "LLM_TIMEOUT_SECONDS", 42.0, raising=False)
@@ -581,9 +581,9 @@ def test_pending_write_directive_tracks_written_targets(tmp_path: Path) -> None:
     import os
     import time
 
-    import src.agent.loop as loop_module
-    from src.agent.loop import AgentLoop
-    from src.agent.tools import ToolRegistry
+    import src.runtime.agent.loop as loop_module
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.agent.tools import ToolRegistry
 
     agent = AgentLoop(registry=ToolRegistry(), llm=None)
     now = time.time()
@@ -633,7 +633,7 @@ def test_verification_ledger_extracts_calc_results() -> None:
             "expr": "85.4/108.8-1", "result": -0.2151, "result_exact": "-0.21507353",
         })},
     ]
-    from src.agent.loop import _verification_ledger
+    from src.runtime.agent.loop import _verification_ledger
     ledger = _verification_ledger(messages)
     assert "calc 92.13/101.65-1 = -0.09365912" in ledger
     assert "calc 85.4/108.8-1 = -0.21507353" in ledger
@@ -649,7 +649,7 @@ def test_verification_ledger_skips_errors_and_other_tools() -> None:
         {"role": "tool", "name": "financial_rigor", "content": "not json at all"},
         {"role": "user", "content": "hello"},
     ]
-    from src.agent.loop import _verification_ledger
+    from src.runtime.agent.loop import _verification_ledger
     assert _verification_ledger(messages) == ""
 
 
@@ -665,14 +665,14 @@ def test_verification_ledger_deduplicates_and_caps() -> None:
             "expr": "a/b", "result": 1.0, "result_exact": "1.0",
         })},
     ]
-    from src.agent.loop import _verification_ledger
+    from src.runtime.agent.loop import _verification_ledger
     ledger = _verification_ledger(messages)
     assert ledger.count("calc a/b") == 1
 
 
 def test_stall_timeout_seconds_default_and_override(monkeypatch) -> None:
     """The stall watchdog timeout reads config and honors a module override."""
-    import src.agent.tuning as tuning_module
+    import src.runtime.agent.tuning as tuning_module
 
     assert _stall_timeout_seconds() > 0
     monkeypatch.setattr(tuning_module, "STALL_TIMEOUT_SECONDS", 42.0, raising=False)
@@ -688,7 +688,7 @@ def test_stall_timeout_seconds_default_and_override(monkeypatch) -> None:
 def test_tail_cut_index_counts_tool_call_arguments() -> None:
     """#tail-budget: a fat tool_call (empty content, huge arguments) must be
     pushed into the folded head, not counted as ~10 tokens in the tail."""
-    from src.agent.loop import _tail_cut_index  # new helper: absent on pre-fix code
+    from src.runtime.agent.loop import _tail_cut_index  # new helper: absent on pre-fix code
 
     fat = "X" * 90_000  # ~22.5K tokens once arguments are counted
     body = [
@@ -711,7 +711,7 @@ def test_tail_cut_index_counts_tool_call_arguments() -> None:
 def test_tail_cut_index_counts_reasoning_content() -> None:
     """#tail-budget: a thinking-model turn's huge reasoning_content must be
     pushed into the folded head too, not counted as ~10 tokens in the tail."""
-    from src.agent.loop import _tail_cut_index
+    from src.runtime.agent.loop import _tail_cut_index
 
     fat = "X" * 90_000  # ~22.5K tokens once reasoning_content is counted
     body = [
@@ -788,7 +788,7 @@ def test_context_collapse_stubs_args_for_fix_tool_pairs_stub_result() -> None:
     """#adversarial: layer-3's ``_fix_tool_pairs`` stub result marker must also
     count as 'result data gone' — a call that survived a layer-3 fold gets its
     huge arguments stubbed too, not only microcompact's ``[cleared]``."""
-    from src.agent.loop import _STUB_RESULT_CONTENT
+    from src.runtime.agent.loop import _STUB_RESULT_CONTENT
 
     fat = "Y" * (COLLAPSE_TEXT_MIN * 3)
     call_msg = {
@@ -815,7 +815,7 @@ def test_context_collapse_stubs_args_for_fix_tool_pairs_stub_result() -> None:
 def test_msg_estimate_chars_counts_dict_arguments() -> None:
     """#adversarial: dict (non-string) arguments must count toward sizing,
     consistent with ``estimate_tokens``' full serialization gate."""
-    from src.agent.loop import _msg_estimate_chars
+    from src.runtime.agent.loop import _msg_estimate_chars
 
     big_dict = {"q": "X" * 4000}
     msg = {
@@ -830,7 +830,7 @@ def test_msg_estimate_chars_counts_dict_arguments() -> None:
 def test_msg_estimate_chars_counts_reasoning_content() -> None:
     """#adversarial: reasoning_content must count toward sizing too, consistent
     with ``estimate_tokens``' full serialization gate."""
-    from src.agent.loop import _msg_estimate_chars
+    from src.runtime.agent.loop import _msg_estimate_chars
 
     msg = {
         "role": "assistant",

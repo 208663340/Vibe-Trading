@@ -12,9 +12,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.base import BaseEngine, _align, _load_optimizer
-from backtest.engines.china_a import ChinaAEngine
-from backtest.models import Position
+from src.backtest.engines.base import BaseEngine, _align, _load_optimizer
+from src.backtest.engines.china_a import ChinaAEngine
+from src.backtest.models import Position
 
 _ENTRY_TS = pd.Timestamp("2026-01-02")
 _ADJUST_TS = pd.Timestamp("2026-01-03")
@@ -246,7 +246,7 @@ def test_trades_csv_entry_row_is_the_opening_fill_after_a_scale_in(tmp_path):
     stamped with the first open's date, so pairing the two would describe a
     fill that never took place. Each round trip still writes exactly two rows.
     """
-    from src.strategy_discovery.run_artifacts import read_trade_activity
+    from src.research.strategy_discovery.run_artifacts import read_trade_activity
 
     engine = _AdjustmentEngine()
     weights = {"A": [0.25, 0.50, 0.0, 0.25, 0.0]}
@@ -683,7 +683,7 @@ def test_every_written_artifact_is_declared_to_the_runner(tmp_path) -> None:
     (written ⊆ declared) makes adding an artifact without registering it fail
     here rather than silently.
     """
-    from src.core.runner import _ARTIFACTS_SPEC
+    from src.platform.core.runner import _ARTIFACTS_SPEC
 
     dates, bars, close_df, targets = _fractional_fixture([0.2, 0.8, 0.8])
     engine = _FractionalEngine(block_adds_after_first=True)

@@ -3,7 +3,7 @@
 import json
 from unittest.mock import patch
 
-from src.tools.sentiment_tool import (
+from src.runtime.tools.sentiment_tool import (
     SentimentTool,
     _score_text,
     _tokenize,
@@ -77,7 +77,7 @@ class TestScoreText:
         assert r["score"] == 0.0
 
     def test_lexicons_are_disjoint(self):
-        from src.tools.sentiment_tool import _NEGATIVE, _POSITIVE
+        from src.runtime.tools.sentiment_tool import _NEGATIVE, _POSITIVE
         assert _POSITIVE & _NEGATIVE == frozenset()
 
     def test_new_low_is_bearish(self):

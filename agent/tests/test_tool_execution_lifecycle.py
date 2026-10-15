@@ -8,8 +8,8 @@ import threading
 import time
 from types import SimpleNamespace
 
-from src.agent import tuning
-from src.agent.progress import emit_progress
+from src.runtime.agent import tuning
+from src.runtime.agent.progress import emit_progress
 from agent.tests.test_readonly_replay_after_microcompact import _Context, _Trace, _loop
 
 
@@ -184,9 +184,9 @@ def test_read_worker_receives_copied_context(monkeypatch):
 
 def test_default_budget_survives_loop_and_runtime_instances(monkeypatch, tmp_path):
     import asyncio
-    from src.agent.tool_execution import abandoned_readonly_tool_count
-    from src.api.runtime import RuntimeServices
-    from src.session.execution import CloseSummary
+    from src.runtime.agent.tool_execution import abandoned_readonly_tool_count
+    from src.interfaces.api.runtime import RuntimeServices
+    from src.runtime.session.execution import CloseSummary
 
     monkeypatch.setattr(tuning, "TOOL_TIMEOUT_SECONDS", 0, raising=False)
     release = threading.Event()
@@ -255,7 +255,7 @@ def test_default_budget_survives_loop_and_runtime_instances(monkeypatch, tmp_pat
 
 
 def test_start_failure_releases_reader_capacity(monkeypatch):
-    from src.agent.tool_execution import ReadonlyToolBudget
+    from src.runtime.agent.tool_execution import ReadonlyToolBudget
 
     budget = ReadonlyToolBudget(1)
     loop = _loop(Registry(lambda *_: '{"status":"ok"}'))
@@ -276,7 +276,7 @@ def test_start_failure_releases_reader_capacity(monkeypatch):
 
 
 def test_raw_grounding_and_ordered_commit_are_caller_owned(monkeypatch):
-    import src.agent.loop as loop_module
+    import src.runtime.agent.loop as loop_module
 
     caller = threading.get_ident()
     ingestion = []
@@ -298,7 +298,7 @@ def test_raw_grounding_and_ordered_commit_are_caller_owned(monkeypatch):
 
 
 def test_synthetic_and_executed_results_keep_call_identity_and_order(monkeypatch):
-    from src.agent import tuning
+    from src.runtime.agent import tuning
 
     monkeypatch.setattr(tuning, "TOKEN_THRESHOLD", 100, raising=False)
     loop = _loop(Registry(lambda *_: '{"status":"ok"}'))
@@ -344,7 +344,7 @@ def test_synthetic_and_executed_results_keep_call_identity_and_order(monkeypatch
 
 
 def test_timed_out_live_readers_keep_eight_batch_slots(monkeypatch):
-    from src.agent.tool_execution import ReadonlyToolBudget
+    from src.runtime.agent.tool_execution import ReadonlyToolBudget
 
     monkeypatch.setattr(tuning, "TOOL_TIMEOUT_SECONDS", 0.03, raising=False)
     release = threading.Event()
@@ -414,7 +414,7 @@ def test_worker_progress_is_bounded_while_caller_callback_stalls(monkeypatch):
 
 
 def test_cancel_during_argument_snapshot_refuses_actual_reader_dispatch(monkeypatch):
-    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+    from src.runtime.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
 
     snapshot_entered, snapshot_release, cancel = threading.Event(), threading.Event(), threading.Event()
     marker = contextvars.ContextVar("snapshot-dispatch-context", default="missing")
@@ -493,7 +493,7 @@ def test_cancel_during_argument_snapshot_refuses_actual_reader_dispatch(monkeypa
 
 
 def test_cancel_after_worker_admission_refuses_actual_reader_dispatch(monkeypatch):
-    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+    from src.runtime.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
 
     paused, release, worker_exited, cancel = (threading.Event() for _ in range(4))
     marker = contextvars.ContextVar("paused-dispatch-context", default="missing")
@@ -570,7 +570,7 @@ def test_cancel_after_worker_admission_refuses_actual_reader_dispatch(monkeypatc
 
 
 def test_worker_stop_predicate_failure_releases_capacity_without_dispatch(monkeypatch):
-    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+    from src.runtime.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
 
     marker = contextvars.ContextVar("failed-dispatch-context", default="missing")
     workers, contexts, effects, events = [], [], [], []
@@ -614,7 +614,7 @@ def test_worker_stop_predicate_failure_releases_capacity_without_dispatch(monkey
 
 
 def test_worker_context_stop_refusal_is_delivered_as_cancellation(monkeypatch):
-    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+    from src.runtime.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
 
     marker = contextvars.ContextVar("context-stop-refusal", default="missing")
     workers, contexts, effects, events = [], [], [], []
@@ -656,7 +656,7 @@ def test_worker_context_stop_refusal_is_delivered_as_cancellation(monkeypatch):
 
 
 def test_worker_refusal_after_poll_entry_stays_cancelled_at_completion():
-    from src.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
+    from src.runtime.agent.tool_execution import PreparedToolCall, ReadonlyToolBudget, ToolInvoker
 
     marker = contextvars.ContextVar("completion-refusal-context", default="missing")
     worker_entered, release_worker = threading.Event(), threading.Event()

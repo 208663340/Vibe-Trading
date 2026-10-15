@@ -19,8 +19,8 @@ import types
 import pandas as pd
 import pytest
 
-from backtest.loaders import pykrx_loader as mod
-from backtest.loaders.pykrx_loader import DataLoader, _normalize, map_symbol
+from src.backtest.loaders import pykrx_loader as mod
+from src.backtest.loaders.pykrx_loader import DataLoader, _normalize, map_symbol
 from tests.loader_contract import assert_loader_contract
 
 
@@ -180,8 +180,8 @@ class TestProvenance:
         With the optional package missing, the kr_equity chain resolves to
         Yahoo; recording ``pykrx`` would claim data pykrx never returned.
         """
-        from backtest import runner
-        from backtest.loaders import yahoo_loader
+        from src.backtest import runner
+        from src.backtest.loaders import yahoo_loader
 
         frame = pd.DataFrame(
             {"open": [100.0], "high": [101.0], "low": [99.0],
@@ -210,8 +210,8 @@ class TestProvenance:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Same guarantee on the ``source="auto"`` path (symbol-pattern head)."""
-        from backtest import runner
-        from backtest.loaders import yahoo_loader
+        from src.backtest import runner
+        from src.backtest.loaders import yahoo_loader
 
         frame = pd.DataFrame(
             {"open": [100.0], "high": [101.0], "low": [99.0],

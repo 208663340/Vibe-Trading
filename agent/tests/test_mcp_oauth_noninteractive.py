@@ -17,7 +17,7 @@ import webbrowser
 import pytest
 from fastmcp.client.auth import OAuth
 
-from src.config.schema import MCPServerConfig
+from src.platform.config.schema import MCPServerConfig
 
 pytestmark = pytest.mark.unit
 
@@ -109,7 +109,7 @@ def _oauth_provider(
     Returns:
         The ``OAuth`` instance wired onto the streamable-HTTP transport.
     """
-    from src.tools.mcp import MCPServerAdapter
+    from src.runtime.tools.mcp import MCPServerAdapter
 
     cfg = MCPServerConfig.model_validate(
         {

@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from src.quantlib.attribution import brinson_fachler, carino_factor, carino_link
+from src.research.quantlib.attribution import brinson_fachler, carino_factor, carino_link
 
 
 @pytest.mark.parametrize("bad", [math.nan, math.inf, -math.inf])
@@ -72,7 +72,7 @@ def test_finite_short_weights_and_absent_zero_weight_returns_still_reconcile() -
 def test_quantlib_tool_reports_invalid_attribution_as_error(
     function: str, kwargs: dict
 ) -> None:
-    from src.tools.quantlib_tool import QuantlibCallTool
+    from src.runtime.tools.quantlib_tool import QuantlibCallTool
 
     result = json.loads(
         QuantlibCallTool().execute(

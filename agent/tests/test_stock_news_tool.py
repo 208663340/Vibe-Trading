@@ -1,8 +1,8 @@
 """Tests for the stock-news tool.
 
 No request leaves the process: the Eastmoney HTTP boundary
-(:func:`backtest.loaders.eastmoney_client.throttled_get_json`) and the Yahoo
-:func:`backtest.loaders.yahoo_client.search_news` helper are mocked so the real
+(:func:`src.backtest.loaders.eastmoney_client.throttled_get_json`) and the Yahoo
+:func:`src.backtest.loaders.yahoo_client.search_news` helper are mocked so the real
 client + tool parsing run fully offline.
 """
 
@@ -14,8 +14,8 @@ from unittest.mock import patch
 
 import pytest
 
-from backtest.loaders import eastmoney_client, yahoo_client
-from src.tools.stock_news_tool import (
+from src.backtest.loaders import eastmoney_client, yahoo_client
+from src.runtime.tools.stock_news_tool import (
     StockNewsTool,
     _bare_query,
     _clamp_limit,

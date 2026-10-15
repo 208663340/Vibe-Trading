@@ -18,9 +18,9 @@ from __future__ import annotations
 
 import pytest
 
-from src.agent.context import ContextBuilder
-from src.agent.memory import WorkspaceMemory
-from src.agent.tools import ToolRegistry
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.memory import WorkspaceMemory
+from src.runtime.agent.tools import ToolRegistry
 
 pytestmark = pytest.mark.unit
 
@@ -43,7 +43,7 @@ class TestSystemPromptCacheStability:
         m2.increment("backtest")
 
         # Freeze the clock so only run_dir/counters differ between the two.
-        import src.agent.context as ctx
+        import src.runtime.agent.context as ctx
         from datetime import datetime, timezone
 
         frozen = datetime(2026, 10, 6, 12, 0, 0, tzinfo=timezone.utc)

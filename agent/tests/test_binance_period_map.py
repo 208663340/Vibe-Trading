@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.binance import sdk as bn
+from src.markets.trading.connectors.binance import sdk as bn
 
 
 class _FakeEx:

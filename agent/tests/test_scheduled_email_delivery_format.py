@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import scheduled_routes
-from src.scheduled_research.store import ScheduledResearchJobStore
+import src.interfaces.api_server as api_server
+from src.interfaces.api import scheduled_routes
+from src.research.scheduled_research.store import ScheduledResearchJobStore
 
 
 @pytest.fixture

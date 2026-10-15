@@ -6,30 +6,30 @@ from datetime import date, timedelta
 
 import pytest
 
-from src.strategy_store.adaptation import (
+from src.research.strategy_store.adaptation import (
     AdaptationError,
     AdaptationPatch,
     adapt_artifact,
     register_adaptation,
 )
-from src.strategy_store.models import (
+from src.research.strategy_store.models import (
     Artifact,
     ArtifactStatus,
     ArtifactType,
     ValidationStatus,
 )
-from src.strategy_discovery.models import (
+from src.research.strategy_discovery.models import (
     EvidenceRow,
     classify_quality,
     coverage_days_from_ranges,
 )
-from src.strategy_store.store import InMemoryStrategyStore
+from src.research.strategy_store.store import InMemoryStrategyStore
 
 
 @pytest.fixture(autouse=True)
 def _reset_store(tmp_path):
-    import src.strategy_store._shared as shared
-    from src.strategy_store.sqlite_store import SqliteStrategyStore
+    import src.research.strategy_store._shared as shared
+    from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
     shared._store = SqliteStrategyStore(db_path=tmp_path / "test.db")
     yield
@@ -186,7 +186,7 @@ class TestRegisterAdaptation:
 
 class TestSqliteDerivedFromRoundtrip:
     def test_derived_from_survives_sqlite_roundtrip(self) -> None:
-        from src.strategy_store._shared import get_store
+        from src.research.strategy_store._shared import get_store
 
         store = get_store()
         parent_id = store.register_artifact(_strategy(artifact_id=""))
@@ -255,7 +255,7 @@ class TestChildDoesNotInheritAttestation:
 
     def test_cleared_child_is_not_a_four_eyes_violation(self) -> None:
         """A same-person dev/approve pair must not survive the copy either."""
-        from src.strategy_store.models import is_four_eyes_violation
+        from src.research.strategy_store.models import is_four_eyes_violation
 
         parent = _strategy(developer="Ada", approver="Ada")
         assert is_four_eyes_violation(parent)

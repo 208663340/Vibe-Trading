@@ -12,16 +12,16 @@ from __future__ import annotations
 
 import pytest
 
-from backtest.loaders.akshare_loader import DataLoader as AkshareLoader
-from backtest.loaders.baostock_loader import DataLoader as BaostockLoader
-from backtest.loaders.eastmoney_loader import DataLoader as EastmoneyLoader
-from backtest.loaders.local_loader import DataLoader as LocalLoader
-from backtest.loaders.mootdx_loader import DataLoader as MootdxLoader
-from backtest.loaders.stooq_loader import DataLoader as StooqLoader
-from backtest.loaders.tencent_loader import DataLoader as TencentLoader
-from backtest.loaders.tushare import DataLoader as TushareLoader
-from backtest.loaders.yahoo_loader import DataLoader as YahooLoader
-from backtest.loaders.yfinance_loader import DataLoader as YfinanceLoader
+from src.backtest.loaders.akshare_loader import DataLoader as AkshareLoader
+from src.backtest.loaders.baostock_loader import DataLoader as BaostockLoader
+from src.backtest.loaders.eastmoney_loader import DataLoader as EastmoneyLoader
+from src.backtest.loaders.local_loader import DataLoader as LocalLoader
+from src.backtest.loaders.mootdx_loader import DataLoader as MootdxLoader
+from src.backtest.loaders.stooq_loader import DataLoader as StooqLoader
+from src.backtest.loaders.tencent_loader import DataLoader as TencentLoader
+from src.backtest.loaders.tushare import DataLoader as TushareLoader
+from src.backtest.loaders.yahoo_loader import DataLoader as YahooLoader
+from src.backtest.loaders.yfinance_loader import DataLoader as YfinanceLoader
 
 
 @pytest.mark.parametrize(

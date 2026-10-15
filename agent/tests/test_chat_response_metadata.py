@@ -1,10 +1,10 @@
 from pathlib import Path
 from types import MethodType, SimpleNamespace
 
-import src.providers.chat as chat_module
-from src.agent.loop import AgentLoop
-from src.config.accessor import reset_env_config
-from src.providers.chat import ChatLLM, LLMResponse
+import src.runtime.providers.chat as chat_module
+from src.runtime.agent.loop import AgentLoop
+from src.platform.config.accessor import reset_env_config
+from src.runtime.providers.chat import ChatLLM, LLMResponse
 
 
 def test_parse_response_keeps_provider_reported_model() -> None:

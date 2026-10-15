@@ -8,7 +8,7 @@ import urllib.request
 import pandas as pd
 import pytest
 
-from backtest.loaders import tencent_loader
+from src.backtest.loaders import tencent_loader
 from tests.loader_contract import assert_loader_contract
 
 

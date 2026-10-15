@@ -26,7 +26,7 @@ class TestSpaHtmlRouteMatcher:
         ],
     )
     def test_spa_pages_match(self, path: str) -> None:
-        from api_server import _is_spa_html_route
+        from src.interfaces.api_server import _is_spa_html_route
 
         assert _is_spa_html_route(path) is True, path
 
@@ -45,6 +45,6 @@ class TestSpaHtmlRouteMatcher:
         ],
     )
     def test_api_only_paths_do_not_match(self, path: str) -> None:
-        from api_server import _is_spa_html_route
+        from src.interfaces.api_server import _is_spa_html_route
 
         assert _is_spa_html_route(path) is False, path

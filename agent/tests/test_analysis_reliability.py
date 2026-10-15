@@ -9,10 +9,10 @@ import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from backtest import correlation, regime
-from src.api import alpha_routes
-from src.market_data import detect_source, fetch_market_data, fetch_market_data_json
+import src.interfaces.api_server as api_server
+from src.backtest import correlation, regime
+from src.interfaces.api import alpha_routes
+from src.markets.market_data import detect_source, fetch_market_data, fetch_market_data_json
 
 
 def _frame(seed=1):
@@ -148,7 +148,7 @@ def test_readiness_snapshots_and_single_asset_validation():
 
 @pytest.mark.parametrize("token,ready", [("", False), (" \t\n", False), ("synthetic-token", True)])
 def test_alpha_readiness_requires_a_nonblank_tushare_token(monkeypatch, token, ready):
-    from src.config import accessor
+    from src.platform.config import accessor
 
     config = accessor.get_env_config()
     config = config.model_copy(update={"data": config.data.model_copy(update={"tushare_token": token})})
@@ -179,7 +179,7 @@ def test_lost_submission_response_reuses_job_and_refuses_changed_parameters(monk
 
 
 def test_factor_data_falls_back_and_names_unserved_members(monkeypatch):
-    from src.tools import alpha_bench_tool as tool
+    from src.runtime.tools import alpha_bench_tool as tool
     monkeypatch.setattr(tool, "_fetch_sp500_constituents", lambda: (["AAPL", "MSFT", "MISSING"], {}))
     class Primary:
         name = "yahoo"
@@ -191,7 +191,7 @@ def test_factor_data_falls_back_and_names_unserved_members(monkeypatch):
             return {code: _frame() for code in codes if code != "MISSING.US"}
     def resolve(name):
         return {"yahoo": Primary, "stooq": Secondary}.get(name, Primary)
-    monkeypatch.setattr("src.market_data.get_loader", resolve)
+    monkeypatch.setattr("src.markets.market_data.get_loader", resolve)
     panel = tool._load_sp500_panel("2025-01-01", "2026-01-01")
     assert set(panel["close"].columns) == {"AAPL.US", "MSFT.US"}
     assert panel["_meta"]["missing_instruments"] == ["MISSING.US"]
@@ -201,12 +201,12 @@ def test_factor_data_falls_back_and_names_unserved_members(monkeypatch):
 
 def test_fundamental_factor_dependencies_are_loaded_at_filing_time(monkeypatch):
     from types import SimpleNamespace
-    from src.tools.alpha_bench_tool import _prepare_bench_panel
+    from src.runtime.tools.alpha_bench_tool import _prepare_bench_panel
     frame = pd.concat([_frame()["close"], _frame(2)["close"]], axis=1)
     frame.columns = ["AAPL.US", "MSFT.US"]
     frame.iloc[0] = np.nan
     loader = Mock(return_value={"net_income": frame, "shares_diluted": frame})
-    monkeypatch.setattr("backtest.loaders.fundamentals_loader.load_fundamental_panel", loader)
+    monkeypatch.setattr("src.backtest.loaders.fundamentals_loader.load_fundamental_panel", loader)
     registry = SimpleNamespace(get=lambda _: SimpleNamespace(meta={"columns_required": ["close", "fund:net_income", "fund:shares_diluted"]}))
     prices = {"close": frame.copy()}
     result = _prepare_bench_panel(registry, ["fundamental_earnings_yield"], prices, "sp500", "2025-2025")
@@ -220,10 +220,10 @@ def test_fundamental_factor_dependencies_are_loaded_at_filing_time(monkeypatch):
 
 def test_empty_financial_input_does_not_become_a_factor_signal(monkeypatch):
     from types import SimpleNamespace
-    from src.tools.alpha_bench_tool import _prepare_bench_panel
+    from src.runtime.tools.alpha_bench_tool import _prepare_bench_panel
     frame = pd.concat([_frame()["close"], _frame(2)["close"]], axis=1)
     loader = Mock(return_value={"net_income": frame * np.nan})
-    monkeypatch.setattr("backtest.loaders.fundamentals_loader.load_fundamental_panel", loader)
+    monkeypatch.setattr("src.backtest.loaders.fundamentals_loader.load_fundamental_panel", loader)
     registry = SimpleNamespace(get=lambda _: SimpleNamespace(meta={"columns_required": ["fund:net_income"]}))
     with pytest.raises(RuntimeError, match="fewer than two stocks"):
         _prepare_bench_panel(registry, ["fund"], {"close": frame}, "sp500", "2025-2025")
@@ -250,7 +250,7 @@ def test_substituted_loader_is_not_repeated_or_misnamed():
 
 
 def test_correlation_honors_the_configured_source_order(monkeypatch):
-    from backtest.loaders import registry
+    from src.backtest.loaders import registry
     calls = []
     class Preferred:
         def is_available(self):
@@ -268,9 +268,9 @@ def test_correlation_honors_the_configured_source_order(monkeypatch):
 
 def test_unsupported_fundamental_universe_fails_before_fetching_prices(monkeypatch):
     from types import SimpleNamespace
-    from src.factors.bench_runner import run_bench
+    from src.research.factors.bench_runner import run_bench
     fetch = Mock()
-    monkeypatch.setattr("src.factors.bench_runner._load_universe_panel", fetch)
+    monkeypatch.setattr("src.research.factors.bench_runner._load_universe_panel", fetch)
     registry = SimpleNamespace(list=lambda **_kw: ["fund"], get=lambda _: SimpleNamespace(meta={"columns_required": ["fund:net_income"]}))
     result = run_bench(zoo="fundamental", universe="csi300", period="2025-2025", registry=registry)
     assert result["status"] == "error"
@@ -286,7 +286,7 @@ def test_empty_after_resampling_does_not_stop_fallback(monkeypatch):
         def fetch(self, codes, *_args, **_kw):
             return {code: _frame(2) for code in codes}
     primary_value = _frame(1).iloc[0, 0]
-    monkeypatch.setattr("backtest.loaders.base.resample_bars", lambda frame, _: pd.DataFrame() if frame.iloc[0, 0] == primary_value else frame)
+    monkeypatch.setattr("src.backtest.loaders.base.resample_bars", lambda frame, _: pd.DataFrame() if frame.iloc[0, 0] == primary_value else frame)
     result = fetch_market_data(codes=["AAPL.US"], start_date="2025-01-01", end_date="2026-01-01", interval="1M",
         loader_resolver=lambda name: Primary if name == "yahoo" else Secondary, fallback_chain_provider=lambda _: ["yahoo", "stooq"])
     assert result["AAPL.US"]

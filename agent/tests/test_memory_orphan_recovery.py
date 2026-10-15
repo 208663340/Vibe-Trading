@@ -1,7 +1,7 @@
 """Recovery of memory entries orphaned by the missing-suffix write bug."""
 from pathlib import Path
 import pytest
-from src.memory.hierarchy import MemoryHierarchy
+from src.runtime.memory.hierarchy import MemoryHierarchy
 
 _ENTRY = "---\nname: alpha-note\ndescription: d\nmetadata:\n  type: project\n---\n\nbody\n"
 

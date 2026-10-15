@@ -1,7 +1,7 @@
 """Tests for stooq_loader: symbol mapping, CSV parsing, batch isolation, errors.
 
 All HTTP is mocked — no test reaches a live Stooq endpoint. The loader imports
-``throttled_get`` from :mod:`backtest.loaders._http` into its own namespace, so
+``throttled_get`` from :mod:`src.backtest.loaders._http` into its own namespace, so
 we monkeypatch that name on the ``stooq_loader`` module.
 """
 
@@ -17,7 +17,7 @@ import pandas as pd
 import pytest
 import requests
 
-from backtest.loaders import stooq_loader
+from src.backtest.loaders import stooq_loader
 from tests.loader_contract import assert_loader_contract
 
 
@@ -210,7 +210,7 @@ class TestChallengePageDetection:
             lambda url, **kw: _FakeResponse(text=self._CHALLENGE_HTML),
         )
 
-        with caplog.at_level(logging.WARNING, logger="backtest.loaders.stooq_loader"):
+        with caplog.at_level(logging.WARNING, logger="src.backtest.loaders.stooq_loader"):
             out = stooq_loader.DataLoader().fetch(
                 ["AAPL.US", "MSFT.US"], "2024-01-01", "2024-01-31",
             )
@@ -237,7 +237,7 @@ class TestChallengePageDetection:
         monkeypatch.setattr(stooq_loader, "throttled_get", fake_get)
         loader = stooq_loader.DataLoader()
 
-        with caplog.at_level(logging.WARNING, logger="backtest.loaders.stooq_loader"):
+        with caplog.at_level(logging.WARNING, logger="src.backtest.loaders.stooq_loader"):
             first = loader.fetch(
                 ["AAPL.US", "MSFT.US", "NVDA.US"], "2024-01-01", "2024-01-31",
             )
@@ -341,7 +341,7 @@ class TestChallengeWarningNamesRealOverride:
             "throttled_get",
             lambda url, **kw: _FakeResponse(text=self._CHALLENGE_HTML),
         )
-        with caplog.at_level(logging.WARNING, logger="backtest.loaders.stooq_loader"):
+        with caplog.at_level(logging.WARNING, logger="src.backtest.loaders.stooq_loader"):
             stooq_loader.DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-31")
         return next(r.message for r in caplog.records if "anti-bot challenge" in r.message)
 
@@ -354,7 +354,7 @@ class TestChallengeWarningNamesRealOverride:
         """
         import re
 
-        from backtest.loaders.registry import source_order_env_var
+        from src.backtest.loaders.registry import source_order_env_var
 
         message = self._warning(monkeypatch, caplog)
         prefix = source_order_env_var("us_equity").rsplit("US_EQUITY", 1)[0]
@@ -368,7 +368,7 @@ class TestChallengeWarningNamesRealOverride:
 
     def test_warning_does_not_advise_dropping_a_source(self, monkeypatch, caplog):
         """``is_valid_source_order`` rejects a chain with a source removed."""
-        from backtest.loaders.registry import get_default_source_order, is_valid_source_order
+        from src.backtest.loaders.registry import get_default_source_order, is_valid_source_order
 
         without_stooq = [s for s in get_default_source_order("us_equity") if s != "stooq"]
         assert not is_valid_source_order("us_equity", without_stooq)
@@ -417,7 +417,7 @@ class TestEveryRefusalShapeLatches:
         monkeypatch.setattr(stooq_loader, "throttled_get", fake_get)
         loader = stooq_loader.DataLoader()
 
-        with caplog.at_level(logging.WARNING, logger="backtest.loaders.stooq_loader"):
+        with caplog.at_level(logging.WARNING, logger="src.backtest.loaders.stooq_loader"):
             assert loader.fetch(["AAPL.US", "MSFT.US", "NVDA.US"], "2024-01-01", "2024-01-31") == {}
             # A later batch in the same process costs nothing either.
             assert loader.fetch(["AMZN.US"], "2024-01-01", "2024-01-31") == {}
@@ -438,7 +438,7 @@ class TestEveryRefusalShapeLatches:
             lambda url, **kw: _FakeResponse(status_code=429, text=""),
         )
 
-        with caplog.at_level(logging.WARNING, logger="backtest.loaders.stooq_loader"):
+        with caplog.at_level(logging.WARNING, logger="src.backtest.loaders.stooq_loader"):
             stooq_loader.DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-31")
 
         warnings = [r.message for r in caplog.records if "stooq is unavailable" in r.message]

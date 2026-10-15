@@ -9,7 +9,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from src.tools import tushare_fallbacks as tf
+from src.runtime.tools import tushare_fallbacks as tf
 
 
 def test_fund_flow_maps_moneyflow_buckets_to_existing_schema() -> None:

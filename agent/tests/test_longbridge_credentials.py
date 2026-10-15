@@ -6,8 +6,8 @@ import json
 
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.trading.connectors.longbridge.credentials import (
+from src.platform.config.accessor import reset_env_config
+from src.markets.trading.connectors.longbridge.credentials import (
     LongbridgeCredentialError,
     LongbridgeCredentials,
     require_longbridge_credentials,

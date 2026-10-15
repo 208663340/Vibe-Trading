@@ -8,11 +8,11 @@ from pathlib import Path
 
 import pytest
 
-import src.swarm.worker as worker
-from src.providers.chat import LLMResponse, ToolCallRequest
-from src.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask, TaskStatus
-from src.swarm.runtime import SwarmRuntime
-from src.swarm.store import SwarmStore
+import src.runtime.swarm.worker as worker
+from src.runtime.providers.chat import LLMResponse, ToolCallRequest
+from src.runtime.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask, TaskStatus
+from src.runtime.swarm.runtime import SwarmRuntime
+from src.runtime.swarm.store import SwarmStore
 
 
 @pytest.mark.parametrize("parallel", [False, True])

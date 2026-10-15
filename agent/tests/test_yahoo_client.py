@@ -2,7 +2,7 @@
 
 All HTTP is mocked — no test ever reaches a live Yahoo endpoint. The client
 imports ``throttled_get`` / ``throttled_get_json`` from
-:mod:`backtest.loaders._http` into its own namespace, so we monkeypatch those
+:mod:`src.backtest.loaders._http` into its own namespace, so we monkeypatch those
 names on the ``yahoo_client`` module.
 """
 
@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 import pytest
 import requests
 
-from backtest.loaders import yahoo_client
+from src.backtest.loaders import yahoo_client
 
 
 class _FakeResponse:

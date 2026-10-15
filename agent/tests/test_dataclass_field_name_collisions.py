@@ -22,7 +22,7 @@ Two shapes are caught, and the second is the quieter one:
 
 The gate is static and dependency-free on purpose: importing every module to
 inspect the dataclasses for real would drag the whole optional-dependency
-surface into a unit test. ``src/live/runtime/triggers.py`` is the one place in
+surface into a unit test. ``src/markets/live/runtime/triggers.py`` is the one place in
 the tree that used to trip this, which is exactly why it is pinned here rather
 than left to review.
 
@@ -167,7 +167,7 @@ def test_no_field_is_shadowed_by_a_class_body_binding() -> None:
         "A dataclass/NamedTuple field shares its name with a class-body binding, so the "
         "constructor default is that object instead of the declared one. Move the "
         "factory/attribute off the class body and bind it after the class "
-        "definition (see src/live/runtime/triggers.py for the worked example):\n  "
+        "definition (see src/markets/live/runtime/triggers.py for the worked example):\n  "
         + "\n  ".join(failures)
     )
 

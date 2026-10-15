@@ -24,8 +24,8 @@ from pathlib import Path
 
 import pytest
 
-from src.config.paths import get_runtime_root
-from src.live.audit import audit_ledger_path
+from src.platform.config.paths import get_runtime_root
+from src.markets.live.audit import audit_ledger_path
 from tests import conftest
 
 AGENT_DIR = Path(__file__).resolve().parent.parent
@@ -123,7 +123,7 @@ def test_sandbox_home_keeps_child_processes_importable() -> None:
     """
     code = (
         "import json, pandas, numpy;"
-        "from src.tools import build_registry;"
+        "from src.runtime.tools import build_registry;"
         "names = build_registry().tool_names;"
         "print(json.dumps({'count': len(names), 'has': 'options_pricing' in names}))"
     )

@@ -9,11 +9,11 @@ from pathlib import Path
 
 AGENT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = AGENT_ROOT / "SKILL.md"
-SKILLS_DIR = AGENT_ROOT / "src" / "skills"
-ZOOS_DIR = AGENT_ROOT / "src" / "factors" / "zoo"
-PRESETS_DIR = AGENT_ROOT / "src" / "swarm" / "presets"
-LOADER_REGISTRY_PATH = AGENT_ROOT / "backtest" / "loaders" / "registry.py"
-MCP_SERVER_PATH = AGENT_ROOT / "mcp_server.py"
+SKILLS_DIR = AGENT_ROOT / "src" / "research" / "skills"
+ZOOS_DIR = AGENT_ROOT / "src" / "research" / "factors" / "zoo"
+PRESETS_DIR = AGENT_ROOT / "src" / "runtime" / "swarm" / "presets"
+LOADER_REGISTRY_PATH = AGENT_ROOT / "src" / "backtest" / "loaders" / "registry.py"
+MCP_SERVER_PATH = AGENT_ROOT / "src" / "interfaces" / "mcp_server.py"
 
 
 def _manifest_text() -> str:
@@ -48,7 +48,7 @@ def _live_mcp_tool_count() -> int:
 
     if str(AGENT_ROOT) not in sys.path:
         sys.path.insert(0, str(AGENT_ROOT))
-    import mcp_server
+    import src.interfaces.mcp_server as mcp_server
 
     return len(asyncio.run(mcp_server.mcp.list_tools()))
 

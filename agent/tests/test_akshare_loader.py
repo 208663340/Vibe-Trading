@@ -15,7 +15,7 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from backtest.loaders.akshare_loader import (
+from src.backtest.loaders.akshare_loader import (
     DataLoader,
     _is_a_share,
     _is_etf_listed,

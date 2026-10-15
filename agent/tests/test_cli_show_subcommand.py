@@ -8,7 +8,7 @@ always crashed with ``TypeError: unsupported operand type(s) for /:
 
 from __future__ import annotations
 
-from cli import _legacy
+from src.interfaces.cli import _legacy
 
 
 def test_show_subcommand_passes_run_id_to_cmd_show(monkeypatch) -> None:

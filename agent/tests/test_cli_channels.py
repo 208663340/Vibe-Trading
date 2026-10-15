@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from cli import _legacy
+from src.interfaces.cli import _legacy
 
 
 def test_channels_parser_accepts_status_start_stop_login_and_pairing() -> None:
@@ -37,7 +37,7 @@ def test_channels_parser_accepts_status_start_stop_login_and_pairing() -> None:
 
 
 def test_channels_pairing_command_runs_against_local_store(tmp_path: Path, monkeypatch) -> None:
-    import src.channels.pairing.store as pairing_store
+    import src.interfaces.channels.pairing.store as pairing_store
 
     monkeypatch.setattr(pairing_store, "_store_path", lambda: tmp_path / "pairing.json")
 
@@ -45,7 +45,7 @@ def test_channels_pairing_command_runs_against_local_store(tmp_path: Path, monke
 
 
 def test_channels_status_can_render_local_json(monkeypatch) -> None:
-    import src.channels.config as channel_config
+    import src.interfaces.channels.config as channel_config
 
     monkeypatch.setattr(
         channel_config,

@@ -9,14 +9,14 @@ import inspect
 import pandas as pd
 import pytest
 
-import backtest.binance_account_reconciliation as reconciliation_module
-from backtest.binance_account_reconciliation import (
+import src.backtest.binance_account_reconciliation as reconciliation_module
+from src.backtest.binance_account_reconciliation import (
     BinanceAccountSnapshot,
     BinancePositionSnapshot,
     ReconciliationTolerance,
     reconcile_binance_account,
 )
-from backtest.perpetual_risk import (
+from src.backtest.perpetual_risk import (
     AccountState,
     PositionRisk,
     PositionState,
@@ -317,7 +317,7 @@ def test_reconciliation_is_read_only_and_module_cannot_reach_live_connectors() -
 
     assert (account, risk) == before
     tree = ast.parse(inspect.getsource(reconciliation_module))
-    forbidden_imports = ("src.live", "src.trading", "backtest.engines")
+    forbidden_imports = ("src.markets.live", "src.markets.trading", "src.backtest.engines")
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             assert not any(alias.name.startswith(forbidden_imports) for alias in node.names)

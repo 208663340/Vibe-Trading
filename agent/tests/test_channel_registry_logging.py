@@ -13,7 +13,7 @@ from __future__ import annotations
 import importlib.metadata
 from typing import Any
 
-from src.channels import registry
+from src.interfaces.channels import registry
 
 
 class _FailingEntryPoint:
@@ -32,7 +32,7 @@ def test_discover_plugins_logs_the_failure_reason_without_crashing(monkeypatch, 
         ),
     )
 
-    with caplog.at_level("WARNING", logger="src.channels.registry"):
+    with caplog.at_level("WARNING", logger="src.interfaces.channels.registry"):
         plugins = registry.discover_plugins()
 
     assert plugins == {}
@@ -47,7 +47,7 @@ def test_discover_enabled_logs_the_skip_reason_without_crashing(monkeypatch, cap
     monkeypatch.setattr(registry, "load_channel_class", _boom)
     monkeypatch.setattr(registry, "discover_plugins", lambda *a, **k: {})
 
-    with caplog.at_level("DEBUG", logger="src.channels.registry"):
+    with caplog.at_level("DEBUG", logger="src.interfaces.channels.registry"):
         result = registry.discover_enabled(
             {"broken_channel"}, _names=["broken_channel"]
         )

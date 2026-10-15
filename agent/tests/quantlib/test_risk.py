@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.risk.
+"""Tests for src.research.quantlib.risk.
 
 The sign convention (a loss is a positive number) is asserted directly rather
 than assumed, because a flipped sign in this family of functions is silent: the
@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 from scipy.stats import genpareto, norm
 
-from src.quantlib.risk import (
+from src.research.quantlib.risk import (
     analyze_mc_results,
     drawdown_distribution_analysis,
     drawdown_series,

@@ -4,15 +4,15 @@ from decimal import Decimal
 
 import pytest
 
-from src.portfolio.compatibility import (
+from src.markets.portfolio.compatibility import (
     PortfolioContractError,
     adapt_and_validate_payloads,
     ensure_supported_currencies,
     profile_compatibility,
 )
-from src.portfolio.config import eligible_profiles
-from src.portfolio.normalization import normalize_position
-from src.trading.types import TradingProfile
+from src.markets.portfolio.config import eligible_profiles
+from src.markets.portfolio.normalization import normalize_position
+from src.markets.trading.types import TradingProfile
 
 
 def test_every_builtin_portfolio_connector_has_an_explicit_compatibility_tier():

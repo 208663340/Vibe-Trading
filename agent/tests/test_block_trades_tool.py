@@ -1,6 +1,6 @@
 """Tests for the get_block_trades tool.
 
-All HTTP is mocked at :func:`backtest.loaders.eastmoney_client.get_json` as it is
+All HTTP is mocked at :func:`src.backtest.loaders.eastmoney_client.get_json` as it is
 imported into the tool module, so no test touches a live Eastmoney endpoint.
 """
 
@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from src.tools import block_trades_tool as bt
+from src.runtime.tools import block_trades_tool as bt
 
 
 def _sample_payload() -> dict:

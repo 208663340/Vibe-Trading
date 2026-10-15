@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import time
 
-from backtest.loaders._http import HostThrottle
+from src.backtest.loaders._http import HostThrottle
 
 
 def test_wait_records_bucket() -> None:

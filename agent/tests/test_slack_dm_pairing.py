@@ -13,9 +13,9 @@ install_slack_stubs()
 
 from slack_sdk.socket_mode.request import SocketModeRequest  # noqa: E402
 
-from src.channels.bus.events import OutboundMessage  # noqa: E402
-from src.channels.pairing import PAIRING_CODE_META_KEY  # noqa: E402
-from src.channels.slack import SlackChannel, SlackConfig  # noqa: E402
+from src.interfaces.channels.bus.events import OutboundMessage  # noqa: E402
+from src.interfaces.channels.pairing import PAIRING_CODE_META_KEY  # noqa: E402
+from src.interfaces.channels.slack import SlackChannel, SlackConfig  # noqa: E402
 
 
 def _channel() -> SlackChannel:

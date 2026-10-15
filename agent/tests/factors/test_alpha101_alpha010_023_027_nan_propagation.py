@@ -16,7 +16,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 
 def _panel_2sym(n_rows: int, seed: int = 11):

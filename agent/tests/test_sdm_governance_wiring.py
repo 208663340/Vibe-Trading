@@ -20,11 +20,11 @@ def tools(monkeypatch):
     """Fresh store per test, so registrations cannot leak between them."""
     db = pathlib.Path(tempfile.mkdtemp()) / "store.db"
     monkeypatch.setenv("VIBE_TRADING_STRATEGY_STORE_DB_PATH", str(db))
-    import src.strategy_store._shared as shared
+    import src.research.strategy_store._shared as shared
 
     monkeypatch.setattr(shared, "_STORE", None, raising=False)
-    from src.tools.sdm_register_tool import SdmRegisterTool
-    from src.tools.sdm_status_tool import SdmStatusTool
+    from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+    from src.runtime.tools.sdm_status_tool import SdmStatusTool
 
     return SdmRegisterTool(), SdmStatusTool()
 

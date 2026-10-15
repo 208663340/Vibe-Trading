@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.registry import Registry, SkipAlpha
+from src.research.factors.registry import Registry, SkipAlpha
 
 _DATES = pd.to_datetime(["2024-01-01", "2024-01-02"])
 _CODES = ["BANK1", "BANK2", "TECH1", "TECH2"]
@@ -97,7 +97,7 @@ def test_registry_loads_factor_with_expected_meta(
     columns, stem, _ = _EXPECTED[alpha_id]
     alpha = registry.get(alpha_id)
     assert alpha.zoo == "fundamental"
-    assert alpha.module_path == f"src.factors.zoo.fundamental.{stem}"
+    assert alpha.module_path == f"src.research.factors.zoo.fundamental.{stem}"
     assert alpha.meta["theme"] == ["value"]
     assert alpha.meta["columns_required"] == columns
     assert alpha.meta["requires_sector"] is True
@@ -245,7 +245,7 @@ def test_nonpositive_multiples_are_not_ranked_as_cheap(stem: str, column: str) -
     """Mirrors the raw siblings' upstream guard: PB/PS <= 0 is excluded, never 'cheapest'."""
     import importlib
 
-    mod = importlib.import_module(f"src.factors.zoo.fundamental.{stem}")
+    mod = importlib.import_module(f"src.research.factors.zoo.fundamental.{stem}")
     frame = pd.DataFrame([[-1.0, 0.0, 1.0, 2.0, 3.0]], columns=list("ABCDE"))
     sector = pd.DataFrame([["G1"] * 5], columns=list("ABCDE"))
 

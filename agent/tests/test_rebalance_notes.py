@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.rebalance_notes import (
+from src.backtest.rebalance_notes import (
     compute_rebalance_notes,
     render_rebalance_notes_markdown,
     write_rebalance_notes,

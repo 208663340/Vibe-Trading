@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.base import BaseEngine, evaluation_start_index
+from src.backtest.engines.base import BaseEngine, evaluation_start_index
 
 
 class _Engine(BaseEngine):
@@ -215,7 +215,7 @@ class TestOptionsEngineHonoursTheBoundary:
             ]
 
     def _run(self, tmp_path, extra):
-        from backtest.engines.options_portfolio import run_options_backtest
+        from src.backtest.engines.options_portfolio import run_options_backtest
 
         run_options_backtest(
             {
@@ -274,9 +274,9 @@ class TestExplicitBenchmarkIsMeasuredOverTheEvaluatedWindow:
         )
 
     def _run(self, tmp_path, extra, bench_close):
-        from backtest import benchmark as bench_mod
-        from backtest.benchmark import BenchmarkResult
-        from backtest.metrics import bar_returns, buy_and_hold_return
+        from src.backtest import benchmark as bench_mod
+        from src.backtest.benchmark import BenchmarkResult
+        from src.backtest.metrics import bar_returns, buy_and_hold_return
 
         frame = self._frame()
         engine = _Engine({"initial_cash": 100_000.0})

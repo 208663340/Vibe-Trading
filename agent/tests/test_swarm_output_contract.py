@@ -21,9 +21,9 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.tools import BaseTool, ToolRegistry
-from src.providers.chat import LLMResponse, ToolCallRequest
-from src.swarm.models import (
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.providers.chat import LLMResponse, ToolCallRequest
+from src.runtime.swarm.models import (
     RunStatus,
     SwarmAgentSpec,
     SwarmEvent,
@@ -31,8 +31,8 @@ from src.swarm.models import (
     SwarmTask,
     WorkerResult,
 )
-from src.swarm.store import SwarmStore
-from src.swarm.worker import (
+from src.runtime.swarm.store import SwarmStore
+from src.runtime.swarm.worker import (
     _classify_deliverable,
     _collect_artifacts,
     _is_data_agent,
@@ -40,8 +40,8 @@ from src.swarm.worker import (
     _report_written,
     run_worker,
 )
-import src.swarm.runtime as rt
-import src.swarm.worker as worker_mod
+import src.runtime.swarm.runtime as rt
+import src.runtime.swarm.worker as worker_mod
 
 PLAN_STUB = (
     "### Phase 1 — Plan\n"
@@ -440,7 +440,7 @@ def test_collect_artifacts_rejects_symlink_escape(tmp_path: Path) -> None:
 
 def test_run_worker_closes_llm_on_success(monkeypatch, tmp_path: Path) -> None:
     """A successful run must close the per-task ChatLLM exactly once."""
-    import src.swarm.worker as worker_mod
+    import src.runtime.swarm.worker as worker_mod
 
     registry = ToolRegistry()
     registry.register(_ResultTool("done", raises=False))
@@ -478,7 +478,7 @@ def test_run_worker_closes_llm_on_success(monkeypatch, tmp_path: Path) -> None:
 
 def test_run_worker_closes_llm_on_tool_exception(monkeypatch, tmp_path: Path) -> None:
     """close() must fire even when the run dies on a tool exception."""
-    import src.swarm.worker as worker_mod
+    import src.runtime.swarm.worker as worker_mod
 
     registry = ToolRegistry()
     registry.register(_ResultTool("boom", raises=True))
@@ -517,7 +517,7 @@ def test_run_worker_closes_llm_on_tool_exception(monkeypatch, tmp_path: Path) ->
 def test_chatllm_close_is_best_effort_noop_without_client() -> None:
     """ChatLLM.close() must not raise when the provider adapter has no
     closeable client (e.g. scripted/native adapters without root_client)."""
-    from src.providers.chat import ChatLLM
+    from src.runtime.providers.chat import ChatLLM
 
     class _BareLLM:
         def bind_tools(self, tools):

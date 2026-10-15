@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.base import BaseEngine
-from backtest.runner import BacktestConfigSchema
+from src.backtest.engines.base import BaseEngine
+from src.backtest.runner import BacktestConfigSchema
 
 
 class _MaskEngine(BaseEngine):

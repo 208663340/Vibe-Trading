@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders.ccxt_loader import _INTERVAL_MAP
+from src.backtest.loaders.ccxt_loader import _INTERVAL_MAP
 
 
 def test_ccxt_interval_map_keeps_week_and_month() -> None:

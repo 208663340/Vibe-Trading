@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 import requests
 
-from backtest.loaders import wallex
+from src.backtest.loaders import wallex
 from tests.loader_contract import assert_loader_contract
 
 
@@ -188,7 +188,7 @@ class TestFetch:
 
 class TestRoutingPattern:
     def test_source_pattern_matches_tmn_pairs_only(self):
-        from src.market_data import detect_source
+        from src.markets.market_data import detect_source
 
         assert detect_source("USDTTMN") == "wallex"
         assert detect_source("USDT-TMN") == "wallex"

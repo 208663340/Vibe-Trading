@@ -12,13 +12,13 @@ from pathlib import Path
 
 import pytest
 
-from src.scheduled_research.models import (
+from src.research.scheduled_research.models import (
     JobStatus,
     ScheduledResearchJob,
     validate_schedule,
     validate_timezone,
 )
-from src.scheduled_research.store import CorruptStoreError, ScheduledResearchJobStore
+from src.research.scheduled_research.store import CorruptStoreError, ScheduledResearchJobStore
 
 
 # ---------------------------------------------------------------------------

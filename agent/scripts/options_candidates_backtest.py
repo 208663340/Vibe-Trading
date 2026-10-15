@@ -18,12 +18,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from backtest.engines.options_portfolio import run_options_backtest
-from backtest.loaders.yfinance_loader import DataLoader
+from src.backtest.engines.options_portfolio import run_options_backtest
+from src.backtest.loaders.yfinance_loader import DataLoader
 
 _spec = importlib.util.spec_from_file_location(
     "options_strategy_engines",
-    Path(__file__).parents[1] / "src" / "skills" / "options-strategy" / "example_signal_engine.py",
+    Path(__file__).parents[1] / "src" / "research" / "skills" / "options-strategy" / "example_signal_engine.py",
 )
 engines = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(engines)

@@ -7,10 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.memory.lifecycle import MemoryLifecycle
-from src.memory.persistent import PersistentMemory
-from src.tools.remember_tool import RememberTool
+from src.platform.config.accessor import reset_env_config
+from src.runtime.memory.lifecycle import MemoryLifecycle
+from src.runtime.memory.persistent import PersistentMemory
+from src.runtime.tools.remember_tool import RememberTool
 
 
 @pytest.fixture(autouse=True)

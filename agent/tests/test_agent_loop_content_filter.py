@@ -11,7 +11,7 @@ from typing import Any, Callable
 
 import pytest
 
-from src.providers.chat import LLMResponse, ToolCallRequest
+from src.runtime.providers.chat import LLMResponse, ToolCallRequest
 from tests.message_roles_helpers import assert_system_messages_only_lead
 
 
@@ -83,9 +83,9 @@ def _run(
     llm: Any,
     max_iterations: int = 5,
 ) -> dict[str, Any]:
-    from src.agent.loop import AgentLoop
-    from src.memory.persistent import PersistentMemory
-    from src.tools import build_registry
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
 
     pm = PersistentMemory()
     agent = AgentLoop(
@@ -101,7 +101,7 @@ def _run(
 
 
 def _read_trace(run_dir: str) -> list[dict[str, Any]]:
-    from src.agent.trace import TraceWriter
+    from src.runtime.agent.trace import TraceWriter
 
     return TraceWriter.read(Path(run_dir))
 
@@ -251,10 +251,10 @@ def test_auto_compact_summary_hard_deadline(
     """
     import time
 
-    import src.agent.tuning as tuning_module
-    from src.agent.loop import AgentLoop
-    from src.agent.tools import ToolRegistry
-    from src.agent.trace import TraceWriter
+    import src.runtime.agent.tuning as tuning_module
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.agent.tools import ToolRegistry
+    from src.runtime.agent.trace import TraceWriter
 
     class _HangingSummaryLLM:
         def __init__(self) -> None:

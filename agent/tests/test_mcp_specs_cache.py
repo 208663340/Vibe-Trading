@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.tools.mcp import (
+from src.runtime.tools.mcp import (
     MCPRemoteToolSpec,
     MCPServerAdapter,
     _MCP_SPECS_CACHE,

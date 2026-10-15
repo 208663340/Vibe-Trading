@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-# Ensure agent/ is on sys.path so imports like `backtest.*` and `src.*` work.
+# Ensure agent/ is on sys.path so imports like `src.backtest.*` and `src.*` work.
 AGENT_DIR = Path(__file__).resolve().parent.parent
 if str(AGENT_DIR) not in sys.path:
     sys.path.insert(0, str(AGENT_DIR))
@@ -39,7 +39,7 @@ if str(AGENT_DIR) not in sys.path:
 #
 # The sandbox owns exactly ONE knob: the home directory. ``get_runtime_root()``
 # consults ``VIBE_TRADING_HOME`` first and only falls back to
-# ``Path.home()/".vibe-trading"`` (src/config/paths.py:27-34), so the override is
+# ``Path.home()/".vibe-trading"`` (src/platform/config/paths.py:27-34), so the override is
 # DELETED rather than pointed at the sandbox. Two reasons, both load-bearing:
 #
 #   * A developer with ``VIBE_TRADING_HOME`` exported in their shell would
@@ -67,7 +67,7 @@ _PRIOR_SANDBOX_ENV = {
 # a live audit ledger for another release. The ledgers are the headline harm
 # (fabricated order_rejected records in an append-only, tamper-evident chain) and
 # they move only on a real live action, so they cannot produce noise.
-from src.config.paths import get_runtime_root  # noqa: E402 — needs AGENT_DIR above
+from src.platform.config.paths import get_runtime_root  # noqa: E402 — needs AGENT_DIR above
 
 _REAL_LEDGERS = tuple(
     get_runtime_root() / "live" / name for name in ("audit.jsonl", "audit_chain.jsonl")
@@ -193,7 +193,7 @@ def _reset_env_config():
     Snapshotting and restoring the whole environment closes the class of bug
     rather than the one instance of it.
     """
-    from src.config.accessor import reset_env_config
+    from src.platform.config.accessor import reset_env_config
 
     saved_environ = dict(os.environ)
     reset_env_config()

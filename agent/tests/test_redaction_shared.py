@@ -18,10 +18,10 @@ from typing import Any
 
 import pytest
 
-from src.agent.context import ContextBuilder
-from src.agent.loop import AgentLoop
-from src.agent.trace import TraceWriter
-from src.tools.redaction import (
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.trace import TraceWriter
+from src.runtime.tools.redaction import (
     RESULT_SINK,
     is_sensitive_arg,
     redact_payload,
@@ -564,7 +564,7 @@ def test_metadata_exception_is_exact_and_cannot_hide_a_credential_suffix(key: st
 
 
 def test_metadata_validation_reaches_swarm_argument_previews() -> None:
-    from src.swarm.worker import _preview_tool_arguments
+    from src.runtime.swarm.worker import _preview_tool_arguments
 
     preview = _preview_tool_arguments({
         "token_budget": "opaque-test-credential",
@@ -595,7 +595,7 @@ def test_metadata_validation_reaches_trace_events_and_result_previews(tmp_path: 
 
 
 def test_metadata_validation_reaches_all_audit_sinks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from src.live import audit, paths
+    from src.markets.live import audit, paths
 
     monkeypatch.setattr(paths, "get_runtime_root", lambda: tmp_path)
     records: list[dict] = []

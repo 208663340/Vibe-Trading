@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-import src.live.paths as paths
-from src.live.mandate.model import (
+import src.markets.live.paths as paths
+from src.markets.live.mandate.model import (
     MANDATE_SCHEMA_VERSION,
     AssetClass,
     ConsentMeta,
@@ -18,7 +18,7 @@ from src.live.mandate.model import (
     Mandate,
     UniverseConstraint,
 )
-from src.live.mandate.store import load_mandate
+from src.markets.live.mandate.store import load_mandate
 
 
 @pytest.fixture
@@ -93,7 +93,7 @@ def test_load_mandate_round_trip(live_runtime: Path) -> None:
     """A written mandate loads back into an equal frozen object."""
     expires = "2026-06-28T14:00:00Z"
     original = _sample_mandate(expires)
-    from src.live.paths import broker_dir
+    from src.markets.live.paths import broker_dir
 
     _write_mandate(broker_dir("robinhood"), original)
     loaded = load_mandate("robinhood")
@@ -110,7 +110,7 @@ def test_load_mandate_round_trip(live_runtime: Path) -> None:
 
 def test_flatten_on_halt_round_trips(live_runtime: Path) -> None:
     """A mandate written with flatten_on_halt=True loads back True (M3)."""
-    from src.live.paths import broker_dir
+    from src.markets.live.paths import broker_dir
 
     _write_mandate(broker_dir("robinhood"), _sample_mandate("2026-06-28T14:00:00Z", flatten_on_halt=True))
     loaded = load_mandate("robinhood")
@@ -125,7 +125,7 @@ def test_flatten_on_halt_absent_defaults_false(live_runtime: Path) -> None:
     mandate written before the field existed must not break the loader and must
     default to cancel-only.
     """
-    from src.live.paths import broker_dir
+    from src.markets.live.paths import broker_dir
 
     bdir = broker_dir("robinhood")
     _write_mandate(bdir, _sample_mandate("2026-06-28T14:00:00Z"))
@@ -146,7 +146,7 @@ def test_load_mandate_absent_returns_none(live_runtime: Path) -> None:
 
 def test_load_mandate_malformed_json_returns_none(live_runtime: Path) -> None:
     """Unparseable JSON → None rather than an exception."""
-    from src.live.paths import broker_dir
+    from src.markets.live.paths import broker_dir
 
     bdir = broker_dir("robinhood")
     bdir.mkdir(parents=True, exist_ok=True)
@@ -156,7 +156,7 @@ def test_load_mandate_malformed_json_returns_none(live_runtime: Path) -> None:
 
 def test_load_mandate_missing_field_returns_none(live_runtime: Path) -> None:
     """A structurally invalid record (missing section) → None (fail-closed)."""
-    from src.live.paths import broker_dir
+    from src.markets.live.paths import broker_dir
 
     bdir = broker_dir("robinhood")
     bdir.mkdir(parents=True, exist_ok=True)
@@ -171,7 +171,7 @@ def test_expires_at_parses_as_utc_datetime(live_runtime: Path) -> None:
     created = datetime(2026, 5, 29, 14, 0, 0, tzinfo=timezone.utc)
     expires_dt = created + timedelta(days=30)
     expires = expires_dt.isoformat().replace("+00:00", "Z")
-    from src.live.paths import broker_dir
+    from src.markets.live.paths import broker_dir
 
     _write_mandate(broker_dir("robinhood"), _sample_mandate(expires))
     loaded = load_mandate("robinhood")
@@ -184,7 +184,7 @@ def test_expires_at_parses_as_utc_datetime(live_runtime: Path) -> None:
 
 def test_broker_dir_rejects_path_traversal() -> None:
     """A broker key is never a path — separators / .. are rejected."""
-    from src.live.paths import broker_dir
+    from src.markets.live.paths import broker_dir
 
     for bad in ("../escape", "rob/inhood", "a\\b", ".."):
         with pytest.raises(ValueError):

@@ -5,7 +5,7 @@ for -: 'str' and 'str' when df["datetime"] contained string timestamps instead o
 """
 
 import pandas as pd
-from src.tools.trade_journal_tool import pair_trades_fifo
+from src.runtime.tools.trade_journal_tool import pair_trades_fifo
 
 
 def test_pair_trades_fifo_supports_string_datetime_column():

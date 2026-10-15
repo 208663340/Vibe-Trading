@@ -8,9 +8,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.agent.loop import AgentLoop
-from src.agent.tools import BaseTool, ToolRegistry
-from src.agent.trace import TraceWriter
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.trace import TraceWriter
 
 
 class DiscoveryTool(BaseTool):
@@ -151,7 +151,7 @@ def test_old_metrics_do_not_turn_no_progress_into_success(tmp_path):
 
 
 def test_successful_repair_allows_a_previously_failed_read(tmp_path):
-    from src.agent.context import ContextBuilder
+    from src.runtime.agent.context import ContextBuilder
 
     tool = DiscoveryTool(['{"status":"error"}', '{"status":"ok","data":"repaired"}'])
     loop, _, run_dir = build_loop(tmp_path, tool, DiscoveryLLM())
@@ -176,7 +176,7 @@ def test_successful_repair_allows_a_previously_failed_read(tmp_path):
 
 
 def test_authorization_denial_does_not_poison_an_unexecuted_call(tmp_path):
-    from src.agent.context import ContextBuilder
+    from src.runtime.agent.context import ContextBuilder
 
     tool = DiscoveryTool(['{"status":"ok"}'])
     loop, _, run_dir = build_loop(tmp_path, tool, DiscoveryLLM())
@@ -223,7 +223,7 @@ def test_a_transient_failure_survives_one_identical_retry(tmp_path):
 
 def test_failure_block_threshold_is_two_sided():
     """Both sides of the gate, so a future change cannot quietly move it."""
-    from src.agent.tool_progress import ToolProgress
+    from src.runtime.agent.tool_progress import ToolProgress
 
     progress = ToolProgress()
     key = ("read_document", '{"path":"missing.csv"}')

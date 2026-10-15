@@ -2,12 +2,12 @@
 import asyncio
 from unittest.mock import Mock
 
-from src.channels.bus.events import InboundMessage
-from src.channels.bus.queue import MessageBus
-from src.channels.runtime import ChannelRuntime
-from src.channels.manager import ChannelManager
-from src.session.events import EventBus
-from src.session.models import Message, Session
+from src.interfaces.channels.bus.events import InboundMessage
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.runtime import ChannelRuntime
+from src.interfaces.channels.manager import ChannelManager
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import Message, Session
 
 
 class _Service:
@@ -59,7 +59,7 @@ def test_progress_is_delivered_before_reply_and_drafts_stay_private(tmp_path):
         assert all(m.metadata.get('message_id') == 'm' for m in messages)
         assert messages[-1].metadata['chat_type'] == 'group'
         # Exercise real manager dispatch into a Feishu adapter's CardKit path.
-        from src.channels.feishu import FeishuChannel, FeishuConfig
+        from src.interfaces.channels.feishu import FeishuChannel, FeishuConfig
         channel = FeishuChannel(FeishuConfig(), bus)
         channel._client = object()
         channel._create_streaming_card_sync = Mock(return_value='card-1')

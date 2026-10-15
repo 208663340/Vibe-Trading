@@ -9,24 +9,24 @@ from typing import Any
 
 import pytest
 
-from src.channels.bus.events import InboundMessage, OutboundMessage
-from src.channels.bus.queue import MessageBus
-from src.channels.manager import ChannelManager
-from src.channels.registry import discover_channel_names, inspect_channels
-from src.config.schema import ChannelsConfig
-from src.channelsui.cli_apps_api import normalize_cli_app_mentions
-from src.channelsui.gateway_services import build_gateway_services
-from src.channelsui.mcp_presets_api import normalize_mcp_preset_mentions
-from src.channelsui.transcription_ws import webui_transcription_event
-from src.session.goal_state import goal_state_ws_blob
-from src.session.models import Message, Session
-from src.session.service import SessionBusyError
-from src.session.webui_turns import (
+from src.interfaces.channels.bus.events import InboundMessage, OutboundMessage
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.manager import ChannelManager
+from src.interfaces.channels.registry import discover_channel_names, inspect_channels
+from src.platform.config.schema import ChannelsConfig
+from src.interfaces.channelsui.cli_apps_api import normalize_cli_app_mentions
+from src.interfaces.channelsui.gateway_services import build_gateway_services
+from src.interfaces.channelsui.mcp_presets_api import normalize_mcp_preset_mentions
+from src.interfaces.channelsui.transcription_ws import webui_transcription_event
+from src.runtime.session.goal_state import goal_state_ws_blob
+from src.runtime.session.models import Message, Session
+from src.runtime.session.service import SessionBusyError
+from src.runtime.session.webui_turns import (
     clear_websocket_turn_started,
     mark_websocket_turn_started,
     websocket_turn_wall_started_at,
 )
-from src.utils.media_decode import FileSizeExceeded, save_base64_data_url
+from src.platform.utils.media_decode import FileSizeExceeded, save_base64_data_url
 
 
 class FakeSessionService:
@@ -136,7 +136,7 @@ def test_a_different_reply_to_the_same_message_is_sent() -> None:
 
 
 def test_reply_fingerprints_are_bounded(monkeypatch) -> None:
-    import src.channels.manager as manager_module
+    import src.interfaces.channels.manager as manager_module
 
     monkeypatch.setattr(manager_module, "_MAX_REPLY_FINGERPRINTS", 3)
     manager = _dedup_manager()
@@ -205,7 +205,7 @@ def test_registry_ignores_global_channel_settings() -> None:
 
 
 def test_telegram_status_suggests_numeric_authorized_private_chats() -> None:
-    from src.channels.registry import inspect_channel
+    from src.interfaces.channels.registry import inspect_channel
 
     if not inspect_channel("telegram").available:
         pytest.skip("telegram optional dependency not installed")
@@ -258,9 +258,9 @@ def test_channel_manager_status_includes_every_configured_adapter() -> None:
 
 
 def test_registry_marks_lazy_sdk_adapter_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
-    import src.channels.discord as discord_channel
+    import src.interfaces.channels.discord as discord_channel
 
-    from src.channels.registry import inspect_channel
+    from src.interfaces.channels.registry import inspect_channel
 
     monkeypatch.setattr(discord_channel, "DISCORD_AVAILABLE", False)
 
@@ -271,7 +271,7 @@ def test_registry_marks_lazy_sdk_adapter_unavailable(monkeypatch: pytest.MonkeyP
 
 
 def test_channel_manager_skips_enabled_adapter_when_lazy_sdk_missing(monkeypatch: pytest.MonkeyPatch) -> None:
-    import src.channels.discord as discord_channel
+    import src.interfaces.channels.discord as discord_channel
 
     monkeypatch.setattr(discord_channel, "DISCORD_AVAILABLE", False)
 
@@ -339,7 +339,7 @@ def test_save_base64_data_url_decodes_and_limits_size(tmp_path: Path) -> None:
 
 def test_channel_runtime_routes_inbound_to_session_and_outbound(tmp_path: Path) -> None:
     async def scenario() -> None:
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         bus = MessageBus()
         service = FakeSessionService()
@@ -388,8 +388,8 @@ def test_channel_runtime_routes_inbound_to_session_and_outbound(tmp_path: Path) 
 
 def test_channel_runtime_handles_pairing_commands_without_agent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     async def scenario() -> None:
-        from src.channels.pairing import store as pairing_store
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.pairing import store as pairing_store
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         monkeypatch.setattr(pairing_store, "_store_path", lambda: tmp_path / "pairing.json")
         bus = MessageBus()
@@ -434,9 +434,9 @@ def test_channel_runtime_rejects_pairing_from_non_operator(
     """A non-operator /pairing command is refused without touching the store (GHSA-fwpw)."""
 
     async def scenario() -> None:
-        from src.channels import pairing
-        from src.channels.pairing import store as pairing_store
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels import pairing
+        from src.interfaces.channels.pairing import store as pairing_store
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         monkeypatch.setattr(pairing_store, "_store_path", lambda: tmp_path / "pairing.json")
         # A pending code exists on another channel; a non-operator must not be
@@ -486,9 +486,9 @@ def test_channel_runtime_operator_can_pair(
     """A configured operator can approve a pending pairing code end to end."""
 
     async def scenario() -> None:
-        from src.channels import pairing
-        from src.channels.pairing import store as pairing_store
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels import pairing
+        from src.interfaces.channels.pairing import store as pairing_store
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         monkeypatch.setattr(pairing_store, "_store_path", lambda: tmp_path / "pairing.json")
         code = pairing.generate_code("telegram", "new-user")
@@ -531,9 +531,9 @@ def test_channel_runtime_channel_operator_cannot_act_cross_channel(
     """A per-channel (non-global) operator cannot approve codes on other channels."""
 
     async def scenario() -> None:
-        from src.channels import pairing
-        from src.channels.pairing import store as pairing_store
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels import pairing
+        from src.interfaces.channels.pairing import store as pairing_store
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         monkeypatch.setattr(pairing_store, "_store_path", lambda: tmp_path / "pairing.json")
         # Pending code lives on signal; the operator is scoped to telegram only.
@@ -606,9 +606,9 @@ def test_channel_runtime_pairing_fail_closed_when_no_operators_configured(
     """With no operators configured, ALL in-chat /pairing is rejected (fail-closed)."""
 
     async def scenario() -> None:
-        from src.channels import pairing
-        from src.channels.pairing import store as pairing_store
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels import pairing
+        from src.interfaces.channels.pairing import store as pairing_store
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         monkeypatch.setattr(pairing_store, "_store_path", lambda: tmp_path / "pairing.json")
         code = pairing.generate_code("telegram", "new-user")
@@ -653,9 +653,9 @@ def test_channel_runtime_non_operator_list_does_not_leak_codes(
     """A non-operator's rejected /pairing list must not disclose codes or sender ids."""
 
     async def scenario() -> None:
-        from src.channels import pairing
-        from src.channels.pairing import store as pairing_store
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels import pairing
+        from src.interfaces.channels.pairing import store as pairing_store
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         monkeypatch.setattr(pairing_store, "_store_path", lambda: tmp_path / "pairing.json")
         code = pairing.generate_code("signal", "victim-sender")
@@ -695,7 +695,7 @@ def test_channel_runtime_non_operator_list_does_not_leak_codes(
 
 def test_channel_runtime_new_command_resets_session_and_creates_fresh_one(tmp_path: Path) -> None:
     async def scenario() -> None:
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         bus = MessageBus()
         service = FakeSessionService()
@@ -737,7 +737,7 @@ def test_channel_runtime_new_command_resets_session_and_creates_fresh_one(tmp_pa
 
 def test_channel_runtime_new_command_with_no_existing_session(tmp_path: Path) -> None:
     async def scenario() -> None:
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         bus = MessageBus()
         service = FakeSessionService()
@@ -786,7 +786,7 @@ def test_channel_runtime_preserves_message_id_for_failure_replies(
     flag: str,
 ) -> None:
     async def scenario() -> None:
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         bus = MessageBus()
         service = FakeSessionService()
@@ -827,7 +827,7 @@ def test_channel_runtime_preserves_message_id_for_failure_replies(
 
 def test_channel_runtime_reset_and_newsession_aliases_work(tmp_path: Path) -> None:
     async def scenario() -> None:
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         bus = MessageBus()
         service = FakeSessionService()
@@ -870,7 +870,7 @@ def test_channel_runtime_reset_and_newsession_aliases_work(tmp_path: Path) -> No
 
 def test_channel_runtime_regular_messages_not_intercepted_as_new_session(tmp_path: Path) -> None:
     async def scenario() -> None:
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         bus = MessageBus()
         service = FakeSessionService()
@@ -903,7 +903,7 @@ def test_channel_runtime_session_map_persisted_after_reset(tmp_path: Path) -> No
     import json
 
     async def scenario() -> None:
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         map_path = tmp_path / "channel_sessions.json"
         bus = MessageBus()
@@ -946,7 +946,7 @@ def test_signal_group_command_requires_per_sender_authorization() -> None:
     unauthorized member's ``/pairing`` is dropped, while an allowlisted
     sender's command passes even without a mention.
     """
-    from src.channels.signal import SignalChannel, SignalConfig, SignalDMConfig, SignalGroupConfig
+    from src.interfaces.channels.signal import SignalChannel, SignalConfig, SignalDMConfig, SignalGroupConfig
 
     config = SignalConfig(
         enabled=True,
@@ -990,7 +990,7 @@ def test_signal_group_command_requires_per_sender_authorization() -> None:
 
 @pytest.mark.parametrize("fmt,label", [("html", "HTML"), ("pdf", "PDF"), (None, "plain text")])
 def test_channel_confirmation_displays_email_format(tmp_path, monkeypatch, fmt, label):
-    from src.scheduled_research import proposals
+    from src.research.scheduled_research import proposals
 
     monkeypatch.setattr(proposals, "latest_pending_for_session", lambda sid: {
         "operation": "create", "job": {
@@ -1000,7 +1000,7 @@ def test_channel_confirmation_displays_email_format(tmp_path, monkeypatch, fmt, 
     })
 
     async def scenario():
-        from src.channels.runtime import ChannelRuntime
+        from src.interfaces.channels.runtime import ChannelRuntime
 
         bus = MessageBus()
         runtime = ChannelRuntime(bus=bus, session_service=FakeSessionService(), manager=None,

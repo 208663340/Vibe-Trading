@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.factor_analysis_core import compute_group_equity
-from src.tools.factor_analysis_tool import run_factor_analysis
+from src.research.factors.factor_analysis_core import compute_group_equity
+from src.runtime.tools.factor_analysis_tool import run_factor_analysis
 
 
 def _panel(n_dates: int = 30, n_codes: int = 10, seed: int = 0) -> tuple[pd.DataFrame, pd.DataFrame]:

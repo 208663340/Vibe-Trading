@@ -6,7 +6,7 @@ Deterministic by construction — no network anywhere:
   path, multi-leg, validation and tool-error mapping are exercised end to end;
 * greeks parity is asserted against a direct ``bs_greeks`` call;
 * the chain route's ``OptionsChainTool.execute`` is monkeypatched where the
-  route module binds it (``src.api.options_routes.OptionsChainTool``), so the
+  route module binds it (``src.interfaces.api.options_routes.OptionsChainTool``), so the
   Yahoo I/O never happens.
 
 Loopback ``TestClient`` (127.0.0.1) bypasses dev-mode auth, matching the
@@ -21,8 +21,8 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.quantlib.options import bs_greeks
+import src.interfaces.api_server as api_server
+from src.research.quantlib.options import bs_greeks
 
 
 def _client() -> TestClient:
@@ -169,7 +169,7 @@ def test_payoff_unexpected_tool_exception_maps_to_502(monkeypatch: pytest.Monkey
     def explode(self: Any, **kwargs: Any) -> str:
         raise RuntimeError("payoff engine exploded")
 
-    monkeypatch.setattr("src.api.options_routes.OptionsPayoffTool.execute", explode)
+    monkeypatch.setattr("src.interfaces.api.options_routes.OptionsPayoffTool.execute", explode)
 
     r = _client().post("/options/payoff", json=_long_call_body())
 
@@ -205,7 +205,7 @@ def test_chain_success_returns_tool_envelope(monkeypatch: pytest.MonkeyPatch) ->
         seen.update(kwargs)
         return _OK_CHAIN
 
-    monkeypatch.setattr("src.api.options_routes.OptionsChainTool.execute", fake_execute)
+    monkeypatch.setattr("src.interfaces.api.options_routes.OptionsChainTool.execute", fake_execute)
 
     r = _client().get("/options/chain", params={"ticker": "AAPL", "expiration": 1765584000})
 
@@ -218,7 +218,7 @@ def test_chain_success_returns_tool_envelope(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_chain_tool_failure_maps_to_502(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "src.api.options_routes.OptionsChainTool.execute",
+        "src.interfaces.api.options_routes.OptionsChainTool.execute",
         lambda self, **kwargs: _ERR_CHAIN,
     )
 
@@ -232,7 +232,7 @@ def test_chain_missing_ticker_is_400(monkeypatch: pytest.MonkeyPatch) -> None:
     def explode(self: Any, **kwargs: Any) -> str:  # pragma: no cover - must not run
         raise AssertionError("tool must not be called for a blank ticker")
 
-    monkeypatch.setattr("src.api.options_routes.OptionsChainTool.execute", explode)
+    monkeypatch.setattr("src.interfaces.api.options_routes.OptionsChainTool.execute", explode)
 
     client = _client()
     for params in ({}, {"ticker": ""}, {"ticker": "   "}):

@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.valuation.artifact.
+"""Tests for src.research.quantlib.valuation.artifact.
 
 Structured around the six things the artifact module promises:
 
@@ -9,7 +9,7 @@ Structured around the six things the artifact module promises:
    (no ``datetime.now``/``time.time``) and by proving omission/naivety of
    ``generated_at`` raises rather than silently defaulting
    (:class:`TestNoHiddenClock`).
-3. Every :class:`~src.quantlib.valuation.contracts.Assumption` in a result is
+3. Every :class:`~src.research.quantlib.valuation.contracts.Assumption` in a result is
    captured with its ``basis``, and models that take no ``Assumption``
    objects (comps, three-statement) honestly report an empty tuple rather
    than fabricating one (:class:`TestAssumptionCapture`).
@@ -36,8 +36,8 @@ import pandas as pd
 import pytest
 from pptx import Presentation
 
-from src.quantlib.valuation import artifact as artifact_module
-from src.quantlib.valuation.artifact import (
+from src.research.quantlib.valuation import artifact as artifact_module
+from src.research.quantlib.valuation.artifact import (
     AssumptionRecord,
     ModelArtifact,
     build_comps_artifact,
@@ -50,10 +50,10 @@ from src.quantlib.valuation.artifact import (
     export_summary_deck,
     export_three_statement_workbook,
 )
-from src.quantlib.valuation.comps import FlowMetricPeriods, PeerCompany, TargetCompany, run_comps
-from src.quantlib.valuation.contracts import Assumption
-from src.quantlib.valuation.dcf import run_dcf, sensitivity_grid
-from src.quantlib.valuation.threestatement import project_three_statement
+from src.research.quantlib.valuation.comps import FlowMetricPeriods, PeerCompany, TargetCompany, run_comps
+from src.research.quantlib.valuation.contracts import Assumption
+from src.research.quantlib.valuation.dcf import run_dcf, sensitivity_grid
+from src.research.quantlib.valuation.threestatement import project_three_statement
 
 UTC = timezone.utc
 FIXED_TIME = datetime(2026, 1, 15, 12, 0, 0, tzinfo=UTC)

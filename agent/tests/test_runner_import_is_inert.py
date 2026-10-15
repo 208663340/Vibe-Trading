@@ -20,7 +20,7 @@ AGENT_DIR = Path(__file__).resolve().parents[1]
 _PROBE = (
     "import json, os\n"
     "before = dict(os.environ)\n"
-    "import backtest.runner\n"
+    "import src.backtest.runner\n"
     "print(json.dumps({k: os.environ[k] for k in set(os.environ) - set(before)}))\n"
 )
 
@@ -35,8 +35,10 @@ def test_importing_the_runner_adds_no_environment_variables(tmp_path: Path) -> N
     # The suite sandboxes HOME, which also hides the user site-packages this
     # interpreter's numpy lives in. Hand the child exactly what the parent can
     # already import rather than making it rediscover any of it.
+    # Keep agent/src off the path: src.platform would shadow the stdlib platform module.
+    src_root = str(AGENT_DIR / "src")
     env["PYTHONPATH"] = os.pathsep.join(
-        [str(AGENT_DIR), str(AGENT_DIR / "src"), *(p for p in sys.path if p)]
+        [str(AGENT_DIR), *(p for p in sys.path if p and p != src_root)]
     )
     env.pop("VIBE_TRADING_IMPORT_PROBE", None)
 
@@ -51,4 +53,4 @@ def test_importing_the_runner_adds_no_environment_variables(tmp_path: Path) -> N
 
     assert result.returncode == 0, result.stderr
     added = json.loads(result.stdout.strip().splitlines()[-1])
-    assert added == {}, f"importing backtest.runner set {sorted(added)}"
+    assert added == {}, f"importing src.backtest.runner set {sorted(added)}"

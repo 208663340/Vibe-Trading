@@ -12,10 +12,10 @@ from pathlib import Path
 
 import pytest
 
-from src.scheduled_research.executor import ScheduledResearchExecutor
-from src.scheduled_research.models import DeliveryStatus, ScheduledResearchJob
-from src.scheduled_research.store import ScheduledResearchJobStore
-from src.session.events import EventBus, SSEEvent
+from src.research.scheduled_research.executor import ScheduledResearchExecutor
+from src.research.scheduled_research.models import DeliveryStatus, ScheduledResearchJob
+from src.research.scheduled_research.store import ScheduledResearchJobStore
+from src.runtime.session.events import EventBus, SSEEvent
 
 
 def _job(**overrides) -> ScheduledResearchJob:

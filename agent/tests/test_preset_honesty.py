@@ -21,10 +21,10 @@ from pathlib import Path
 import pytest
 import yaml
 
-from src.tools import build_registry, build_swarm_registry
+from src.runtime.tools import build_registry, build_swarm_registry
 
-_PRESET_DIR = Path(__file__).resolve().parents[1] / "src" / "swarm" / "presets"
-_SKILL_DIR = Path(__file__).resolve().parents[1] / "src" / "skills"
+_PRESET_DIR = Path(__file__).resolve().parents[1] / "src" / "runtime" / "swarm" / "presets"
+_SKILL_DIR = Path(__file__).resolve().parents[1] / "src" / "research" / "skills"
 
 
 @pytest.fixture(scope="module")

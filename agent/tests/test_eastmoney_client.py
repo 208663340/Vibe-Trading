@@ -1,6 +1,6 @@
 """Tests for eastmoney_client: secid resolution, kline parsing, error paths.
 
-All HTTP is mocked at :func:`backtest.loaders._http.throttled_get_json` (imported
+All HTTP is mocked at :func:`src.backtest.loaders._http.throttled_get_json` (imported
 into the client module), so no test touches a live Eastmoney endpoint.
 """
 
@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from backtest.loaders import eastmoney_client as ec
+from src.backtest.loaders import eastmoney_client as ec
 
 
 @pytest.fixture(autouse=True)

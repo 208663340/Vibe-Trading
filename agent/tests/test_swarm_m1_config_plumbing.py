@@ -16,10 +16,10 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-from src.config.schema import AgentConfig, MCPServerConfig
-from src.swarm.models import SwarmAgentSpec, SwarmTask, WorkerResult, WorkerStatus
-from src.swarm.runtime import SwarmRuntime
-from src.swarm.store import SwarmStore
+from src.platform.config.schema import AgentConfig, MCPServerConfig
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmTask, WorkerResult, WorkerStatus
+from src.runtime.swarm.runtime import SwarmRuntime
+from src.runtime.swarm.store import SwarmStore
 
 
 def _make_runtime(tmp_path: Path, **kwargs) -> SwarmRuntime:
@@ -103,7 +103,7 @@ def test_run_worker_receives_agent_config_from_runtime(tmp_path: Path) -> None:
 
     fake_result = WorkerResult(status=WorkerStatus.completed, summary="ok")
 
-    with patch("src.swarm.runtime.run_worker", return_value=fake_result) as spy:
+    with patch("src.runtime.swarm.runtime.run_worker", return_value=fake_result) as spy:
         result = runtime._run_worker_with_retries(
             agent_spec=agent_spec,
             task=task,
@@ -138,7 +138,7 @@ def test_run_worker_receives_none_when_runtime_has_no_agent_config(
 
     fake_result = WorkerResult(status=WorkerStatus.completed, summary="ok")
 
-    with patch("src.swarm.runtime.run_worker", return_value=fake_result) as spy:
+    with patch("src.runtime.swarm.runtime.run_worker", return_value=fake_result) as spy:
         runtime._run_worker_with_retries(
             agent_spec=agent_spec,
             task=task,

@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.agent.loop import AgentLoop
-from src.agent.memory import WorkspaceMemory
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.memory import WorkspaceMemory
 
 
 def test_successful_strategy_file_write_records_the_active_model(
@@ -57,7 +57,7 @@ def test_strategy_file_write_on_a_constructed_loop_records_the_configured_model(
     The test above sets them by hand; this one goes through ``__init__`` so a
     loop that never assigns them fails here instead of in a user's backtest.
     """
-    from src.agent.tools import ToolRegistry
+    from src.runtime.agent.tools import ToolRegistry
 
     loop = AgentLoop(
         registry=ToolRegistry(),
@@ -82,8 +82,8 @@ def test_real_tool_execution_uses_each_responses_model(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Provider identity follows the writing turn, falling back when absent."""
-    from src.agent.tools import ToolRegistry
-    from src.tools.write_file_tool import WriteFileTool
+    from src.runtime.agent.tools import ToolRegistry
+    from src.runtime.tools.write_file_tool import WriteFileTool
 
     monkeypatch.setenv("VIBE_TRADING_ALLOWED_RUN_ROOTS", str(tmp_path))
     responses = []

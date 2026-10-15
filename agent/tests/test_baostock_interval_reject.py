@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from backtest.loaders.baostock_loader import DataLoader
+from src.backtest.loaders.baostock_loader import DataLoader
 
 
 def test_unsupported_interval_does_not_login_or_fetch() -> None:

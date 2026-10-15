@@ -6,7 +6,7 @@ import uuid
 
 import pytest
 
-from backtest.runner import _load_module_from_file
+from src.backtest.runner import _load_module_from_file
 
 
 def _module_name() -> str:
@@ -117,33 +117,33 @@ _FORBIDDEN_IN_METHOD_BODY = [
     # module is unimportable.
     (
         "import_trading_service",
-        ["        import src.trading.service", "        return []"],
+        ["        import src.markets.trading.service", "        return []"],
     ),
     (
         "from_trading_service_import_place_order",
-        ["        from src.trading.service import place_order", "        return []"],
+        ["        from src.markets.trading.service import place_order", "        return []"],
     ),
     (
         "from_trading_import_service",
-        ["        from src.trading import service", "        return []"],
+        ["        from src.markets.trading import service", "        return []"],
     ),
     (
         "import_broker_connector",
-        ["        import src.trading.connectors.okx.sdk", "        return []"],
+        ["        import src.markets.trading.connectors.okx.sdk", "        return []"],
     ),
     (
         "import_live_order_gate",
-        ["        from src.live.sdk_order_gate import check", "        return []"],
+        ["        from src.markets.live.sdk_order_gate import check", "        return []"],
     ),
     (
         "trading_attribute_chain",
-        ["        import src", "        return src.trading.service.place_order(1)"],
+        ["        import src", "        return src.markets.trading.service.place_order(1)"],
     ),
     (
         "getattr_indirection_onto_trading",
         [
             "        import src",
-            "        return getattr(src.trading.service, 'place_order')(1)",
+            "        return getattr(src.markets.trading.service, 'place_order')(1)",
         ],
     ),
 ]
@@ -171,16 +171,16 @@ def test_signal_engine_rejects_forbidden_op_in_method_body(tmp_path, case_id, bo
 @pytest.mark.parametrize(
     "import_line",
     [
-        "        from src.quantlib.fixedincome import bond_price",
-        "        import src.quantlib.credit",
-        "        from src.factors.registry import get_factor",
+        "        from src.research.quantlib.fixedincome import bond_price",
+        "        import src.research.quantlib.credit",
+        "        from src.research.factors.registry import get_factor",
     ],
     ids=["quantlib_from", "quantlib_import", "factors_registry"],
 )
 def test_signal_engine_still_allows_project_math_imports(tmp_path, import_line) -> None:
     """Blocking the broker subtree must not cost strategies the math layer.
 
-    ``src.trading`` and ``src.quantlib`` share a root package, so a root-level
+    ``src.markets.trading`` and ``src.research.quantlib`` share a root package, so a root-level
     block would close the red-line gap by taking away the finance-math layer
     strategies are explicitly meant to import. The prefix match keeps them
     apart; this pins that it stays that way.
@@ -217,22 +217,22 @@ _MODULE_LEVEL_ALIAS_BYPASSES = [
     ("import_subprocess_alias", "import subprocess as sp", "        return sp.run(['ls'])"),
     (
         "from_trading_place_order",
-        "from src.trading.service import place_order",
+        "from src.markets.trading.service import place_order",
         "        return place_order(1)",
     ),
     (
         "from_live_order_gate",
-        "from src.live.sdk_order_gate import check",
+        "from src.markets.live.sdk_order_gate import check",
         "        return check()",
     ),
     (
         "from_trading_submodule_alias",
-        "from src.trading import service as sv",
+        "from src.markets.trading import service as sv",
         "        return sv.place_order(1)",
     ),
     (
         "import_trading_alias",
-        "import src.trading.service as t",
+        "import src.markets.trading.service as t",
         "        return t.place_order(1)",
     ),
 ]
@@ -273,7 +273,7 @@ def test_signal_engine_rejects_module_level_alias_of_forbidden_module(
         ("from requests import get", "        return []"),
         # Ordinary strategy imports, used on the executed path.
         ("import pandas as pd", "        return pd.DataFrame()"),
-        ("from src.quantlib.options import bs_price", "        return bs_price(1, 1, 1, 1, 1)"),
+        ("from src.research.quantlib.options import bs_price", "        return bs_price(1, 1, 1, 1, 1)"),
         ("from os import path", "        return path.join('a', 'b')"),
     ],
     ids=["unused_requests", "unused_from_requests", "pandas_alias", "quantlib", "os_path"],
@@ -299,36 +299,36 @@ def test_signal_engine_alias_check_leaves_legitimate_imports_alone(
     _load_module_from_file(signal_file, _module_name())
 
 
-# Blocking the ``src.trading`` prefix buys nothing while a module can be fetched
+# Blocking the ``src.markets.trading`` prefix buys nothing while a module can be fetched
 # by NAME instead of named in an import statement. Every case below was measured
 # ACCEPTED against the live scanner before this list existed — the red line was
 # one string away from being reachable in each of them.
 _DYNAMIC_MODULE_REACH = [
-    ("importlib_import_module", "import importlib", "        return importlib.import_module('src.trading.service')"),
-    ("importlib_alias", "import importlib as il", "        return il.import_module('src.trading.service')"),
+    ("importlib_import_module", "import importlib", "        return importlib.import_module('src.markets.trading.service')"),
+    ("importlib_alias", "import importlib as il", "        return il.import_module('src.markets.trading.service')"),
     (
         "importlib_from_alias",
         "from importlib import import_module as imp",
-        "        return imp('src.trading.service')",
+        "        return imp('src.markets.trading.service')",
     ),
     ("importlib_util", "import importlib.util", "        return importlib.util.spec_from_file_location('x', 'y.py')"),
     (
         "importlib_inside_method",
         "import pandas as pd",
-        "        import importlib\n        return importlib.import_module('src.trading.service')",
+        "        import importlib\n        return importlib.import_module('src.markets.trading.service')",
     ),
-    ("builtins_dunder_import", "import builtins", "        return builtins.__import__('src.trading.service')"),
+    ("builtins_dunder_import", "import builtins", "        return builtins.__import__('src.markets.trading.service')"),
     ("builtins_eval", "import builtins", "        return builtins.eval('1+1')"),
-    ("builtins_alias", "import builtins as b", "        return b.__import__('src.trading.service')"),
+    ("builtins_alias", "import builtins as b", "        return b.__import__('src.markets.trading.service')"),
     (
         "builtins_from_alias",
         "from builtins import __import__ as bi",
-        "        return bi('src.trading.service')",
+        "        return bi('src.markets.trading.service')",
     ),
-    ("sys_modules", "import sys", "        return sys.modules['src.trading.service']"),
+    ("sys_modules", "import sys", "        return sys.modules['src.markets.trading.service']"),
     ("sys_path_injection", "import sys", "        sys.path.insert(0, '/tmp/evil')\n        return []"),
-    ("pkgutil_resolve_name", "import pkgutil", "        return pkgutil.resolve_name('src.trading.service:place_order')"),
-    ("runpy_run_module", "import runpy", "        return runpy.run_module('src.trading.service')"),
+    ("pkgutil_resolve_name", "import pkgutil", "        return pkgutil.resolve_name('src.markets.trading.service:place_order')"),
+    ("runpy_run_module", "import runpy", "        return runpy.run_module('src.markets.trading.service')"),
     # pickle/marshal never name the module in the source at all.
     ("pickle_loads", "import pickle", "        return pickle.loads(b'payload')"),
     ("marshal_loads", "import marshal", "        return marshal.loads(b'payload')"),

@@ -11,7 +11,7 @@ Covers the four things that can silently break:
    argument queues a prompt carrying the skeleton, the worked example, the
    missing-data policy and the not-advice notice.
 4. Playbook data integrity — every tool name referenced by a playbook is a
-   real registered tool (checked against the ``src/tools`` sources rather
+   real registered tool (checked against the ``src/runtime/tools`` sources rather
    than against any document), and the two worked examples that claim to
    reconcile actually do when recomputed from first principles.
 
@@ -27,9 +27,9 @@ from typing import Any
 
 import pytest
 
-from cli.commands import slash_router
-from cli.commands.institutional import runner
-from cli.commands.institutional.playbooks import (
+from src.interfaces.cli.commands import slash_router
+from src.interfaces.cli.commands.institutional import runner
+from src.interfaces.cli.commands.institutional.playbooks import (
     GAP_POLICY,
     NOT_ADVICE,
     PLAYBOOKS,
@@ -83,7 +83,7 @@ class TestRegistration:
 
     def test_registration_skips_names_already_taken(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """A pre-existing ``/memo`` must win; we never overwrite it."""
-        squatter = slash_router.Command("memo", "someone else's memo", "cli.commands.help")
+        squatter = slash_router.Command("memo", "someone else's memo", "src.interfaces.cli.commands.help")
         base = tuple(
             cmd for cmd in slash_router.SLASH_COMMANDS if cmd.name not in _SLUGS
         )
@@ -91,7 +91,7 @@ class TestRegistration:
         slash_router._register_institutional_slash_commands()
         memo_rows = [c for c in slash_router.SLASH_COMMANDS if c.name == "memo"]
         assert len(memo_rows) == 1
-        assert memo_rows[0].handler_module == "cli.commands.help"
+        assert memo_rows[0].handler_module == "src.interfaces.cli.commands.help"
 
     def test_descriptions_are_one_line_and_non_empty(self) -> None:
         for cmd in slash_router.SLASH_COMMANDS:
@@ -143,12 +143,12 @@ class TestAliases:
 
 class TestDiscoverability:
     def test_help_module_sees_the_commands(self) -> None:
-        from cli.commands import help as help_cmd
+        from src.interfaces.cli.commands import help as help_cmd
 
         assert set(_SLUGS) <= {c.name for c in help_cmd.SLASH_COMMANDS}
 
     def test_help_renders_them(self, capsys: pytest.CaptureFixture[str]) -> None:
-        from cli.commands import help as help_cmd
+        from src.interfaces.cli.commands import help as help_cmd
 
         help_cmd.run(None)
         out = capsys.readouterr().out
@@ -167,7 +167,7 @@ class TestDiscoverability:
     def test_completer_yields_them(self) -> None:
         from prompt_toolkit.document import Document
 
-        from cli.completer import SlashCompleter
+        from src.interfaces.cli.completer import SlashCompleter
 
         completions = list(
             SlashCompleter().get_completions(
@@ -185,13 +185,13 @@ class TestDiscoverability:
 class TestHandlerModules:
     def test_handler_modules_import_and_expose_run(self) -> None:
         for slug in _SLUGS:
-            module = importlib.import_module(f"cli.commands.institutional.{slug}")
+            module = importlib.import_module(f"src.interfaces.cli.commands.institutional.{slug}")
             assert callable(module.run)
 
     def test_registry_points_at_the_right_modules(self) -> None:
         for cmd in slash_router.SLASH_COMMANDS:
             if cmd.name in _SLUGS:
-                assert cmd.handler_module == f"cli.commands.institutional.{cmd.name}"
+                assert cmd.handler_module == f"src.interfaces.cli.commands.institutional.{cmd.name}"
 
     def test_handlers_are_single_command_modules(self) -> None:
         """``cli.main`` only passes the keyword to modules it lists as multi-command.
@@ -200,10 +200,10 @@ class TestHandlerModules:
         ever changed the dispatcher would silently feed the keyword in as the
         first argument.
         """
-        main = importlib.import_module("cli.main")
+        main = importlib.import_module("src.interfaces.cli.main")
 
         for slug in _SLUGS:
-            assert f"cli.commands.institutional.{slug}" not in main._MULTI_COMMAND_MODULES
+            assert f"src.interfaces.cli.commands.institutional.{slug}" not in main._MULTI_COMMAND_MODULES
 
 
 # ---------------------------------------------------------------------------
@@ -217,7 +217,7 @@ class TestArgumentHandling:
         self, slug: str, capsys: pytest.CaptureFixture[str]
     ) -> None:
         ctx = _Ctx()
-        module = importlib.import_module(f"cli.commands.institutional.{slug}")
+        module = importlib.import_module(f"src.interfaces.cli.commands.institutional.{slug}")
         assert module.run(ctx) == 0
         assert ctx.pending_prompt is None  # nothing dispatched to the model
         out = capsys.readouterr().out
@@ -233,7 +233,7 @@ class TestArgumentHandling:
         self, token: str, capsys: pytest.CaptureFixture[str]
     ) -> None:
         ctx = _Ctx()
-        from cli.commands.institutional import dcf
+        from src.interfaces.cli.commands.institutional import dcf
 
         assert dcf.run(ctx, token, "AAPL") == 0
         assert ctx.pending_prompt is None
@@ -242,7 +242,7 @@ class TestArgumentHandling:
     @pytest.mark.parametrize("slug", _SLUGS)
     def test_args_queue_a_prompt(self, slug: str) -> None:
         ctx = _Ctx()
-        module = importlib.import_module(f"cli.commands.institutional.{slug}")
+        module = importlib.import_module(f"src.interfaces.cli.commands.institutional.{slug}")
         assert module.run(ctx, "AAPL", "MSFT") == 0
         prompt = ctx.pending_prompt
         assert prompt is not None
@@ -258,7 +258,7 @@ class TestArgumentHandling:
 
     def test_long_argument_is_truncated(self) -> None:
         ctx = _Ctx()
-        from cli.commands.institutional import screen
+        from src.interfaces.cli.commands.institutional import screen
 
         assert screen.run(ctx, "x" * 5000) == 0
         assert ctx.pending_prompt is not None
@@ -273,7 +273,7 @@ class TestArgumentHandling:
     def test_falls_back_to_printing_when_context_cannot_queue(
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli.commands.institutional import comps
+        from src.interfaces.cli.commands.institutional import comps
 
         assert comps.run(_NoQueueCtx(), "AAPL") == 0
         out = capsys.readouterr().out
@@ -281,7 +281,7 @@ class TestArgumentHandling:
         assert "Step 1" in out
 
     def test_none_context_does_not_raise(self, capsys: pytest.CaptureFixture[str]) -> None:
-        from cli.commands.institutional import memo
+        from src.interfaces.cli.commands.institutional import memo
 
         assert memo.run(None, "NVDA") == 0
         assert "paste this prompt" in capsys.readouterr().out
@@ -300,7 +300,7 @@ class TestArgumentHandling:
 
 class TestReplDispatch:
     def test_dispatch_slash_queues_the_prompt(self) -> None:
-        main = importlib.import_module("cli.main")
+        main = importlib.import_module("src.interfaces.cli.main")
         ctx = main.InteractiveContext()
         assert main._dispatch_slash("/dcf MSFT horizon=5", ctx) == 0
         assert ctx.pending_prompt is not None
@@ -308,14 +308,14 @@ class TestReplDispatch:
         assert "MSFT horizon=5" in ctx.pending_prompt
 
     def test_dispatch_slash_resolves_an_alias(self) -> None:
-        main = importlib.import_module("cli.main")
+        main = importlib.import_module("src.interfaces.cli.main")
         ctx = main.InteractiveContext()
         assert main._dispatch_slash("/peers AAPL", ctx) == 0
         assert ctx.pending_prompt is not None
         assert "Run the COMPS research playbook." in ctx.pending_prompt
 
     def test_bare_command_does_not_start_a_turn(self) -> None:
-        main = importlib.import_module("cli.main")
+        main = importlib.import_module("src.interfaces.cli.main")
         ctx = main.InteractiveContext()
         assert main._dispatch_slash("/memo", ctx) == 0
         assert ctx.pending_prompt is None
@@ -327,14 +327,14 @@ class TestReplDispatch:
 
 
 def _registered_tool_names() -> set[str]:
-    """Scrape the tool ``name`` class attributes straight from ``src/tools``.
+    """Scrape the tool ``name`` class attributes straight from ``src/runtime/tools``.
 
     Reads the sources instead of importing the registry so the check needs no
     optional dependency and no network, and instead of trusting any document.
     """
     pattern = re.compile(r"^\s{4}name(?:\s*:\s*str)?\s*=\s*[\"']([a-z0-9_]+)[\"']", re.M)
     found: set[str] = set()
-    for path in (_AGENT_DIR / "src" / "tools").rglob("*.py"):
+    for path in (_AGENT_DIR / "src" / "runtime" / "tools").rglob("*.py"):
         found.update(pattern.findall(path.read_text(encoding="utf-8")))
     return found
 
@@ -373,12 +373,12 @@ class TestPlaybookData:
     def test_referenced_tools_are_real_live_classes(self) -> None:
         """Re-check the names against the LIVE tool classes, not the sources.
 
-        The regex scraper above proves a string exists in ``src/tools``; it
+        The regex scraper above proves a string exists in ``src/runtime/tools``; it
         cannot prove the class is actually discovered. Anchor on the same
         discovery pass ``build_registry`` uses so a tool that stops being
         discovered fails here.
         """
-        from src.tools import _discover_subclasses
+        from src.runtime.tools import _discover_subclasses
 
         discovered = {cls.name for cls in _discover_subclasses()}
         for pb in PLAYBOOKS:
@@ -394,7 +394,7 @@ class TestPlaybookData:
         what to do when a preferred tool is missing, or the gap-filling ban has a
         hole exactly where the data is hardest to get.
         """
-        from src.tools import _discover_subclasses
+        from src.runtime.tools import _discover_subclasses
 
         by_name = {cls.name: cls for cls in _discover_subclasses()}
         gated = {

@@ -24,12 +24,12 @@ import pytest
 
 import importlib
 
-import src.live.paths as live_paths
+import src.markets.live.paths as live_paths
 
 # ``cli/__init__.py`` re-exports the ``main`` *function* as ``cli.main``, which
 # shadows the submodule for attribute access. Import the module object directly
 # so ``patch.object(main, ...)`` targets the real ``cli/main.py`` namespace.
-main = importlib.import_module("cli.main")
+main = importlib.import_module("src.interfaces.cli.main")
 InteractiveContext = main.InteractiveContext
 _commit_mandate = main._commit_mandate
 _handle_proposal_reply = main._handle_proposal_reply
@@ -46,7 +46,7 @@ _is_numeric_pick = main._is_numeric_pick
 def live_root(tmp_path: Path):
     """Redirect the live-channel runtime root to a tmp dir for the test.
 
-    ``src.live.paths.live_root`` and ``broker_dir`` both resolve through
+    ``src.markets.live.paths.live_root`` and ``broker_dir`` both resolve through
     ``get_runtime_root`` at call time, so patching it isolates halt + mandate
     state for halt.py / store.py without touching the real ~/.vibe-trading.
     """
@@ -94,49 +94,49 @@ def _write_mandate(root: Path, broker: str = "robinhood", *, schema_version: int
 
 class TestConnectorLiveDispatch:
     def _dispatch(self, argv: list[str]) -> int:
-        from cli._legacy import _build_parser, _dispatch_connector
+        from src.interfaces.cli._legacy import _build_parser, _dispatch_connector
 
         args = _build_parser().parse_args(argv)
         return _dispatch_connector(args)
 
     def test_authorize_routes_to_handler(self) -> None:
-        with patch("cli._legacy.cmd_connector_authorize", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_authorize", return_value=0) as m:
             assert self._dispatch(["connector", "authorize", "robinhood-live-mcp"]) == 0
         m.assert_called_once_with("robinhood-live-mcp")
 
     def test_status_routes_with_broker(self) -> None:
-        with patch("cli._legacy.cmd_connector_status", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_status", return_value=0) as m:
             self._dispatch(["connector", "status", "robinhood-live-mcp"])
         m.assert_called_once_with("robinhood-live-mcp")
 
     def test_status_routes_default_profile_none(self) -> None:
-        with patch("cli._legacy.cmd_connector_status", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_status", return_value=0) as m:
             self._dispatch(["connector", "status"])
         m.assert_called_once_with(None)
 
     def test_halt_routes(self) -> None:
-        with patch("cli._legacy.cmd_connector_halt", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_halt", return_value=0) as m:
             self._dispatch(["connector", "halt"])
         m.assert_called_once_with(None)
 
     def test_resume_routes(self) -> None:
-        with patch("cli._legacy.cmd_connector_resume", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_resume", return_value=0) as m:
             self._dispatch(["connector", "resume", "robinhood-live-mcp"])
         m.assert_called_once_with("robinhood-live-mcp")
 
     def test_revoke_routes(self) -> None:
-        with patch("cli._legacy.cmd_connector_revoke", return_value=0) as m:
+        with patch("src.interfaces.cli._legacy.cmd_connector_revoke", return_value=0) as m:
             self._dispatch(["connector", "revoke", "robinhood-live-mcp"])
         m.assert_called_once_with("robinhood-live-mcp")
 
     def test_no_subcommand_is_usage_error(self) -> None:
-        from cli._legacy import EXIT_USAGE_ERROR
+        from src.interfaces.cli._legacy import EXIT_USAGE_ERROR
 
         assert self._dispatch(["connector"]) == EXIT_USAGE_ERROR
 
     def test_no_connector_commit_verb_exists(self) -> None:
         """SPEC: the CLI connector group must not be able to create/widen a mandate."""
-        from cli._legacy import _build_parser
+        from src.interfaces.cli._legacy import _build_parser
 
         parser = _build_parser()
         with pytest.raises(SystemExit):
@@ -150,16 +150,16 @@ class TestConnectorLiveDispatch:
 
 class TestLiveHaltResume:
     def test_halt_trips_global_sentinel(self, live_root: Path) -> None:
-        from cli._legacy import cmd_live_halt
-        from src.live.halt import halt_flag_set
+        from src.interfaces.cli._legacy import cmd_live_halt
+        from src.markets.live.halt import halt_flag_set
 
         assert cmd_live_halt(None) == 0
         assert (live_root / "live" / "HALT").exists()
         assert halt_flag_set("robinhood") is True
 
     def test_halt_broker_scoped(self, live_root: Path) -> None:
-        from cli._legacy import cmd_live_halt
-        from src.live.halt import halt_flag_set
+        from src.interfaces.cli._legacy import cmd_live_halt
+        from src.markets.live.halt import halt_flag_set
 
         cmd_live_halt("robinhood")
         assert (live_root / "live" / "robinhood" / "HALT").exists()
@@ -167,15 +167,15 @@ class TestLiveHaltResume:
         assert halt_flag_set("robinhood") is True
 
     def test_resume_clears_halt(self, live_root: Path) -> None:
-        from cli._legacy import cmd_live_halt, cmd_live_resume
-        from src.live.halt import halt_flag_set
+        from src.interfaces.cli._legacy import cmd_live_halt, cmd_live_resume
+        from src.markets.live.halt import halt_flag_set
 
         cmd_live_halt(None)
         assert cmd_live_resume(None) == 0
         assert halt_flag_set("robinhood") is False
 
     def test_resume_when_not_halted_is_success(self, live_root: Path) -> None:
-        from cli._legacy import cmd_live_resume
+        from src.interfaces.cli._legacy import cmd_live_resume
 
         assert cmd_live_resume(None) == 0
 
@@ -184,8 +184,8 @@ class TestConnectorHaltResume:
     def test_halt_without_profile_rejects_default_paper_profile(
         self, live_root: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        from cli._legacy import EXIT_USAGE_ERROR, cmd_connector_halt
-        from src.trading import profiles
+        from src.interfaces.cli._legacy import EXIT_USAGE_ERROR, cmd_connector_halt
+        from src.markets.trading import profiles
 
         monkeypatch.setattr(profiles, "get_runtime_root", lambda: live_root)
 
@@ -195,9 +195,9 @@ class TestConnectorHaltResume:
     def test_halt_without_profile_uses_selected_connector(
         self, live_root: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import cmd_connector_halt
-        from src.live.halt import halt_flag_set
-        from src.trading import profiles
+        from src.interfaces.cli._legacy import cmd_connector_halt
+        from src.markets.live.halt import halt_flag_set
+        from src.markets.trading import profiles
 
         monkeypatch.setattr(profiles, "get_runtime_root", lambda: live_root)
         profiles.save_selected_profile_id("robinhood-live-mcp")
@@ -214,9 +214,9 @@ class TestConnectorHaltResume:
     def test_resume_without_profile_uses_selected_connector(
         self, live_root: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        from cli._legacy import cmd_connector_halt, cmd_connector_resume
-        from src.live.halt import halt_flag_set
-        from src.trading import profiles
+        from src.interfaces.cli._legacy import cmd_connector_halt, cmd_connector_resume
+        from src.markets.live.halt import halt_flag_set
+        from src.markets.trading import profiles
 
         monkeypatch.setattr(profiles, "get_runtime_root", lambda: live_root)
         profiles.save_selected_profile_id("robinhood-live-mcp")
@@ -226,7 +226,7 @@ class TestConnectorHaltResume:
         assert halt_flag_set("robinhood") is False
 
     def test_halt_with_explicit_non_live_profile_fails(self, live_root: Path) -> None:
-        from cli._legacy import EXIT_USAGE_ERROR, cmd_connector_halt
+        from src.interfaces.cli._legacy import EXIT_USAGE_ERROR, cmd_connector_halt
 
         assert cmd_connector_halt("ibkr-paper-local") == EXIT_USAGE_ERROR
         assert not (live_root / "live" / "HALT").exists()
@@ -239,7 +239,7 @@ class TestConnectorHaltResume:
 
 class TestLiveStatusMandate:
     def test_status_no_mandate(self, live_root: Path, capsys: pytest.CaptureFixture[str]) -> None:
-        from cli._legacy import cmd_live_status
+        from src.interfaces.cli._legacy import cmd_live_status
 
         assert cmd_live_status("robinhood") == 0
         out = capsys.readouterr().out
@@ -248,7 +248,7 @@ class TestLiveStatusMandate:
     def test_status_shows_active_mandate_and_countdown(
         self, live_root: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import cmd_live_status
+        from src.interfaces.cli._legacy import cmd_live_status
 
         _write_mandate(live_root)
         cmd_live_status("robinhood")
@@ -258,7 +258,7 @@ class TestLiveStatusMandate:
         assert "2099" in out  # expires_at countdown anchor
 
     def test_status_reflects_halt(self, live_root: Path, capsys: pytest.CaptureFixture[str]) -> None:
-        from cli._legacy import cmd_live_halt, cmd_live_status
+        from src.interfaces.cli._legacy import cmd_live_halt, cmd_live_status
 
         cmd_live_halt(None)
         cmd_live_status("robinhood")
@@ -267,21 +267,21 @@ class TestLiveStatusMandate:
     def test_status_flags_unknown_schema_version(
         self, live_root: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import cmd_live_status
+        from src.interfaces.cli._legacy import cmd_live_status
 
         _write_mandate(live_root, schema_version=999)
         cmd_live_status("robinhood")
         assert "unknown schema" in capsys.readouterr().out
 
     def test_mandate_print_no_file(self, live_root: Path) -> None:
-        from cli._legacy import EXIT_RUN_FAILED, cmd_live_mandate
+        from src.interfaces.cli._legacy import EXIT_RUN_FAILED, cmd_live_mandate
 
         assert cmd_live_mandate("robinhood") == EXIT_RUN_FAILED
 
     def test_mandate_print_renders_json(
         self, live_root: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        from cli._legacy import cmd_live_mandate
+        from src.interfaces.cli._legacy import cmd_live_mandate
 
         _write_mandate(live_root)
         assert cmd_live_mandate("robinhood") == 0
@@ -298,7 +298,7 @@ class TestLiveStatusMandate:
 
 class TestLiveRevoke:
     def test_revoke_deletes_token_and_mandate(self, live_root: Path) -> None:
-        from cli._legacy import cmd_live_revoke
+        from src.interfaces.cli._legacy import cmd_live_revoke
 
         broker_dir = live_root / "live" / "robinhood"
         oauth_dir = broker_dir / "oauth"
@@ -308,16 +308,16 @@ class TestLiveRevoke:
 
         # No agent config on disk → _live_server_config returns None → falls back
         # to the canonical broker oauth/ subtree.
-        with patch("cli._legacy._live_server_config", return_value=None):
+        with patch("src.interfaces.cli._legacy._live_server_config", return_value=None):
             assert cmd_live_revoke("robinhood") == 0
 
         assert not oauth_dir.exists()
         assert not mandate_path.exists()
 
     def test_revoke_nothing_to_remove(self, live_root: Path) -> None:
-        from cli._legacy import cmd_live_revoke
+        from src.interfaces.cli._legacy import cmd_live_revoke
 
-        with patch("cli._legacy._live_server_config", return_value=None):
+        with patch("src.interfaces.cli._legacy._live_server_config", return_value=None):
             assert cmd_live_revoke("robinhood") == 0
 
 
@@ -328,18 +328,18 @@ class TestLiveRevoke:
 
 class TestLiveAuthorize:
     def test_authorize_no_config_is_usage_error(self) -> None:
-        from cli._legacy import EXIT_USAGE_ERROR, cmd_live_authorize
+        from src.interfaces.cli._legacy import EXIT_USAGE_ERROR, cmd_live_authorize
 
-        with patch("cli._legacy._live_server_config", return_value=None):
+        with patch("src.interfaces.cli._legacy._live_server_config", return_value=None):
             assert cmd_live_authorize("robinhood") == EXIT_USAGE_ERROR
 
     def test_authorize_triggers_oauth_handshake(self) -> None:
         """The only on-switch: building wrappers forces the connection/OAuth flow."""
-        from cli._legacy import cmd_live_authorize
+        from src.interfaces.cli._legacy import cmd_live_authorize
 
         fake_cfg = type("Cfg", (), {"auth": object()})()
-        with patch("cli._legacy._live_server_config", return_value=fake_cfg), patch(
-            "src.tools.mcp.build_mcp_tool_wrappers", return_value=[1, 2]
+        with patch("src.interfaces.cli._legacy._live_server_config", return_value=fake_cfg), patch(
+            "src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=[1, 2]
         ) as build:
             assert cmd_live_authorize("robinhood") == 0
         build.assert_called_once()
@@ -352,8 +352,8 @@ class TestLiveAuthorize:
         handshake (per-call tool_timeout, default 30 s), not init_timeout. Both
         must reach the 300 s authorize deadline.
         """
-        from cli._legacy import cmd_live_authorize
-        from src.config.schema import MCPServerConfig
+        from src.interfaces.cli._legacy import cmd_live_authorize
+        from src.platform.config.schema import MCPServerConfig
 
         cfg = MCPServerConfig.model_validate(
             {
@@ -363,8 +363,8 @@ class TestLiveAuthorize:
                 "enabledTools": ["get_portfolio"],
             }
         )
-        with patch("cli._legacy._live_server_config", return_value=cfg), patch(
-            "src.tools.mcp.build_mcp_tool_wrappers", return_value=[1]
+        with patch("src.interfaces.cli._legacy._live_server_config", return_value=cfg), patch(
+            "src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=[1]
         ) as build:
             assert cmd_live_authorize("robinhood") == 0
 
@@ -377,8 +377,8 @@ class TestLiveAuthorize:
 
     def test_authorize_preserves_larger_configured_tool_timeout(self) -> None:
         """Raise-only: an already-larger configured timeout is not lowered."""
-        from cli._legacy import cmd_live_authorize
-        from src.config.schema import MCPServerConfig
+        from src.interfaces.cli._legacy import cmd_live_authorize
+        from src.platform.config.schema import MCPServerConfig
 
         cfg = MCPServerConfig.model_validate(
             {
@@ -390,8 +390,8 @@ class TestLiveAuthorize:
                 "initTimeout": 600,
             }
         )
-        with patch("cli._legacy._live_server_config", return_value=cfg), patch(
-            "src.tools.mcp.build_mcp_tool_wrappers", return_value=[1]
+        with patch("src.interfaces.cli._legacy._live_server_config", return_value=cfg), patch(
+            "src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=[1]
         ) as build:
             assert cmd_live_authorize("robinhood") == 0
 
@@ -403,8 +403,8 @@ class TestLiveAuthorize:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """VIBE_LIVE_AUTHORIZE_TIMEOUT_SECONDS overrides the 300 s default."""
-        from cli._legacy import cmd_live_authorize
-        from src.config.schema import MCPServerConfig
+        from src.interfaces.cli._legacy import cmd_live_authorize
+        from src.platform.config.schema import MCPServerConfig
 
         monkeypatch.setenv("VIBE_LIVE_AUTHORIZE_TIMEOUT_SECONDS", "900")
         cfg = MCPServerConfig.model_validate(
@@ -415,8 +415,8 @@ class TestLiveAuthorize:
                 "enabledTools": ["get_portfolio"],
             }
         )
-        with patch("cli._legacy._live_server_config", return_value=cfg), patch(
-            "src.tools.mcp.build_mcp_tool_wrappers", return_value=[1]
+        with patch("src.interfaces.cli._legacy._live_server_config", return_value=cfg), patch(
+            "src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=[1]
         ) as build:
             assert cmd_live_authorize("robinhood") == 0
 
@@ -429,7 +429,7 @@ class TestLiveAuthorize:
         self, raw: str, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Empty / non-numeric / non-positive env values fall back to 300 s."""
-        from cli._legacy import _authorize_timeout_seconds
+        from src.interfaces.cli._legacy import _authorize_timeout_seconds
 
         monkeypatch.setenv("VIBE_LIVE_AUTHORIZE_TIMEOUT_SECONDS", raw)
         assert _authorize_timeout_seconds() == 300.0
@@ -691,7 +691,7 @@ def _capture_on_event(captured: Dict[str, Any]):
     """
     import types as _types
 
-    from cli import _legacy
+    from src.interfaces.cli import _legacy
 
     class _StubLoop:
         def __init__(self, *_, event_callback=None, **__):
@@ -711,13 +711,13 @@ def _capture_on_event(captured: Dict[str, Any]):
 
     # ``_run_agent`` does local ``from ... import`` for these, so patch the
     # SOURCE modules, not the ``cli._legacy`` namespace.
-    with patch("src.agent.loop.AgentLoop", _StubLoop), patch(
-        "src.tools.build_registry", return_value=object()
-    ), patch("src.providers.chat.ChatLLM", lambda *a, **k: object()), patch(
-        "src.memory.persistent.PersistentMemory",
+    with patch("src.runtime.agent.loop.AgentLoop", _StubLoop), patch(
+        "src.runtime.tools.build_registry", return_value=object()
+    ), patch("src.runtime.providers.chat.ChatLLM", lambda *a, **k: object()), patch(
+        "src.runtime.memory.persistent.PersistentMemory",
         lambda *a, **k: _types.SimpleNamespace(run_dir=None),
     ), patch(
-        "src.config.loader.load_agent_config", return_value=object()
+        "src.platform.config.loader.load_agent_config", return_value=object()
     ):
         _legacy._run_agent(
             "let AI trade tech aggressively with $5000",
@@ -841,7 +841,7 @@ class TestProposalArmingRelay:
 
 class TestHaltIntercept:
     def test_repl_halt_trips_flag(self, live_root: Path) -> None:
-        from src.live.halt import halt_flag_set
+        from src.markets.live.halt import halt_flag_set
 
         console = main.get_console()
         main._trip_halt_from_repl(console, reason="repl turn: 停")
@@ -855,7 +855,7 @@ class TestHaltIntercept:
         Mirrors the ``_interactive_loop`` guard: a halt turn is consumed before
         ``_run_one_turn`` (the only path into ``_run_agent``) is ever called.
         """
-        from src.live.halt import halt_flag_set
+        from src.markets.live.halt import halt_flag_set
 
         text = "停"
         ctx = InteractiveContext()

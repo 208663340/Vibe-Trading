@@ -22,7 +22,7 @@ from typing import List
 import pytest
 
 try:
-    from src.strategy_discovery.evidence_store import EvidenceStore
+    from src.research.strategy_discovery.evidence_store import EvidenceStore
 
     from tests.test_strategy_discovery_harness import (
         ALL_TRADE_DAYS,
@@ -42,7 +42,7 @@ requires_cli = pytest.mark.skipif(
 
 def _run_cli(argv: List[str]) -> int:
     """Drive the real argparse dispatcher, returning its exit code."""
-    from cli import _legacy
+    from src.interfaces.cli import _legacy
 
     return int(_legacy.main(argv))
 

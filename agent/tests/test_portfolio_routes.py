@@ -5,7 +5,7 @@ import time
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api import portfolio_routes
+from src.interfaces.api import portfolio_routes
 
 
 class _Service:

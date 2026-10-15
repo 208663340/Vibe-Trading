@@ -1,11 +1,11 @@
-"""Tests for src/governance/ (run manifest + hash-chained ledger).
+"""Tests for src/platform/governance/ (run manifest + hash-chained ledger).
 
 Focus: manifest hashing is deterministic over composition and sensitive to
 every composition dimension (system prompt / skills / tools / package
 versions / extra) while being INSENSITIVE to run_id/timestamp; the ledger's
 tamper detection is proven with negative (tampered/deleted) fixtures, not
 just a happy-path pass; fsync is actually invoked on the write path; and the
-pre-existing src/live/audit.py public contract keeps working unchanged.
+pre-existing src/markets/live/audit.py public contract keeps working unchanged.
 """
 
 from __future__ import annotations
@@ -17,9 +17,9 @@ from pathlib import Path
 
 import pytest
 
-from src.governance import ledger as ledger_mod
-from src.governance import manifest as manifest_mod
-from src.governance.ledger import (
+from src.platform.governance import ledger as ledger_mod
+from src.platform.governance import manifest as manifest_mod
+from src.platform.governance.ledger import (
     ChainVerificationResult,
     LedgerCorruptionError,
     append_record,
@@ -27,15 +27,15 @@ from src.governance.ledger import (
     verify_chain,
     verify_export,
 )
-from src.governance.manifest import (
+from src.platform.governance.manifest import (
     RunManifest,
     build_run_manifest,
     collect_key_package_versions,
     diff_manifests,
 )
-from src.live import audit
-from src.live import paths as live_paths
-from src.live.audit import LiveActionEvent, write_live_action
+from src.markets.live import audit
+from src.markets.live import paths as live_paths
+from src.markets.live.audit import LiveActionEvent, write_live_action
 
 
 # ---------------------------------------------------------------------------
@@ -208,7 +208,7 @@ def test_manifest_verify_hash_detects_tampering_after_deserialize() -> None:
 
 
 def test_manifest_rejects_duplicate_skill_names_in_sequence_form() -> None:
-    from src.governance.manifest import SkillRecord
+    from src.platform.governance.manifest import SkillRecord
 
     with pytest.raises(ValueError):
         build_run_manifest(
@@ -458,7 +458,7 @@ def test_export_is_self_contained_and_offline_verifiable(tmp_path: Path) -> None
 
 
 def test_export_to_file_round_trips(tmp_path: Path) -> None:
-    from src.governance.ledger import export_chain_to_file
+    from src.platform.governance.ledger import export_chain_to_file
 
     path = tmp_path / "chain.jsonl"
     _write_five_records(path)
@@ -496,7 +496,7 @@ def test_verify_export_detects_tampered_envelope_hash_directly(tmp_path: Path) -
 
 
 # ---------------------------------------------------------------------------
-# src/live/audit.py — backward compatibility + new capabilities
+# src/markets/live/audit.py — backward compatibility + new capabilities
 # ---------------------------------------------------------------------------
 
 
@@ -552,7 +552,7 @@ def test_chain_false_writes_only_the_classic_ledger(live_runtime: Path) -> None:
 
 def test_default_write_live_action_now_fsyncs(live_runtime: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The durability fix: even the CLASSIC (chain=False) path must fsync now,
-    closing the gap with src.agent.trace.TraceWriter noted in the audit.py
+    closing the gap with src.runtime.agent.trace.TraceWriter noted in the audit.py
     docstring update."""
     import os as os_mod
 
@@ -675,7 +675,7 @@ def test_chain_true_refuses_to_extend_a_tampered_chain_ledger(live_runtime: Path
 
 
 def test_rotation_seals_a_segment_and_keeps_the_active_file_small(tmp_path):
-    from src.governance.ledger import archive_segments, rotate_if_needed
+    from src.platform.governance.ledger import archive_segments, rotate_if_needed
 
     led = tmp_path / "audit_chain.jsonl"
     for i in range(5):
@@ -690,7 +690,7 @@ def test_rotation_seals_a_segment_and_keeps_the_active_file_small(tmp_path):
 
 def test_rotation_does_not_delete_anything(tmp_path):
     # The whole retention policy in one assertion: history is never destroyed.
-    from src.governance.ledger import rotate_if_needed
+    from src.platform.governance.ledger import rotate_if_needed
 
     led = tmp_path / "audit_chain.jsonl"
     for i in range(5):
@@ -702,7 +702,7 @@ def test_rotation_does_not_delete_anything(tmp_path):
 
 
 def test_the_chain_continues_across_a_rotation(tmp_path):
-    from src.governance.ledger import rotate_if_needed, verify_chain_with_archives
+    from src.platform.governance.ledger import rotate_if_needed, verify_chain_with_archives
 
     led = tmp_path / "audit_chain.jsonl"
     for i in range(5):
@@ -724,7 +724,7 @@ def test_deleting_a_whole_sealed_segment_is_detected(tmp_path):
     # This is what rotation would have cost us if the chain restarted: a
     # segment could be removed wholesale and each remaining file would still
     # verify on its own.
-    from src.governance.ledger import rotate_if_needed, verify_chain_with_archives
+    from src.platform.governance.ledger import rotate_if_needed, verify_chain_with_archives
 
     led = tmp_path / "audit_chain.jsonl"
     for i in range(5):
@@ -745,7 +745,7 @@ def test_a_malformed_line_in_a_sealed_segment_is_reported_not_raised(tmp_path):
     instead of letting json.JSONDecodeError escape; the whole-history
     verifier must do the same for the exact same corruption, whether it
     lands in a sealed segment or the active file."""
-    from src.governance.ledger import rotate_if_needed, verify_chain_with_archives
+    from src.platform.governance.ledger import rotate_if_needed, verify_chain_with_archives
 
     led = tmp_path / "audit_chain.jsonl"
     for i in range(5):
@@ -762,7 +762,7 @@ def test_a_malformed_line_in_a_sealed_segment_is_reported_not_raised(tmp_path):
 
 
 def test_a_malformed_line_in_the_active_file_is_reported_not_raised(tmp_path):
-    from src.governance.ledger import verify_chain_with_archives
+    from src.platform.governance.ledger import verify_chain_with_archives
 
     led = tmp_path / "audit_chain.jsonl"
     append_record(led, {"action": "order", "n": 0})
@@ -775,7 +775,7 @@ def test_a_malformed_line_in_the_active_file_is_reported_not_raised(tmp_path):
 
 
 def test_rotation_refuses_to_seal_a_corrupt_ledger(tmp_path):
-    from src.governance.ledger import rotate_if_needed
+    from src.platform.governance.ledger import rotate_if_needed
 
     led = tmp_path / "audit_chain.jsonl"
     for i in range(5):
@@ -791,7 +791,7 @@ def test_rotation_refuses_to_seal_a_corrupt_ledger(tmp_path):
 
 
 def test_rotation_is_a_no_op_below_the_threshold(tmp_path):
-    from src.governance.ledger import rotate_if_needed
+    from src.platform.governance.ledger import rotate_if_needed
 
     led = tmp_path / "audit_chain.jsonl"
     append_record(led, {"action": "order"})
@@ -800,7 +800,7 @@ def test_rotation_is_a_no_op_below_the_threshold(tmp_path):
 
 
 def test_rotation_rejects_a_non_positive_threshold(tmp_path):
-    from src.governance.ledger import rotate_if_needed
+    from src.platform.governance.ledger import rotate_if_needed
 
     led = tmp_path / "audit_chain.jsonl"
     append_record(led, {"action": "order"})

@@ -29,7 +29,7 @@ from mcp.client.auth.exceptions import OAuthRegistrationError
 from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
 from pydantic import AnyHttpUrl, ValidationError
 
-from src.config.schema import (
+from src.platform.config.schema import (
     IBKR_MCP_SERVER_SEED,
     LIVE_BROKER_SERVER_KEYS,
     ROBINHOOD_MCP_SERVER_SEED,
@@ -38,7 +38,7 @@ from src.config.schema import (
     MCPServerConfig,
     MCPServerConfigOverride,
 )
-from src.tools.mcp import MCPServerAdapter
+from src.runtime.tools.mcp import MCPServerAdapter
 
 pytestmark = pytest.mark.unit
 

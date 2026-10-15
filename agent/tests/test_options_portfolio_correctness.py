@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.options_portfolio import _calc_options_metrics
+from src.backtest.engines.options_portfolio import _calc_options_metrics
 
 
 def test_empty_equity_returns_json_safe_undefined_metrics() -> None:
@@ -62,7 +62,7 @@ def test_non_finite_final_equity_is_json_safe(terminal: float) -> None:
 
 def test_annual_return_exponent_uses_elapsed_bars_not_bars_minus_one() -> None:
     """annual_return must annualise over len(equity) elapsed bars, matching
-    backtest.metrics.calc_metrics's convention, not len(equity) - 1."""
+    src.backtest.metrics.calc_metrics's convention, not len(equity) - 1."""
     equity = pd.Series([100.5, 101.0])
     metrics = _calc_options_metrics(equity, 100.0, [], bars_per_year=252)
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders.futu import _INTERVAL_MAP, _to_futu_ktype
+from src.backtest.loaders.futu import _INTERVAL_MAP, _to_futu_ktype
 
 
 def test_lowercase_hour_aliases_match_project_tokens() -> None:

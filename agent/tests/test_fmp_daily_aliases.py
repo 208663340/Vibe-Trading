@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from backtest.loaders import fmp_loader as fl
-from backtest.loaders.fmp_loader import DataLoader
+from src.backtest.loaders import fmp_loader as fl
+from src.backtest.loaders.fmp_loader import DataLoader
 
 
 def _body(symbol, bars):

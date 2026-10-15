@@ -8,14 +8,14 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.providers.call_runner import (
+from src.runtime.providers.call_runner import (
     ProviderCallBudget,
     ProviderCallCancelled,
     ProviderCallCapacityError,
     ProviderCallRunner,
     provider_call_scope,
 )
-from src.providers.chat import ChatLLM, ProviderStreamError
+from src.runtime.providers.chat import ChatLLM, ProviderStreamError
 
 
 @pytest.fixture(autouse=True)
@@ -290,8 +290,8 @@ def test_continuous_tiny_chunks_and_callbacks_stay_on_caller():
 
 def test_default_budget_is_shared_across_wrappers_runners_and_runtime_lifespans(tmp_path, join_test_producers):
     import asyncio
-    from src.api.runtime import RuntimeServices
-    from src.providers.call_runner import abandoned_provider_count
+    from src.interfaces.api.runtime import RuntimeServices
+    from src.runtime.providers.call_runner import abandoned_provider_count
 
     release, cancel = threading.Event(), threading.Event()
     entered = [threading.Event() for _ in range(8)]
@@ -366,9 +366,9 @@ def test_aclose_idle_owner_awaits_async_clients():
 @pytest.mark.parametrize("kind", ["real", "compat"])
 @pytest.mark.parametrize("stop", ["cancel", "deadline"])
 def test_compaction_wait_is_bounded_without_nested_capacity(tmp_path, monkeypatch, kind, stop):
-    from src.agent.loop import AgentLoop
-    from src.agent.tools import ToolRegistry
-    from src.agent.trace import TraceWriter
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.agent.tools import ToolRegistry
+    from src.runtime.agent.trace import TraceWriter
 
     runner = ProviderCallRunner(budget=ProviderCallBudget(1))
     entered, release, done = (threading.Event() for _ in range(3))
@@ -384,9 +384,9 @@ def test_compaction_wait_is_bounded_without_nested_capacity(tmp_path, monkeypatc
     else:
         client = SimpleNamespace(chat=invoke)
         # Inject one private budget for the compatibility wrapper too.
-        monkeypatch.setattr("src.agent.loop.ProviderCallRunner", lambda: runner)
+        monkeypatch.setattr("src.runtime.agent.loop.ProviderCallRunner", lambda: runner)
     agent = AgentLoop(registry=ToolRegistry(), llm=client, max_iterations=1)
-    monkeypatch.setattr("src.agent.loop._llm_timeout_seconds", lambda: 0.04 if stop == "deadline" else 0)
+    monkeypatch.setattr("src.runtime.agent.loop._llm_timeout_seconds", lambda: 0.04 if stop == "deadline" else 0)
     messages = [
         {"role": "system", "content": "system"},
         {"role": "user", "content": "old"},

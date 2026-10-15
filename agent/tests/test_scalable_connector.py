@@ -16,14 +16,14 @@ from pathlib import Path
 import pytest
 from mcp import types as mcp_types
 
-import src.live.paths as paths
-from src.live.extractors import get_extractor
-from src.live.mandate.model import MANDATE_SCHEMA_VERSION
-from src.live.order_guard import LiveOrderGuardTool
-from src.live.registry import is_live_broker, wrap_live_broker_tools
-from src.tools.mcp import MCPRemoteTool, build_mcp_tool_wrappers
+import src.markets.live.paths as paths
+from src.markets.live.extractors import get_extractor
+from src.markets.live.mandate.model import MANDATE_SCHEMA_VERSION
+from src.markets.live.order_guard import LiveOrderGuardTool
+from src.markets.live.registry import is_live_broker, wrap_live_broker_tools
+from src.runtime.tools.mcp import MCPRemoteTool, build_mcp_tool_wrappers
 
-from src.config.schema import (
+from src.platform.config.schema import (
     LIVE_BROKER_SERVER_KEYS,
     LIVE_BROKER_URL_HOST_SUFFIX_TO_KEY,
     SCALABLE_MCP_SERVER_SEED,
@@ -31,12 +31,12 @@ from src.config.schema import (
     MCPServerConfig,
     is_live_broker_url,
 )
-from src.live import registry
-from src.live.classification import ToolClass, classify_tool
-from src.trading import profiles, service
-from src.trading.connections import is_portfolio_connection_profile
-from src.trading.connectors.scalable.classification import SCALABLE_TOOL_CLASS
-from src.trading.connectors.scalable.mcp import remote_arguments, remote_tool_name
+from src.markets.live import registry
+from src.markets.live.classification import ToolClass, classify_tool
+from src.markets.trading import profiles, service
+from src.markets.trading.connections import is_portfolio_connection_profile
+from src.markets.trading.connectors.scalable.classification import SCALABLE_TOOL_CLASS
+from src.markets.trading.connectors.scalable.mcp import remote_arguments, remote_tool_name
 
 pytestmark = pytest.mark.unit
 

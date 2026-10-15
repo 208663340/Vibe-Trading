@@ -1,4 +1,4 @@
-"""Tests for the durable live-runtime job store (src/live/runtime/jobstore.py,
+"""Tests for the durable live-runtime job store (src/markets/live/runtime/jobstore.py,
 SPEC.md §7.5 #1).
 
 The store is exercised purely through its public API + the filesystem (the
@@ -18,13 +18,13 @@ from threading import Barrier
 
 import pytest
 
-from src.live import paths
-from src.live.runtime.jobstore import (
+from src.markets.live import paths
+from src.markets.live.runtime.jobstore import (
     CorruptJobStoreError,
     JobStore,
     runtime_dir,
 )
-from src.live.runtime.scheduler import Job
+from src.markets.live.runtime.scheduler import Job
 
 
 @pytest.fixture
@@ -75,7 +75,7 @@ def test_save_is_atomic_no_temp_left_behind(live_runtime: Path) -> None:
 def test_save_completes_short_writes(live_runtime, monkeypatch) -> None:
     store = JobStore()
     real_write = os.write
-    monkeypatch.setattr("src.live.runtime.jobstore.os.write", lambda fd, data: real_write(fd, data[:7]))
+    monkeypatch.setattr("src.markets.live.runtime.jobstore.os.write", lambda fd, data: real_write(fd, data[:7]))
     store.save([_job("full-payload")])
     assert [job.id for job in store.load()] == ["full-payload"]
 
@@ -89,7 +89,7 @@ def test_concurrent_saves_use_distinct_temporary_files(live_runtime, monkeypatch
         barrier.wait(timeout=2)
         real_replace(src, dst)
 
-    monkeypatch.setattr("src.live.runtime.jobstore.os.replace", replace)
+    monkeypatch.setattr("src.markets.live.runtime.jobstore.os.replace", replace)
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = [pool.submit(store.save, [_job(name)]) for name in ("a", "b")]
         for result in results:
@@ -122,10 +122,10 @@ def test_sigkill_mid_write_leaves_old_store_intact(
         # atomic rename lands.
         raise OSError("simulated crash before rename")
 
-    monkeypatch.setattr("src.live.runtime.jobstore.os.replace", boom)
+    monkeypatch.setattr("src.markets.live.runtime.jobstore.os.replace", boom)
     with pytest.raises(OSError):
         store.save([_job("a", 7777), _job("b", 2)])
-    monkeypatch.setattr("src.live.runtime.jobstore.os.replace", real_replace)
+    monkeypatch.setattr("src.markets.live.runtime.jobstore.os.replace", real_replace)
 
     # Old store survives untouched — the half-written attempt never replaced it.
     loaded = {j.id: j for j in store.load()}

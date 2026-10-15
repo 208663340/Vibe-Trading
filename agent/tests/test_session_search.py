@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.session.search import SessionSearchIndex, SearchMatch
+from src.runtime.session.search import SessionSearchIndex, SearchMatch
 
 
 @pytest.fixture()

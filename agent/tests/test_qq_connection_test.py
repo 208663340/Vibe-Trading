@@ -21,8 +21,8 @@ from typing import Any
 import httpx
 import pytest
 
-from src.channels.bus.queue import MessageBus
-from src.channels.qq import QQ_AVAILABLE, QQChannel
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.qq import QQ_AVAILABLE, QQChannel
 
 TOKEN_URL = "https://bots.qq.com/app/getAppAccessToken"
 APP_ID = "qq-app-id-1234567890"

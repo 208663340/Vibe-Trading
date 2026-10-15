@@ -9,11 +9,11 @@ from typing import Any, Callable
 
 import pytest
 
-import src.agent.loop as loop_mod
-import src.agent.trace as trace_mod
-from src.agent.context import ContextBuilder
-from src.agent.loop import AgentLoop
-from src.agent.trace import TraceWriter
+import src.runtime.agent.loop as loop_mod
+import src.runtime.agent.trace as trace_mod
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.trace import TraceWriter
 
 
 class _Tool:

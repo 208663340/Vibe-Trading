@@ -148,7 +148,7 @@ def test_mcp_server_happy_path() -> None:
     env["PYTHONUNBUFFERED"] = "1"
 
     proc = subprocess.Popen(
-        [sys.executable, "-c", "from mcp_server import main; main()"],
+        [sys.executable, "-c", "from src.interfaces.mcp_server import main; main()"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
@@ -282,7 +282,7 @@ def test_mcp_stdio_projects_redacted_swarm_metadata(tmp_path: Path) -> None:
     env["PYTHONUNBUFFERED"] = "1"
     env["VIBE_TRADING_HOME"] = str(runtime_root)
     proc = subprocess.Popen(
-        [sys.executable, "-c", "from mcp_server import main; main()"],
+        [sys.executable, "-c", "from src.interfaces.mcp_server import main; main()"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,

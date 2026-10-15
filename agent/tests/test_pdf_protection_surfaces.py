@@ -6,18 +6,18 @@ import json
 
 import pytest
 
-from src.channels.targets import DeliveryTarget
-from src.scheduled_research import proposals, service
-from src.scheduled_research.models import ScheduledResearchJob
-from src.scheduled_research.store import ScheduledResearchJobStore
-from src.tools.scheduled_research_tool import ScheduledResearchTool
+from src.interfaces.channels.targets import DeliveryTarget
+from src.research.scheduled_research import proposals, service
+from src.research.scheduled_research.models import ScheduledResearchJob
+from src.research.scheduled_research.store import ScheduledResearchJobStore
+from src.runtime.tools.scheduled_research_tool import ScheduledResearchTool
 
 
 @pytest.fixture
 def email_target(monkeypatch):
     target = DeliveryTarget("reports", "Reports", "email", "reader@example.test")
     monkeypatch.setattr(service, "resolve_delivery_target", lambda _ref: target)
-    monkeypatch.setattr("src.channels.targets.resolve_delivery_target", lambda _ref: target)
+    monkeypatch.setattr("src.interfaces.channels.targets.resolve_delivery_target", lambda _ref: target)
     return target
 
 
@@ -55,7 +55,7 @@ def test_agent_schema_exposes_pdf_protection_choice():
 
 
 def test_cli_creates_protected_pdf_job(tmp_path, monkeypatch, capsys, email_target):
-    from cli import _legacy
+    from src.interfaces.cli import _legacy
 
     monkeypatch.setenv("VIBE_TRADING_HOME", str(tmp_path))
     monkeypatch.setattr(service, "email_pdf_password_configured", lambda: True, raising=False)
@@ -81,7 +81,7 @@ def test_protection_cannot_be_serialized_for_incompatible_delivery(channel, form
 
 
 def test_cli_protection_refuses_missing_password(monkeypatch, email_target):
-    from cli.commands.research_playbook import build_job_from_playbook
+    from src.interfaces.cli.commands.research_playbook import build_job_from_playbook
 
     monkeypatch.setattr(service, "email_pdf_password_configured", lambda: False)
     job, error = build_job_from_playbook(
@@ -115,7 +115,7 @@ def test_cli_confirmation_shows_protection_choice(enabled, label):
 
     from rich.console import Console
 
-    from cli.main import _render_scheduled_proposal
+    from src.interfaces.cli.main import _render_scheduled_proposal
 
     output = StringIO()
     _render_scheduled_proposal(Console(file=output, color_system=None), {

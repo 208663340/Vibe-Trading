@@ -9,10 +9,10 @@ from typing import Any
 
 import pytest
 
-import src.channels.manager as manager_module
-from src.channels.bus.events import OutboundMessage
-from src.channels.bus.queue import MessageBus
-from src.channels.manager import ChannelManager
+import src.interfaces.channels.manager as manager_module
+from src.interfaces.channels.bus.events import OutboundMessage
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.manager import ChannelManager
 
 
 class FakeChannel:

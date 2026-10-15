@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.fundmath.
+"""Tests for src.research.quantlib.fundmath.
 
 Two rules the assertions here follow.
 
@@ -19,8 +19,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.entities.cashflow import CashFlow, CashFlowSeries
-from src.quantlib.fundmath import (
+from src.platform.entities.cashflow import CashFlow, CashFlowSeries
+from src.research.quantlib.fundmath import (
     CONTRIBUTION_KINDS,
     TIER_CARRY_SPLIT,
     TIER_CATCH_UP,

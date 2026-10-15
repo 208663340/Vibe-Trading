@@ -6,11 +6,11 @@ import json
 from pathlib import Path
 from typing import Any
 
-from src.agent.loop import AgentLoop
-from src.agent.progress import emit_progress
-from src.agent.tools import BaseTool, ToolRegistry
-from src.memory.persistent import PersistentMemory
-from src.providers.chat import ChatLLM
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.progress import emit_progress
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.memory.persistent import PersistentMemory
+from src.runtime.providers.chat import ChatLLM
 
 
 class _Chunk:
@@ -84,7 +84,7 @@ def test_agent_loop_executes_dsml_textual_tool_call(
             return None
 
     monkeypatch.setattr(
-        "src.agent.loop.HeartbeatTimer", _ImmediateHeartbeatTimer
+        "src.runtime.agent.loop.HeartbeatTimer", _ImmediateHeartbeatTimer
     )
     dsml = (
         '<｜｜DSML｜｜tool_calls>'
@@ -155,7 +155,7 @@ def test_agent_loop_never_releases_tool_call_syntax_as_a_final_answer(
             return None
 
     monkeypatch.setattr(
-        "src.agent.loop.HeartbeatTimer", _ImmediateHeartbeatTimer
+        "src.runtime.agent.loop.HeartbeatTimer", _ImmediateHeartbeatTimer
     )
     # The fullwidth-vbar (U+FF5C) form is what the real failure looked like; the
     # streaming DSML parser does not recognize it, so it arrives as text.
@@ -186,7 +186,7 @@ def test_agent_loop_never_releases_tool_call_syntax_as_a_final_answer(
 def test_closing_dsml_tags_alone_are_tool_call_syntax() -> None:
     """A DeepSeek draft once ended in closing tags only, inside its figures block;
     the opening-tag pattern missed them and the gate got three unreadable lines."""
-    from src.agent.loop import _looks_like_tool_call_syntax
+    from src.runtime.agent.loop import _looks_like_tool_call_syntax
 
     tail = "\n".join(
         [

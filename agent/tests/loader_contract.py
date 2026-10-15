@@ -2,7 +2,7 @@
 
 Each loader test file pins its own canonical fixture with bespoke assertions;
 the only shared schema check lived in the weekly health lane
-(:mod:`backtest.loader_health`), at runtime. Nothing stopped a new loader, or
+(:mod:`src.backtest.loader_health`), at runtime. Nothing stopped a new loader, or
 a refactor of an old one, from quietly changing the frame the rest of the
 pipeline consumes.
 
@@ -29,7 +29,7 @@ import pytest
 OHLCV_COLUMNS = ("open", "high", "low", "close", "volume")
 
 # Structural failures that must never reach the pipeline. Same vocabulary as
-# backtest.loader_health.check_frame.
+# src.backtest.loader_health.check_frame.
 _CONTRACT_REASONS = frozenset(
     {
         "empty_frame",
@@ -47,7 +47,7 @@ _CONTRACT_REASONS = frozenset(
 def loader_contract_errors(frame: object, *, context: str = "") -> list[str]:
     """Return contract violations for a normalized OHLCV frame.
 
-    Mirrors the structural half of ``backtest.loader_health.check_frame``
+    Mirrors the structural half of ``src.backtest.loader_health.check_frame``
     (freshness deliberately excluded — fixtures are frozen history). Never
     raises on bad input; returns the violation list so tests can render it.
     """

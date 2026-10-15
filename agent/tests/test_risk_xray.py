@@ -8,14 +8,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.risk_xray import (
+from src.backtest.risk_xray import (
     _drawdown,
     average_invested_weights,
     compute_risk_xray,
     render_risk_xray_markdown,
     write_risk_xray,
 )
-from src.tools.portfolio_risk_tool import PortfolioRiskXrayTool
+from src.runtime.tools.portfolio_risk_tool import PortfolioRiskXrayTool
 
 
 def _closes(series_map: dict[str, list[float]], start: str = "2026-01-01") -> pd.DataFrame:
@@ -329,7 +329,7 @@ def test_write_risk_xray_strict_json_and_markdown(tmp_path):
 
 
 def test_run_backtest_emits_risk_xray_artifacts(tmp_path):
-    from backtest.engines.base import BaseEngine
+    from src.backtest.engines.base import BaseEngine
 
     class _FlatEngine(BaseEngine):
         def can_execute(self, symbol, direction, bar):
@@ -445,7 +445,7 @@ def test_run_backtest_with_bars_per_year_none_does_not_crash(tmp_path):
     # The full crash contract: engine.run_backtest(..., bars_per_year=None),
     # which base.py forwards into compute_risk_xray (issue trace
     # runner.py:1260 -> composite.py:150 -> base.py:860).
-    from backtest.engines.base import BaseEngine
+    from src.backtest.engines.base import BaseEngine
 
     class _FlatEngine(BaseEngine):
         def can_execute(self, symbol, direction, bar):

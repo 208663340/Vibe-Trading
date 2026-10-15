@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from src.memory.hierarchy import CATEGORIES, MemoryHierarchy
+from src.runtime.memory.hierarchy import CATEGORIES, MemoryHierarchy
 
 
 # ---------------------------------------------------------------------------

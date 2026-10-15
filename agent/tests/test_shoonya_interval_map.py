@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.shoonya import sdk as sh
+from src.markets.trading.connectors.shoonya import sdk as sh
 
 
 class _FakeApi:

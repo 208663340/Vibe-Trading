@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from backtest.loaders.akshare_loader import DataLoader
+from src.backtest.loaders.akshare_loader import DataLoader
 
 
 def _us_daily_frame() -> pd.DataFrame:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-import cli
+import src.interfaces.cli as cli
 
 
 def _provider_choice_number(provider: str) -> int:

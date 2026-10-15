@@ -16,11 +16,11 @@ from types import SimpleNamespace
 
 import pytest
 
-import src.live.paths as paths
-import src.live.sdk_order_gate as sdk_order_gate
-from src.live.enforcement import OrderIntent
-from src.live.mandate.model import AssetClass, InstrumentType, MANDATE_SCHEMA_VERSION
-from src.tools.mcp import MCPRemoteToolSpec
+import src.markets.live.paths as paths
+import src.markets.live.sdk_order_gate as sdk_order_gate
+from src.markets.live.enforcement import OrderIntent
+from src.markets.live.mandate.model import AssetClass, InstrumentType, MANDATE_SCHEMA_VERSION
+from src.runtime.tools.mcp import MCPRemoteToolSpec
 from tests import robinhood_mcp_helpers as rh
 
 
@@ -145,7 +145,7 @@ def _write_mandate(live_runtime: Path, *, max_order_notional_usd: float) -> None
 
 
 def _mcp_guard(live_runtime: Path, adapter, *, max_order_notional_usd: float = 750.0):
-    from src.live.order_guard import LiveOrderGuardTool
+    from src.markets.live.order_guard import LiveOrderGuardTool
 
     _write_mandate(live_runtime, max_order_notional_usd=max_order_notional_usd)
     return LiveOrderGuardTool(adapter, _mcp_spec(), broker="robinhood", session_id="s1")

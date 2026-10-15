@@ -7,9 +7,9 @@ import pandas as pd
 import pytest
 
 from tests.test_readonly_replay_after_microcompact import _Context, _Registry, _Trace, _loop
-from src.agent.grounding import GroundingLedger
-from src.agent.loop import AgentLoop
-from src.tools.technical_indicator_tool import TechnicalIndicatorTool
+from src.runtime.agent.grounding import GroundingLedger
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.tools.technical_indicator_tool import TechnicalIndicatorTool
 
 
 def test_technical_indicators_opt_into_readonly_compaction_replay() -> None:
@@ -48,7 +48,7 @@ def test_indicator_replay_preserves_dated_evidence_and_refreshes(monkeypatch, tm
         calls.append(kwargs)
         return {"AAPL.US": frame}
 
-    monkeypatch.setattr("src.tools.technical_indicator_tool.fetch_market_data", fetch)
+    monkeypatch.setattr("src.runtime.tools.technical_indicator_tool.fetch_market_data", fetch)
     registry = _Registry()
     registry.tool = TechnicalIndicatorTool()
     registry.execute = lambda name, args: registry.tool.execute(**args)

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.base import (
+from src.research.factors.base import (
     Alpha,
     AlphaCompute,
     Market,

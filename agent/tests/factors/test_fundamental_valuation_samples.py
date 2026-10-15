@@ -8,7 +8,7 @@ whitelist rejection and the NaN-on-missing-data contract.
 
 Assertions are membership-based, never an exact registry total: the zoo grows
 concurrently. Expected values are recomputed here with an independent numpy
-formula (mean / sample-std z-score) rather than reusing ``src.factors.base``
+formula (mean / sample-std z-score) rather than reusing ``src.research.factors.base``
 operators, so a regression in the shared operator does not silently validate
 itself.
 """
@@ -23,9 +23,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest import runner
-from backtest.loaders import valuation_loader
-from src.factors.registry import AlphaMeta, Registry
+from src.backtest import runner
+from src.backtest.loaders import valuation_loader
+from src.research.factors.registry import AlphaMeta, Registry
 
 _DATES = pd.to_datetime(["2024-01-01", "2024-01-02"])
 _CODES = ["AAA", "BBB", "CCC"]
@@ -91,7 +91,7 @@ def _expected_outputs(panel: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
 
 
 def _load_module(stem: str):
-    return importlib.import_module(f"src.factors.zoo.fundamental.{stem}")
+    return importlib.import_module(f"src.research.factors.zoo.fundamental.{stem}")
 
 
 # ------------------------------------------------------- (a) gate + registry
@@ -119,7 +119,7 @@ def test_registry_loads_factor_with_expected_meta(
     theme, columns, stem = _EXPECTED_META[alpha_id]
     alpha = registry.get(alpha_id)
     assert alpha.zoo == "fundamental"
-    assert alpha.module_path == f"src.factors.zoo.fundamental.{stem}"
+    assert alpha.module_path == f"src.research.factors.zoo.fundamental.{stem}"
     assert alpha.meta["theme"] == theme
     assert alpha.meta["columns_required"] == columns
     assert alpha.meta["universe"] == ["equity_cn"]
@@ -206,7 +206,7 @@ def test_extreme_and_zero_values_never_produce_inf(
     panel[dep].loc[_DATES[1]] = [0.0, -1.5, 1e12]
 
     if alpha_id in {"fund_pb", "fund_ps_ttm"}:
-        from src.factors.registry import RegistryError
+        from src.research.factors.registry import RegistryError
         with pytest.raises(RegistryError, match=">95% NaN"):
             registry.compute(alpha_id, panel)
         out = _load_module(_EXPECTED_META[alpha_id][2]).compute(panel)
@@ -330,7 +330,7 @@ def test_runner_rejects_val_field_outside_whitelist() -> None:
 
 
 def test_val_whitelist_covers_exactly_the_daily_basic_fields() -> None:
-    from backtest.loaders.valuation_loader import VALUATION_FIELDS
+    from src.backtest.loaders.valuation_loader import VALUATION_FIELDS
 
     assert VALUATION_FIELDS == ("pe", "pe_ttm", "pb", "ps_ttm", "dv_ttm")
 

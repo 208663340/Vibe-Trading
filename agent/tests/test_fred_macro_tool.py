@@ -1,7 +1,7 @@
 """Tests for fred_macro_tool: availability gating, success + error envelopes.
 
 All HTTP is mocked — no test ever reaches a live FRED endpoint. The tool imports
-``throttled_get_json`` from :mod:`backtest.loaders._http` into its own namespace,
+``throttled_get_json`` from :mod:`src.backtest.loaders._http` into its own namespace,
 so we monkeypatch that name on the ``fred_macro_tool`` module.
 """
 
@@ -11,9 +11,9 @@ import json
 from datetime import date, timedelta
 from typing import Any, Dict
 
-from src.config.limits import TOOL_RESULT_LIMIT, truncate_tool_result
-from src.tools import fred_macro_tool
-from src.tools.fred_macro_tool import FredMacroTool
+from src.platform.config.limits import TOOL_RESULT_LIMIT, truncate_tool_result
+from src.runtime.tools import fred_macro_tool
+from src.runtime.tools.fred_macro_tool import FredMacroTool
 
 
 def _ok_payload() -> Dict[str, Any]:

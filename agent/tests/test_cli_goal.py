@@ -5,23 +5,23 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
-from src.goal import GoalStore
+from src.runtime.goal import GoalStore
 
 
 def test_goal_command_is_registered() -> None:
     """The interactive slash router exposes /goal."""
-    from cli.commands.slash_router import find_exact, match_commands
+    from src.interfaces.cli.commands.slash_router import find_exact, match_commands
 
     cmd = find_exact("goal")
 
     assert cmd is not None
-    assert cmd.handler_module == "cli.commands.goal"
+    assert cmd.handler_module == "src.interfaces.cli.commands.goal"
     assert "goal" in [item.name for item in match_commands("/go")]
 
 
 def test_goal_command_creates_goal(tmp_path: Path, monkeypatch) -> None:
     """A bare /goal <objective> starts a research goal for the current session."""
-    from cli.commands import goal as goal_cmd
+    from src.interfaces.cli.commands import goal as goal_cmd
 
     store = GoalStore(tmp_path / "goals.db")
     monkeypatch.setattr(goal_cmd, "_goal_store", store)
@@ -50,7 +50,7 @@ def test_goal_command_appends_evidence_by_criterion_index(
     monkeypatch,
 ) -> None:
     """Manual CLI evidence can target criteria by 1-based index."""
-    from cli.commands import goal as goal_cmd
+    from src.interfaces.cli.commands import goal as goal_cmd
 
     store = GoalStore(tmp_path / "goals.db")
     monkeypatch.setattr(goal_cmd, "_goal_store", store)
@@ -84,7 +84,7 @@ def test_goal_command_appends_evidence_by_criterion_index(
 
 def test_goal_command_rejects_live_trading_objective(tmp_path: Path, monkeypatch) -> None:
     """CLI /goal keeps the research-only boundary."""
-    from cli.commands import goal as goal_cmd
+    from src.interfaces.cli.commands import goal as goal_cmd
 
     store = GoalStore(tmp_path / "goals.db")
     monkeypatch.setattr(goal_cmd, "_goal_store", store)
@@ -98,7 +98,7 @@ def test_goal_command_rejects_live_trading_objective(tmp_path: Path, monkeypatch
 
 def test_goal_status_without_session_does_not_create_session(monkeypatch) -> None:
     """Read-only /goal status should not create a new session."""
-    from cli.commands import goal as goal_cmd
+    from src.interfaces.cli.commands import goal as goal_cmd
 
     def fail_create(*args, **kwargs):  # noqa: ANN001
         raise AssertionError("status should not create a session")
@@ -111,7 +111,7 @@ def test_goal_status_without_session_does_not_create_session(monkeypatch) -> Non
 
 def test_goal_start_persists_session_id_on_plain_context(tmp_path: Path, monkeypatch) -> None:
     """A ctx without session_id still remembers the session after /goal start."""
-    from cli.commands import goal as goal_cmd
+    from src.interfaces.cli.commands import goal as goal_cmd
 
     store = GoalStore(tmp_path / "goals.db")
     monkeypatch.setattr(goal_cmd, "_goal_store", store)
@@ -125,7 +125,7 @@ def test_goal_start_persists_session_id_on_plain_context(tmp_path: Path, monkeyp
 
 def test_goal_cancel_moves_goal_out_of_current_set(tmp_path: Path, monkeypatch) -> None:
     """CLI users can end an active goal without replacing it."""
-    from cli.commands import goal as goal_cmd
+    from src.interfaces.cli.commands import goal as goal_cmd
 
     store = GoalStore(tmp_path / "goals.db")
     monkeypatch.setattr(goal_cmd, "_goal_store", store)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.swarm import presets
+from src.runtime.swarm import presets
 
 
 def test_all_bundled_presets_inspect_without_errors() -> None:

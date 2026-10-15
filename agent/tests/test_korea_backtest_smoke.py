@@ -22,8 +22,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backtest.engines.global_equity import GlobalEquityEngine
-from backtest.engines.korea_equity import KoreaEquityEngine, krx_round_down
+from src.backtest.engines.global_equity import GlobalEquityEngine
+from src.backtest.engines.korea_equity import KoreaEquityEngine, krx_round_down
 
 
 def _krx_bars() -> pd.DataFrame:

@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api.sessions_routes import MAX_MESSAGE_CHARS
+import src.interfaces.api_server as api_server
+from src.interfaces.api.sessions_routes import MAX_MESSAGE_CHARS
 
 
 @pytest.fixture

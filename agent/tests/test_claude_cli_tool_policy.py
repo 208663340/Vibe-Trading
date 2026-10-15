@@ -7,7 +7,7 @@ import sys
 
 import pytest
 
-from src.providers import claude_cli, claude_cli_policy
+from src.runtime.providers import claude_cli, claude_cli_policy
 from tests.claude_cli_helpers import install_fake_cli, payload, tool
 
 

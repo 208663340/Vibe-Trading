@@ -9,7 +9,7 @@ import pytest
 
 pytest.importorskip("openbb_ai")
 
-from src.openbb_bridge.adapter import OpenBBQueryAdapter
+from src.interfaces.openbb_bridge.adapter import OpenBBQueryAdapter
 
 
 class _FakeEvent:

@@ -12,7 +12,7 @@ import os
 
 import pytest
 
-from src.factors import cli_handlers
+from src.research.factors import cli_handlers
 
 
 class _FakeReg:
@@ -28,7 +28,7 @@ def _reg(monkeypatch):
 @pytest.fixture()
 def _no_report(monkeypatch, tmp_path):
     """Keep the HTML report side effect contained."""
-    import src.tools.alpha_bench_tool as tool
+    import src.runtime.tools.alpha_bench_tool as tool
 
     monkeypatch.setattr(tool, "_default_output_dir", lambda: tmp_path)
 
@@ -36,7 +36,7 @@ def _no_report(monkeypatch, tmp_path):
 @pytest.fixture()
 def _order(monkeypatch):
     """Record the call order of dotenv loading vs. the actual work."""
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
     order: list[str] = []
     monkeypatch.setattr(llm, "_ensure_dotenv", lambda: order.append("env"))
@@ -129,7 +129,7 @@ def _compare_envelope():
 
 def test_bench_loads_dotenv_before_runner(capsys, monkeypatch, _reg, _no_report, _order):
     """The token must be loaded before the bench runner reads the universe."""
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     order = _order
 
@@ -161,7 +161,7 @@ def test_compare_loads_dotenv_before_compare(capsys, monkeypatch, _reg, _order):
 
 def test_load_cli_env_swallows_dotenv_errors(monkeypatch):
     """A broken .env must not crash the command; the downstream error does."""
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
     def boom():
         raise RuntimeError("dotenv unreadable")
@@ -172,9 +172,9 @@ def test_load_cli_env_swallows_dotenv_errors(monkeypatch):
 
 def test_load_cli_env_reads_dotenv_file(monkeypatch, tmp_path):
     """End-to-end: a token present only in .env reaches get_env_config()."""
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
-    from src.config.accessor import get_env_config
+    from src.platform.config.accessor import get_env_config
 
     dotenv = tmp_path / ".env"
     token = "cli_dotenv_regression_token"

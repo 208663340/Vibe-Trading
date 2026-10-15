@@ -15,11 +15,11 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.session.events import EventBus
-from src.session.models import Attempt
-from src.session.service import SessionService
-from src.session.store import SessionStore
+import src.interfaces.api_server as api_server
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import Attempt
+from src.runtime.session.service import SessionService
+from src.runtime.session.store import SessionStore
 
 
 class _DummyIndex:
@@ -31,7 +31,7 @@ class _DummyIndex:
 
 
 def _service(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> SessionService:
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: _DummyIndex())
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: _DummyIndex())
     # The TestClient never injects a loop into the bus, so a cross-thread
     # clear() is only noticed when the subscriber's idle wait times out; keep
     # that short so each case finishes in well under a second.

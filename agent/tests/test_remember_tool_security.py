@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from src.memory.persistent import PersistentMemory
-from src.tools.remember_tool import RememberTool
+from src.runtime.memory.persistent import PersistentMemory
+from src.runtime.tools.remember_tool import RememberTool
 
 
 def test_remember_rejects_memory_type_path_traversal(tmp_path: Path) -> None:

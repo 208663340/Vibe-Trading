@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.quantlib.portfolio import (
+from src.research.quantlib.portfolio import (
     correlation_distance,
     hierarchical_risk_parity,
     inverse_variance_weights,

@@ -1,4 +1,4 @@
-"""Tests for the live-runtime scheduler (src/live/runtime/scheduler.py,
+"""Tests for the live-runtime scheduler (src/markets/live/runtime/scheduler.py,
 SPEC.md §7.5 #1).
 
 Two layers:
@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import asyncio
 
-from src.live.runtime.scheduler import (
+from src.markets.live.runtime.scheduler import (
     DEFAULT_INTERVAL_MS,
     DEFAULT_MAX_RECHECK_MS,
     Job,

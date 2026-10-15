@@ -1,7 +1,7 @@
 import hashlib
 import json
 
-from backtest.run_card import write_run_card
+from src.backtest.run_card import write_run_card
 
 
 def test_run_card_v1_hashes_tool_inputs_and_cites_metric_artifact(tmp_path) -> None:
@@ -151,7 +151,7 @@ def test_old_style_card_has_explicit_missing_trace_and_evidence_text(tmp_path):
 
 
 def test_run_detail_api_preserves_verified_traces_and_citations(tmp_path):
-    import api_server
+    import src.interfaces.api_server as api_server
 
     (tmp_path / "artifacts").mkdir()
     (tmp_path / "artifacts/metrics.csv").write_text("sharpe\n1.23\n")

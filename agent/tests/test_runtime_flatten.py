@@ -1,4 +1,4 @@
-"""Tests for the preemptive kill-switch sweep (src/live/runtime/flatten.py).
+"""Tests for the preemptive kill-switch sweep (src/markets/live/runtime/flatten.py).
 
 SPEC §7.5 component 6. Verifies cancel-then-flatten ordering, the cancel-only
 default when the mandate forbids flatten, the no-retry-on-error contract
@@ -13,8 +13,8 @@ from typing import Any
 
 import pytest
 
-from src.live import audit, paths
-from src.live.runtime import flatten
+from src.markets.live import audit, paths
+from src.markets.live.runtime import flatten
 
 
 class _Broker:

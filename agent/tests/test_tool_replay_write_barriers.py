@@ -169,7 +169,7 @@ def test_cancel_during_authorization_prevents_replay_admission():
 
 
 def test_unknown_tool_compatibility_invocation_preserves_observations():
-    from src.agent.tools import ToolRegistry
+    from src.runtime.agent.tools import ToolRegistry
 
     loop = _loop(ToolRegistry())
     # Empty registries are falsey, so install the actual empty registry after

@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from evals.harness.artifacts import ArtifactBundle
-from evals.harness.schema import HarnessCase
+from src.runtime.evals.harness.artifacts import ArtifactBundle
+from src.runtime.evals.harness.schema import HarnessCase
 
 
 @pytest.mark.parametrize(

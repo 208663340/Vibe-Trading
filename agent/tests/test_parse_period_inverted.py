@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.tools.alpha_bench_tool import _parse_period
+from src.runtime.tools.alpha_bench_tool import _parse_period
 
 
 def test_parse_period_rejects_inverted_year_range() -> None:

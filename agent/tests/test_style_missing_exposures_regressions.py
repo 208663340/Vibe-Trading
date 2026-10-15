@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from src.quantlib.factormodel import portfolio_style_exposure
+from src.research.quantlib.factormodel import portfolio_style_exposure
 
 
 @pytest.mark.parametrize("missing", [np.nan, np.inf, -np.inf])
@@ -26,7 +26,7 @@ def test_benchmark_missing_exposures_are_also_reported():
 
 def test_quantlib_tool_reports_unmeasured_style_weight():
     import json
-    from src.tools.quantlib_tool import QuantlibCallTool
+    from src.runtime.tools.quantlib_tool import QuantlibCallTool
 
     result = json.loads(
         QuantlibCallTool().execute(

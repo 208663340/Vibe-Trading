@@ -1,6 +1,6 @@
 """Tests for the run-artifact reader tool.
 
-Covers the contract of ``src.tools.run_artifact_tool``: manifest-driven
+Covers the contract of ``src.runtime.tools.run_artifact_tool``: manifest-driven
 resolution (friendly aliases with and without a run card, manifest-listed
 relative paths, tampered-manifest refusal), traversal rejection, CSV
 coercion, offset paging, first+last-pinned downsampling, meta/JSON
@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from src.tools import run_artifact_tool
-from src.tools.run_artifact_tool import RunArtifactTool, read_run_artifact
+from src.runtime.tools import run_artifact_tool
+from src.runtime.tools.run_artifact_tool import RunArtifactTool, read_run_artifact
 
 EQUITY_ROWS = 3821
 EQUITY_COLUMNS = ["date", "equity", "cash", "drawdown"]
@@ -567,7 +567,7 @@ def test_tool_class_contract(run_dir: Path) -> None:
 
 
 def test_default_page_survives_actual_agent_delivery_cap(run_dir):
-    from src.config.limits import TOOL_RESULT_LIMIT, truncate_tool_result
+    from src.platform.config.limits import TOOL_RESULT_LIMIT, truncate_tool_result
     payload = read_run_artifact(str(run_dir), "equity")
     assert len(payload) <= TOOL_RESULT_LIMIT
     assert truncate_tool_result(payload) == payload
@@ -578,7 +578,7 @@ def test_default_page_survives_actual_agent_delivery_cap(run_dir):
 
 
 def test_oversized_json_is_an_actionable_error(run_dir):
-    from src.config.limits import TOOL_RESULT_LIMIT
+    from src.platform.config.limits import TOOL_RESULT_LIMIT
     (run_dir / "run_card.json").write_text(json.dumps({"body": "x" * TOOL_RESULT_LIMIT}))
     payload = read_run_artifact(str(run_dir), "run_card")
     assert len(payload) <= TOOL_RESULT_LIMIT
@@ -608,7 +608,7 @@ def test_shape_and_page_do_not_coerce_unselected_rows(run_dir, monkeypatch):
 
 
 def test_oversized_json_meta_reports_size_without_content(run_dir):
-    from src.config.limits import TOOL_RESULT_LIMIT
+    from src.platform.config.limits import TOOL_RESULT_LIMIT
     card = run_dir / "run_card.json"
     card.write_text(json.dumps({"body": "x" * TOOL_RESULT_LIMIT}))
     result = json.loads(read_run_artifact(str(run_dir), "run_card", format="meta"))

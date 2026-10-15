@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders.mt5_loader import _INTERVAL_MAP
+from src.backtest.loaders.mt5_loader import _INTERVAL_MAP
 
 
 def test_lowercase_hour_day_aliases_match_project_tokens() -> None:

@@ -5,15 +5,15 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.base import BaseEngine
-from backtest.engines.china_a import ChinaAEngine
-from backtest.engines.china_futures import ChinaFuturesEngine
-from backtest.engines.composite import CompositeEngine
-from backtest.engines.crypto import CryptoEngine
-from backtest.engines.forex import ForexEngine
-from backtest.engines.global_equity import GlobalEquityEngine
-from backtest.engines.global_futures import GlobalFuturesEngine
-from backtest.engines.india_equity import IndiaEquityEngine
+from src.backtest.engines.base import BaseEngine
+from src.backtest.engines.china_a import ChinaAEngine
+from src.backtest.engines.china_futures import ChinaFuturesEngine
+from src.backtest.engines.composite import CompositeEngine
+from src.backtest.engines.crypto import CryptoEngine
+from src.backtest.engines.forex import ForexEngine
+from src.backtest.engines.global_equity import GlobalEquityEngine
+from src.backtest.engines.global_futures import GlobalFuturesEngine
+from src.backtest.engines.india_equity import IndiaEquityEngine
 
 
 class _FrictionlessEngine(BaseEngine):

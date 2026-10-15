@@ -12,7 +12,7 @@ import math
 
 import pytest
 
-from src.quantlib.attribution import (
+from src.research.quantlib.attribution import (
     BrinsonResult,
     brinson_fachler,
     carino_factor,

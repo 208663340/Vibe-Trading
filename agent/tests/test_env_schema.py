@@ -22,14 +22,14 @@ from typing import Optional
 import pytest
 from pydantic import Field, ValidationError
 
-from src.config.accessor import (
+from src.platform.config.accessor import (
     _parse_bool,
     get_env_config,
     get_env_or,
     get_env_value,
     reset_env_config,
 )
-from src.config.env_schema import (
+from src.platform.config.env_schema import (
     APIConfig,
     AgentTuningConfig,
     DataConfig,
@@ -133,7 +133,7 @@ class TestEnvConfigDefaults:
         # Derived from the chains, not hand-listed: the hand-written list here
         # and the field block it guarded both missed uk_equity for as long as
         # that market existed, so a new market shipped without its typed field.
-        from backtest.loaders.registry import FALLBACK_CHAINS
+        from src.backtest.loaders.registry import FALLBACK_CHAINS
 
         for market in FALLBACK_CHAINS:
             field = f"market_data_order_{market}"

@@ -7,7 +7,7 @@ Covers ``fund_accruals``, ``fund_roa``, ``fund_leverage``, ``fund_cfo_yield``,
 Assertions are membership-based, never an exact registry total: the zoo grows
 concurrently. Expected values are recomputed here with an independent numpy
 formula (mean / sample-std z-score, plain division) rather than reusing
-``src.factors.base`` operators, so a regression in the shared operator does not
+``src.research.factors.base`` operators, so a regression in the shared operator does not
 silently validate itself.
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 _DATES = pd.to_datetime(["2024-01-01", "2024-01-02"])
 _CODES = ["AAA", "BBB", "CCC"]
@@ -111,7 +111,7 @@ def _expected_outputs(panel: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
 
 
 def _load_module(stem: str):
-    return importlib.import_module(f"src.factors.zoo.fundamental.{stem}")
+    return importlib.import_module(f"src.research.factors.zoo.fundamental.{stem}")
 
 
 # --------------------------------------------------------------- (a) registry
@@ -124,7 +124,7 @@ def test_registry_loads_factor_with_expected_meta(
     theme, columns, stem = _EXPECTED_META[alpha_id]
     alpha = registry.get(alpha_id)
     assert alpha.zoo == "fundamental"
-    assert alpha.module_path == f"src.factors.zoo.fundamental.{stem}"
+    assert alpha.module_path == f"src.research.factors.zoo.fundamental.{stem}"
     assert alpha.meta["theme"] == theme
     assert alpha.meta["columns_required"] == columns
     assert alpha.meta["universe"] == ["equity_us", "equity_cn", "equity_hk"]

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from src.memory.semantic_links import (
+from src.runtime.memory.semantic_links import (
     SemanticLinker,
     _tokenize_for_bm25,
     compute_bm25_score,

@@ -1,4 +1,4 @@
-"""Direct unit tests for ``src.trading.tap_forward``.
+"""Direct unit tests for ``src.markets.trading.tap_forward``.
 
 The connector tests (test_alpaca_tap_routing.py) mock ``tap_forward.forward``
 wholesale, so this file exercises the module itself with ``urllib`` mocked:
@@ -16,7 +16,7 @@ import urllib.request
 
 import pytest
 
-from src.trading import tap_forward as tf
+from src.markets.trading import tap_forward as tf
 
 pytestmark = pytest.mark.unit
 

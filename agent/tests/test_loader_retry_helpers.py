@@ -24,8 +24,8 @@ from types import SimpleNamespace
 import pandas as pd
 import pytest
 
-import backtest.loaders.base as base
-from backtest.loaders.base import (
+import src.backtest.loaders.base as base
+from src.backtest.loaders.base import (
     DEFAULT_BACKOFF,
     DEFAULT_MAX_RETRIES,
     LOADER_CACHE_ENV,
@@ -266,7 +266,7 @@ def test_stubbed_config_cannot_enable_cache_or_redirect_root_into_cwd(monkeypatc
     monkeypatch.setenv("USERPROFILE", str(home))
     stub = MagicMock()
     monkeypatch.setattr(
-        "src.config.accessor.get_env_config", lambda: stub, raising=False
+        "src.platform.config.accessor.get_env_config", lambda: stub, raising=False
     )
 
     assert base.loader_cache_enabled() is False
@@ -285,7 +285,7 @@ def test_loader_cache_root_honors_real_string_override(monkeypatch, tmp_path):
         )
     )
     monkeypatch.setattr(
-        "src.config.accessor.get_env_config", lambda: stub, raising=False
+        "src.platform.config.accessor.get_env_config", lambda: stub, raising=False
     )
 
     assert base.loader_cache_enabled() is True
@@ -424,7 +424,7 @@ def test_tushare_daily_fetch_uses_opt_in_cache_for_bars_and_fields(
     api = _FakeApi()
     monkeypatch.setitem(sys.modules, "tushare", SimpleNamespace(pro_api=lambda token: api))
 
-    from backtest.loaders.tushare import DataLoader
+    from src.backtest.loaders.tushare import DataLoader
 
     loader = DataLoader()
     first = loader.fetch(["000001.SZ"], "2025-01-01", "2025-01-03", fields=["pe"])
@@ -532,7 +532,7 @@ def test_loader_cache_round_trip_keeps_adjustment_override(tmp_path, monkeypatch
 def test_yfinance_loader_serves_second_fetch_from_cache(tmp_path, monkeypatch, fake_duckdb, loader_cache_root):
     """A batch loader (yfinance) must skip its bulk download on a full cache hit."""
     monkeypatch.setenv(LOADER_CACHE_ENV, "1")
-    import backtest.loaders.yfinance_loader as yfl
+    import src.backtest.loaders.yfinance_loader as yfl
 
     calls = {"n": 0}
 

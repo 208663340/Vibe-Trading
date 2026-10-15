@@ -10,18 +10,18 @@ import json
 import pandas as pd
 import pytest
 
-import backtest.binance_shadow_evidence as evidence_module
-from backtest.binance_account_reconciliation import (
+import src.backtest.binance_shadow_evidence as evidence_module
+from src.backtest.binance_account_reconciliation import (
     BinanceAccountSnapshot,
     BinancePositionSnapshot,
     ReconciliationTolerance,
 )
-from backtest.binance_shadow_evidence import (
+from src.backtest.binance_shadow_evidence import (
     build_binance_drift_evidence,
     build_binance_drift_summary,
     write_binance_drift_evidence,
 )
-from backtest.perpetual_risk import (
+from src.backtest.perpetual_risk import (
     AccountState,
     PositionRisk,
     PositionState,
@@ -488,13 +488,13 @@ def test_evidence_path_is_read_only_and_cannot_import_live_connectors() -> None:
     tree = ast.parse(inspect.getsource(evidence_module))
     forbidden_imports = (
         "aiohttp",
-        "backtest.engines",
+        "src.backtest.engines",
         "ccxt",
         "httpx",
         "requests",
         "socket",
-        "src.live",
-        "src.trading",
+        "src.markets.live",
+        "src.markets.trading",
         "subprocess",
         "urllib",
         "websocket",

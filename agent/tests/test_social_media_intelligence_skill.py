@@ -11,6 +11,7 @@ import pandas as pd
 SKILL_MD = (
     Path(__file__).resolve().parents[1]
     / "src"
+    / "research"
     / "skills"
     / "social-media-intelligence"
     / "SKILL.md"

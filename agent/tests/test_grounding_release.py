@@ -21,17 +21,17 @@ from typing import Any, Callable
 
 import pytest
 
-from src.agent.grounding import GroundingLedger, ValidationResult
+from src.runtime.agent.grounding import GroundingLedger, ValidationResult
 from tests.grounding_parameter_helpers import declared_parameter
-from src.agent.grounding.evidence import (
+from src.runtime.agent.grounding.evidence import (
     _REGISTERED_PRICE_INDICATORS,
     _is_registered_price_indicator,
 )
-from src.agent.grounding.figures import _lines_with_offsets
-from src.agent.grounding.release import _REDACTION_MARKER_EN, _REDACTION_MARKER_ZH
-from src.agent.loop import AgentLoop
-from src.agent.tools import BaseTool, ToolRegistry
-from src.agent.trace import TraceWriter
+from src.runtime.agent.grounding.figures import _lines_with_offsets
+from src.runtime.agent.grounding.release import _REDACTION_MARKER_EN, _REDACTION_MARKER_ZH
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.trace import TraceWriter
 from tests.message_roles_helpers import assert_system_messages_only_lead
 
 pytestmark = pytest.mark.unit
@@ -754,7 +754,7 @@ def test_grounding_revision_turn_is_text_only(tmp_path: Path) -> None:
 
 def test_grounding_revision_blocks_unoffered_tool_calls(tmp_path: Path, monkeypatch) -> None:
     """A provider cannot escape correction-only mode by emitting a tool call anyway."""
-    monkeypatch.setattr("src.agent.loop.MAX_GROUNDING_REVISIONS", 3)
+    monkeypatch.setattr("src.runtime.agent.loop.MAX_GROUNDING_REVISIONS", 3)
     rejected = (
         "562500.SS（Yahoo，CNY）最新收盘价 1.171 元。"
         "建议买入价为 0.881。"
@@ -806,7 +806,7 @@ def test_forbidden_correction_calls_release_at_budget_or_final_iteration(
     tmp_path: Path, monkeypatch, cap, max_iterations, expected_calls
 ) -> None:
     """Repeated tool requests cannot exhaust the run or replace the held draft."""
-    monkeypatch.setattr("src.agent.loop.MAX_GROUNDING_REVISIONS", cap)
+    monkeypatch.setattr("src.runtime.agent.loop.MAX_GROUNDING_REVISIONS", cap)
     rejected = HDR + "建议买入价为 0.881。"
     forbidden = _Response(
         content="THIS IS NOT THE ANSWER. Invented price 999.99.",
@@ -891,11 +891,11 @@ def test_goal_continuation_resets_correction_mode_but_not_a_forced_release(
         def get_goal_snapshot(self, _goal_id):
             return snapshot
 
-    monkeypatch.setattr("src.goal.GoalStore", GoalStore)
-    monkeypatch.setattr("src.agent.loop.SESSIONS_DIR", tmp_path / "sessions")
-    monkeypatch.setattr("src.agent.loop.get_current_goal_context", lambda _: ("", "goal-test"))
-    monkeypatch.setattr("src.agent.loop._goal_max_continuations", lambda: 1)
-    monkeypatch.setattr("src.agent.loop.format_goal_continuation_prompt", lambda *a, **kw: "Continue the goal.")
+    monkeypatch.setattr("src.runtime.goal.GoalStore", GoalStore)
+    monkeypatch.setattr("src.runtime.agent.loop.SESSIONS_DIR", tmp_path / "sessions")
+    monkeypatch.setattr("src.runtime.agent.loop.get_current_goal_context", lambda _: ("", "goal-test"))
+    monkeypatch.setattr("src.runtime.agent.loop._goal_max_continuations", lambda: 1)
+    monkeypatch.setattr("src.runtime.agent.loop.format_goal_continuation_prompt", lambda *a, **kw: "Continue the goal.")
     revision = (
         _Response(tool_calls=[_tool_call("forbidden", "get_market_data", codes=[SYMBOL])])
         if forbidden else _Response(content=HDR)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from backtest.loaders import tiingo_loader as tg
+from src.backtest.loaders import tiingo_loader as tg
 
 
 def test_unsupported_interval_does_not_hit_api() -> None:

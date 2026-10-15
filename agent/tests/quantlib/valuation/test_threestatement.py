@@ -25,8 +25,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.quantlib.valuation.contracts import MissingInputError, ValuationError
-from src.quantlib.valuation.threestatement import (
+from src.research.quantlib.valuation.contracts import MissingInputError, ValuationError
+from src.research.quantlib.valuation.threestatement import (
     MAX_CIRCULARITY_ITERATIONS,
     BalanceSheet,
     BalanceSheetError,

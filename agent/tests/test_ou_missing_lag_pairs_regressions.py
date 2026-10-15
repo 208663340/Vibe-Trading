@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from src.quantlib.timeseries import fit_ornstein_uhlenbeck
+from src.research.quantlib.timeseries import fit_ornstein_uhlenbeck
 
 
 def test_ou_only_fits_adjacent_observed_pairs():
@@ -21,7 +21,7 @@ def test_ou_rejects_sample_with_no_three_adjacent_pairs():
 
 def test_quantlib_tool_refuses_insufficient_adjacent_ou_pairs():
     import json
-    from src.tools.quantlib_tool import QuantlibCallTool
+    from src.runtime.tools.quantlib_tool import QuantlibCallTool
 
     result = json.loads(
         QuantlibCallTool().execute(

@@ -19,8 +19,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import src.agent.context_budget as cb
-from src.agent.context_budget import (
+import src.runtime.agent.context_budget as cb
+from src.runtime.agent.context_budget import (
     CompactionBudget,
     ContextMeter,
     estimate_tokens,
@@ -28,12 +28,12 @@ from src.agent.context_budget import (
     parse_context_limit,
     resolve_window,
 )
-from src.agent.loop import AgentLoop
-import src.agent.tuning as tuning_mod
-from src.agent.tools import BaseTool, ToolRegistry
-from src.agent.trace import TraceWriter
-from src.config.accessor import reset_env_config
-from src.providers.chat import ProviderStreamError
+from src.runtime.agent.loop import AgentLoop
+import src.runtime.agent.tuning as tuning_mod
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.trace import TraceWriter
+from src.platform.config.accessor import reset_env_config
+from src.runtime.providers.chat import ProviderStreamError
 
 #: Real input tokens of the first request of a research run on 2026-09-29
 #: (deepseek-v4-pro llm_usage.json: 47,661) — system prompt plus 107 tool schemas.
@@ -342,7 +342,7 @@ def test_a_model_asking_to_compact_a_small_prompt_is_declined(tmp_path, monkeypa
 
 
 def test_layer_one_clears_oldest_results_only_until_the_prompt_fits() -> None:
-    from src.agent.loop import KEEP_RECENT, _is_cleared, _microcompact
+    from src.runtime.agent.loop import KEEP_RECENT, _is_cleared, _microcompact
 
     messages = [{"role": "system", "content": "s"}]
     for i in range(10):
@@ -404,7 +404,7 @@ def test_static_floor_above_window_fails_before_provider_or_compaction(tmp_path,
     reset_env_config()
     calls = []
     agent = build(tmp_path, monkeypatch, SimpleNamespace(stream_chat=lambda *a, **k: calls.append("main")))
-    monkeypatch.setattr(loop_mod := __import__("src.agent.loop", fromlist=["ContextBuilder"]),
+    monkeypatch.setattr(loop_mod := __import__("src.runtime.agent.loop", fromlist=["ContextBuilder"]),
                         "estimate_tokens", cb.estimate_tokens)
     monkeypatch.setattr(loop_mod.ContextBuilder, "build_messages",
                         lambda *a: [{"role": "system", "content": "s" * 5000}, {"role": "user", "content": "q"}])
@@ -416,7 +416,7 @@ def test_static_floor_above_window_fails_before_provider_or_compaction(tmp_path,
 
 
 def test_loop_calibrates_sent_tools_and_keeps_response_alias_separate(tmp_path, monkeypatch):
-    from src.providers.chat import LLMResponse, ToolCallRequest
+    from src.runtime.providers.chat import LLMResponse, ToolCallRequest
     from tests.test_run_lifecycle_races import build
     requests = []
     class LLM:
@@ -448,7 +448,7 @@ def test_loop_calibrates_sent_tools_and_keeps_response_alias_separate(tmp_path, 
 
 
 def test_compaction_usage_does_not_calibrate_main_request(tmp_path, monkeypatch):
-    from src.providers.chat import LLMResponse
+    from src.runtime.providers.chat import LLMResponse
     from tests.test_run_lifecycle_races import build
     summary_calls = []
     def summarize(*args, **kwargs):

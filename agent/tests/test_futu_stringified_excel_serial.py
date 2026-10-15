@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.tools.trade_journal_parsers import load_dataframe, parse_file, parse_futu
+from src.runtime.tools.trade_journal_parsers import load_dataframe, parse_file, parse_futu
 
 
 def test_parse_futu_stringified_excel_serial_date_and_time() -> None:

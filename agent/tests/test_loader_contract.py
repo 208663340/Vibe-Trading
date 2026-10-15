@@ -9,8 +9,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.loader_health import check_frame
-from backtest.loaders.registry import VALID_SOURCES
+from src.backtest.loader_health import check_frame
+from src.backtest.loaders.registry import VALID_SOURCES
 from tests.loader_contract import loader_contract_errors
 
 

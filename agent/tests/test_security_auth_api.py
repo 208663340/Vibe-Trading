@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
+import src.interfaces.api_server as api_server
 
 
 def _remote_client() -> TestClient:
@@ -29,7 +29,7 @@ def clear_api_key(monkeypatch: pytest.MonkeyPatch):
     case that sets ``API_AUTH_KEY`` / ``VIBE_TRADING_TRUST_DOCKER_LOOPBACK``
     cannot leak a stale config into the next one.
     """
-    from src.config.accessor import reset_env_config
+    from src.platform.config.accessor import reset_env_config
 
     monkeypatch.delenv("API_AUTH_KEY", raising=False)
     monkeypatch.delenv("VIBE_TRADING_TRUST_DOCKER_LOOPBACK", raising=False)
@@ -85,7 +85,7 @@ def test_remote_capability_inventory_requires_api_key_when_key_unset() -> None:
 def test_docker_gateway_dev_write_allowed_only_with_compose_trust_flag(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.config.accessor import reset_env_config
+    from src.platform.config.accessor import reset_env_config
 
     request = SimpleNamespace(client=SimpleNamespace(host="172.18.0.1"))
     monkeypatch.setattr(
@@ -106,7 +106,7 @@ def test_default_docker_gateway_browser_flow_remains_zero_config(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The compose gateway trust reaches a sensitive route without a key."""
-    from src.config.accessor import reset_env_config
+    from src.platform.config.accessor import reset_env_config
 
     monkeypatch.setenv("VIBE_TRADING_TRUST_DOCKER_LOOPBACK", "1")
     monkeypatch.setattr(
@@ -208,7 +208,7 @@ def test_keyed_deployment_disables_viewers_but_allows_bearer_schema(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A configured key never creates a browser docs bootstrap deadlock."""
-    from src.config.accessor import reset_env_config
+    from src.platform.config.accessor import reset_env_config
 
     monkeypatch.setenv("API_AUTH_KEY", "secret")
     monkeypatch.setattr(api_server, "_API_KEY", "secret")
@@ -473,8 +473,8 @@ def test_rebound_host_cannot_start_live_runner(
         return DummyRunner()
 
     monkeypatch.setattr(api_server, "_runner_factory", build_runner)
-    monkeypatch.setattr("src.trading.service.broker_supports_live_runner", lambda broker: True)
-    monkeypatch.setattr("src.live.halt.halt_flag_set", lambda broker=None: False)
+    monkeypatch.setattr("src.markets.trading.service.broker_supports_live_runner", lambda broker: True)
+    monkeypatch.setattr("src.markets.live.halt.halt_flag_set", lambda broker=None: False)
     api_server._runner_tasks.clear()
 
     response = _local_client().post(
@@ -509,8 +509,8 @@ def test_allowed_loopback_host_can_start_live_runner_dev_mode(
         return DummyRunner()
 
     monkeypatch.setattr(api_server, "_runner_factory", build_runner)
-    monkeypatch.setattr("src.trading.service.broker_supports_live_runner", lambda broker: True)
-    monkeypatch.setattr("src.live.halt.halt_flag_set", lambda broker=None: False)
+    monkeypatch.setattr("src.markets.trading.service.broker_supports_live_runner", lambda broker: True)
+    monkeypatch.setattr("src.markets.live.halt.halt_flag_set", lambda broker=None: False)
     api_server._runner_tasks.clear()
 
     response = _local_client().post(

@@ -1,7 +1,7 @@
 """Tests for the restart-persistent preemptive-sweep latch.
 
 The HALT sentinel is a file and survives restarts; the runner's in-memory
-``_flatten_fired`` does not. The latch (src/live/runtime/sweep_latch.py) binds
+``_flatten_fired`` does not. The latch (src/markets/live/runtime/sweep_latch.py) binds
 the sweep's firing to the halt episode that caused it, so a restarted runner
 with flatten orders still working does not replay the sweep, while a fresh
 halt episode re-arms it.
@@ -17,10 +17,10 @@ from typing import Any, Mapping
 
 import pytest
 
-from src.live import paths
-from src.live.halt import broker_halt_path, clear_halt, halt_path
-from src.live.runtime import sweep_latch
-from src.live.runtime.runner import LiveRunner
+from src.markets.live import paths
+from src.markets.live.halt import broker_halt_path, clear_halt, halt_path
+from src.markets.live.runtime import sweep_latch
+from src.markets.live.runtime.runner import LiveRunner
 
 BROKER = "robinhood"
 
@@ -348,7 +348,7 @@ def test_double_failure_latch_write_does_not_escape_run_once(
     # Reviewer residual B: sweep raises AND the durable latch write raises.
     # Neither exception may escape run_once — the tick must still complete
     # with the halted outcome and an audit trail.
-    from src.live.runtime import runner as runner_mod
+    from src.markets.live.runtime import runner as runner_mod
 
     _trip_with_timestamp(BROKER, "2026-08-27T01:00:00+00:00")
     fired: list[str] = []

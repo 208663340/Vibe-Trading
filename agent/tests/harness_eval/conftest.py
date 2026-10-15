@@ -8,8 +8,8 @@ from typing import Any
 
 import pytest
 
-from evals.harness.schema import HarnessCase
-from src.governance.manifest import build_run_manifest
+from src.runtime.evals.harness.schema import HarnessCase
+from src.platform.governance.manifest import build_run_manifest
 
 PROMPT = "只分析 A 股恒瑞医药，给出最新财务与行业证据。"
 

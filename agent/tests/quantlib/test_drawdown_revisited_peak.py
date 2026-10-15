@@ -7,8 +7,8 @@ import json
 import pandas as pd
 import pytest
 
-from src.quantlib.risk import max_drawdown_analysis
-from src.tools.quantlib_tool import QuantlibCallTool
+from src.research.quantlib.risk import max_drawdown_analysis
+from src.runtime.tools.quantlib_tool import QuantlibCallTool
 
 
 @pytest.mark.parametrize(

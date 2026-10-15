@@ -3,7 +3,7 @@ way the internal LoadSkillTool does.
 
 Pre-fix: the MCP wrapper called SkillsLoader.get_content() directly and
 returned the complete, uncapped document, bypassing the skeleton/section/
-offset paging agent/src/tools/load_skill_tool.py already implements for the
+offset paging agent/src/runtime/tools/load_skill_tool.py already implements for the
 identical "tushare" skill (a 102,890-character document, 10.3x the shared
 TOOL_RESULT_LIMIT). The internal agent path, which calls the same tool
 through the registry, already gets the capped, paged envelope. Post-fix, the
@@ -14,8 +14,8 @@ from __future__ import annotations
 
 import json
 
-import mcp_server
-from src.config.limits import TOOL_RESULT_LIMIT
+import src.interfaces.mcp_server as mcp_server
+from src.platform.config.limits import TOOL_RESULT_LIMIT
 
 # fastmcp wraps the tool; reach the raw callable.
 _load_skill = getattr(mcp_server.load_skill, "fn", None) or getattr(
@@ -39,7 +39,7 @@ def test_mcp_load_skill_short_skill_still_whole_and_uncorrupted():
     """A skill under the cap must still return complete, byte-identical
     content — the registry envelope adds paging metadata (mode, offset,
     next_offset, complete) even for a whole document, but must not alter it."""
-    from src.agent.skills import SkillsLoader
+    from src.runtime.agent.skills import SkillsLoader
 
     raw = _load_skill(name="candlestick")
     payload = json.loads(raw)

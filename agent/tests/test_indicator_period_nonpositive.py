@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from src.ui_services import build_indicator_series, infer_indicator_periods
+from src.interfaces.ui_services import build_indicator_series, infer_indicator_periods
 
 
 def _rows():

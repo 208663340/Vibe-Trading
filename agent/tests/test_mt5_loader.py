@@ -18,8 +18,8 @@ from typing import Any
 import numpy as np
 import pytest
 
-import backtest.loaders.mt5_loader as mt5_loader
-from backtest.loaders.mt5_loader import DataLoader, _to_query_base
+import src.backtest.loaders.mt5_loader as mt5_loader
+from src.backtest.loaders.mt5_loader import DataLoader, _to_query_base
 from tests.loader_contract import assert_loader_contract
 
 pytestmark = pytest.mark.unit
@@ -245,7 +245,7 @@ class TestAvailability:
         # which can be a different installation on a different account (#1589).
         # The attach itself is the documented primary path; the warning is the
         # hint that pins it down for multi-install users.
-        with caplog.at_level("WARNING", logger="backtest.loaders.mt5_loader"):
+        with caplog.at_level("WARNING", logger="src.backtest.loaders.mt5_loader"):
             DataLoader().is_available()
         assert any("terminal_path" in r.message for r in caplog.records)
 
@@ -255,7 +255,7 @@ class TestAvailability:
         config = tmp_path / "mt5.json"
         config.write_text(json.dumps({"terminal_path": "C:/MT5/terminal64.exe"}), encoding="utf-8")
         monkeypatch.setattr(mt5_loader, "_MT5_CONFIG_PATH", config)
-        with caplog.at_level("WARNING", logger="backtest.loaders.mt5_loader"):
+        with caplog.at_level("WARNING", logger="src.backtest.loaders.mt5_loader"):
             DataLoader().is_available()
         call = fake_mod.initialize_calls[0]
         assert call["args"] == ("C:/MT5/terminal64.exe",)
@@ -269,18 +269,18 @@ class TestAvailability:
 
 class TestRegistryWiring:
     def test_mt5_in_valid_sources(self) -> None:
-        from backtest.loaders.registry import VALID_SOURCES
+        from src.backtest.loaders.registry import VALID_SOURCES
 
         assert "mt5" in VALID_SOURCES
 
     def test_mt5_registered(self) -> None:
-        from backtest.loaders.registry import LOADER_REGISTRY, _ensure_registered
+        from src.backtest.loaders.registry import LOADER_REGISTRY, _ensure_registered
 
         _ensure_registered()
         assert "mt5" in LOADER_REGISTRY
 
     def test_mt5_heads_forex_chain(self) -> None:
-        from backtest.loaders.registry import FALLBACK_CHAINS
+        from src.backtest.loaders.registry import FALLBACK_CHAINS
 
         assert FALLBACK_CHAINS["forex"][0] == "mt5"
         assert "akshare" in FALLBACK_CHAINS["forex"]  # degradation path intact
@@ -297,7 +297,7 @@ class TestRegistryWiring:
         ],
     )
     def test_detect_source_forex(self, code: str, expected: str) -> None:
-        from src.market_data import detect_source
+        from src.markets.market_data import detect_source
 
         assert detect_source(code) == expected
 

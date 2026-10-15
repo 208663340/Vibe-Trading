@@ -12,7 +12,7 @@ from argparse import Namespace
 
 import pytest
 
-from cli import _legacy
+from src.interfaces.cli import _legacy
 
 pytestmark = pytest.mark.unit
 

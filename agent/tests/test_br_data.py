@@ -13,9 +13,9 @@ from datetime import date
 
 import pytest
 
-from src.br_data import cotahist, cvm_companies, cvm_funds, tesouro
-from src.br_data._download import br_date, to_float
-from src.br_data.store import connect, init_db
+from src.platform.br_data import cotahist, cvm_companies, cvm_funds, tesouro
+from src.platform.br_data._download import br_date, to_float
+from src.platform.br_data.store import connect, init_db
 from tests.loader_contract import assert_loader_contract
 
 
@@ -46,11 +46,11 @@ def _zip(name: str, text: str, encoding: str = "latin-1") -> bytes:
 def store(tmp_path, monkeypatch):
     path = tmp_path / "br.db"
     monkeypatch.setenv("VIBE_BR_DATA_DB", str(path))
-    from src.config import accessor
+    from src.platform.config import accessor
 
     if hasattr(accessor, "reset_env_config"):
         accessor.reset_env_config()
-    monkeypatch.setattr("src.br_data.store.db_path", lambda: path)
+    monkeypatch.setattr("src.platform.br_data.store.db_path", lambda: path)
     init_db(path)
     return path
 
@@ -104,7 +104,7 @@ def test_cotahist_sync_downloads_years_then_daily_files(store, monkeypatch) -> N
     assert calls[:2] == ["COTAHIST_A2024.ZIP", "COTAHIST_A2025.ZIP"]
     assert "COTAHIST_D06012025.ZIP" in calls and "COTAHIST_D07012025.ZIP" in calls
 
-    from backtest.loaders.b3_cotahist_loader import DataLoader, map_symbol
+    from src.backtest.loaders.b3_cotahist_loader import DataLoader, map_symbol
 
     assert map_symbol("PETR4F.SA") == ("PETR4F", 20)
     loader = DataLoader()
@@ -200,7 +200,7 @@ def test_agent_tool_reads_the_store(store, monkeypatch) -> None:
         conn.execute("INSERT INTO cvm_companies VALUES ('33000167000101','9512','PETROLEO BRASILEIRO','PETROBRAS','ATIVO','Petróleo')")
         conn.execute("INSERT INTO cvm_company_tickers VALUES ('PETR4','33000167000101')")
 
-    from src.tools.br_market_data_tool import BrMarketDataTool
+    from src.runtime.tools.br_market_data_tool import BrMarketDataTool
 
     tool = BrMarketDataTool()
     quotes = json.loads(tool.execute(action="quotes", tickers=["PETR4.SA"], start_date="2025-01-01", end_date="2025-01-31"))
@@ -217,7 +217,7 @@ def test_agent_tool_reads_the_store(store, monkeypatch) -> None:
 
 
 def test_financial_statements_read_cvm_store_then_fall_back_to_yahoo(store, monkeypatch) -> None:
-    from src.tools import financial_statements_tool as fst
+    from src.runtime.tools import financial_statements_tool as fst
 
     with connect(store, write=True) as conn:
         conn.execute("INSERT INTO cvm_company_tickers VALUES ('PETR4', '33000167000101')")
@@ -247,7 +247,7 @@ def test_financial_statements_read_cvm_store_then_fall_back_to_yahoo(store, monk
 
 
 def test_stock_news_routes_b3_symbols_to_yahoo_with_full_symbol(monkeypatch) -> None:
-    from src.tools import stock_news_tool as snt
+    from src.runtime.tools import stock_news_tool as snt
 
     queries: list[str] = []
     monkeypatch.setattr(snt, "_fetch_yahoo_news", lambda query, limit: queries.append(query) or [])
@@ -275,7 +275,7 @@ def test_bad_numeric_and_calendar_cells_are_not_fabricated():
 
 
 def test_fund_subclasses_do_not_form_one_return_series(store):
-    from src.tools.br_market_data_tool import BrMarketDataTool
+    from src.runtime.tools.br_market_data_tool import BrMarketDataTool
     with connect(store, write=True) as conn:
         conn.executemany(
             'INSERT INTO cvm_fund_daily (cnpj, trade_date, subclass, quota) VALUES (?, ?, ?, ?)',
@@ -290,7 +290,7 @@ def test_fund_subclasses_do_not_form_one_return_series(store):
 
 
 def test_br_tool_rejects_bad_dates_and_preserves_result_limit():
-    from src.tools.br_market_data_tool import _dates, _envelope, TOOL_RESULT_LIMIT
+    from src.runtime.tools.br_market_data_tool import _dates, _envelope, TOOL_RESULT_LIMIT
     with pytest.raises(ValueError):
         _dates({'start_date': '2025-03-01', 'end_date': '2025-02-01'})
     result = _envelope('search', [], {'companies': [{'name': 'x' * (TOOL_RESULT_LIMIT * 2)}]})
@@ -299,8 +299,8 @@ def test_br_tool_rejects_bad_dates_and_preserves_result_limit():
 
 
 def test_br_quotes_keep_per_symbol_brl_evidence(store, tmp_path):
-    from src.agent.grounding import GroundingLedger
-    from src.tools.br_market_data_tool import BrMarketDataTool
+    from src.runtime.agent.grounding import GroundingLedger
+    from src.runtime.tools.br_market_data_tool import BrMarketDataTool
     with connect(store, write=True) as conn:
         cotahist.ingest_zip(conn, _zip('quotes.txt', '\n'.join([
             _cotahist_line('20250103', 'TEST3', 10, 1000),
@@ -328,7 +328,7 @@ def test_br_quotes_keep_per_symbol_brl_evidence(store, tmp_path):
 
 
 def test_brl_alias_is_unambiguous():
-    from src.agent.grounding import GroundingLedger
+    from src.runtime.agent.grounding import GroundingLedger
     assert GroundingLedger._currency_is_surfaced("BRL", "R$ 10.00")
     assert GroundingLedger._currency_is_surfaced("BRL", "10 reais")
     assert not GroundingLedger._currency_is_surfaced("BRL", "These are real observed prices")

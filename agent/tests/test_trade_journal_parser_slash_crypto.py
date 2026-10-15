@@ -4,7 +4,7 @@ Locks out a bug where _infer_market_from_symbol returned "other" instead of "cry
 slash-formatted crypto trading pairs (e.g. "ETH/USDT" or "BTC/USD").
 """
 
-from src.tools.trade_journal_parsers import _infer_market_from_symbol
+from src.runtime.tools.trade_journal_parsers import _infer_market_from_symbol
 
 
 def test_infer_market_from_symbol_supports_slash_crypto_pairs():

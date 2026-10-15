@@ -8,8 +8,8 @@ vague prompts, and the explicit caller-override path.
 
 from __future__ import annotations
 
-from src.tools import swarm_variables
-import src.tools.swarm_tool as swarm_tool
+from src.runtime.tools import swarm_variables
+import src.runtime.tools.swarm_tool as swarm_tool
 
 
 def test_commodity_prompt_fills_commodity_and_horizon() -> None:

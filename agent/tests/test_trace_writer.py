@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-import src.agent.trace as trace_mod
-from src.agent.trace import TraceWriter
+import src.runtime.agent.trace as trace_mod
+from src.runtime.agent.trace import TraceWriter
 from tests.module_os_helpers import patch_module_os
 
 
@@ -198,7 +198,7 @@ def test_fsync_oserror_warns_once_and_keeps_writing(
         raise OSError("fsync unsupported")
 
     patch_module_os(monkeypatch, trace_mod, fsync=_failing_fsync)
-    with caplog.at_level(logging.WARNING, logger="src.agent.trace"):
+    with caplog.at_level(logging.WARNING, logger="src.runtime.agent.trace"):
         trace.write({"type": "answer", "iter": 1, "content": "a"})
         trace.write({"type": "answer", "iter": 2, "content": "b"})
     trace.close()

@@ -8,14 +8,14 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import pytest
-from src.scheduled_research.executor import (
+from src.research.scheduled_research.executor import (
     ScheduledResearchExecutor,
     is_due,
     next_due,
     scheduler_enabled_from_env,
 )
-from src.scheduled_research.models import JobStatus, ScheduledResearchJob
-from src.scheduled_research.store import ScheduledResearchJobStore
+from src.research.scheduled_research.models import JobStatus, ScheduledResearchJob
+from src.research.scheduled_research.store import ScheduledResearchJobStore
 
 
 def _ms(year: int, month: int, day: int, hour: int, minute: int) -> int:

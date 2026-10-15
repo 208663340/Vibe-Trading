@@ -8,8 +8,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-import backtest.loaders.local_loader as local_loader
-from backtest.loaders.base import validate_ohlc
+import src.backtest.loaders.local_loader as local_loader
+from src.backtest.loaders.base import validate_ohlc
 
 
 def _frame(rows: list[tuple[float, float, float, float, float]]) -> pd.DataFrame:
@@ -50,7 +50,7 @@ def test_validate_ohlc_warn_strategy_keeps_rows(
 ) -> None:
     """strategy='warn' logs but keeps the offending rows."""
     frame = _frame([(10.0, 11.0, 9.0, 10.5, 1000.0), (10.0, 8.0, 9.0, 10.5, 1000.0)])
-    with caplog.at_level(logging.WARNING, logger="backtest.loaders.base"):
+    with caplog.at_level(logging.WARNING, logger="src.backtest.loaders.base"):
         kept = validate_ohlc(frame, strategy="warn")
     assert len(kept) == 2
     assert any("ohlc" in rec.message.lower() for rec in caplog.records)
@@ -120,7 +120,7 @@ def test_sanitize_data_map_guards_every_source() -> None:
     itself (the large majority) still cannot leak a structurally-invalid bar
     into the backtest, because every fetched map converges through here.
     """
-    from backtest.runner import _sanitize_data_map
+    from src.backtest.runner import _sanitize_data_map
 
     data_map = {
         "AAA.US": _frame(

@@ -16,8 +16,8 @@ from pathlib import Path
 
 import pytest
 
-from src.channels.config_meta import channel_field_hints, is_secret_key, split_values_secrets
-from src.channels.registry import discover_channel_names, load_channel_class
+from src.interfaces.channels.config_meta import channel_field_hints, is_secret_key, split_values_secrets
+from src.interfaces.channels.registry import discover_channel_names, load_channel_class
 
 # Hand-written hints replace derived ones, so a channel may deliberately keep
 # scalar keys file-configured. Each exemption is an audited design decision,
@@ -84,7 +84,7 @@ def test_every_discovered_channel_satisfies_the_authoring_contract(name) -> None
 def test_test_connection_envelope_shape_is_documented_by_default() -> None:
     # The base contract: a channel that does not override the probe reports
     # "unsupported" rather than crashing the settings UI.
-    from src.channels.base import BaseChannel
+    from src.interfaces.channels.base import BaseChannel
 
     assert "test_connection" not in BaseChannel.__abstractmethods__
     assert asyncio.run(BaseChannel.test_connection(None)) == {"ok": False, "code": "unsupported"}
@@ -119,7 +119,7 @@ def test_discord_group_policy_choices_match_the_adapter_literal() -> None:
     assert choices == ["mention", "open"]
 
     source = (
-        Path(__file__).resolve().parents[2] / "agent/src/channels/discord.py"
+        Path(__file__).resolve().parents[2] / "agent/src/interfaces/channels/discord.py"
     ).read_text(encoding="utf-8")
     assert 'group_policy: Literal["mention", "open"]' in source
     for choice in choices:

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-SKILL_DIR = Path(__file__).parent.parent / "src" / "skills" / "vnpy-export"
+SKILL_DIR = Path(__file__).parent.parent / "src" / "research" / "skills" / "vnpy-export"
 SKILL_MD = SKILL_DIR / "SKILL.md"
 TEMPLATE_PY = SKILL_DIR / "scripts" / "cta_template.py"
 
@@ -19,7 +19,7 @@ TEMPLATE_PY = SKILL_DIR / "scripts" / "cta_template.py"
 
 class TestSkillMd:
     def test_skill_md_exists(self):
-        assert SKILL_MD.exists(), "SKILL.md not found in agent/src/skills/vnpy-export/"
+        assert SKILL_MD.exists(), "SKILL.md not found in agent/src/research/skills/vnpy-export/"
 
     def test_frontmatter_present(self):
         content = SKILL_MD.read_text(encoding="utf-8")

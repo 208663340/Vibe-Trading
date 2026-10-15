@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-import src.tools.redaction as red_mod
-from src.tools.redaction import _internal_roots, redact_internal_paths, redact_text
+import src.runtime.tools.redaction as red_mod
+from src.runtime.tools.redaction import _internal_roots, redact_internal_paths, redact_text
 
 #: Short synthetic root used to test boundary behaviour deterministically,
 #: independent of the machine's home / venv layout.

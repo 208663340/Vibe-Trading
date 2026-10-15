@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from src.tools.trade_journal_tool import _apply_filter
+from src.runtime.tools.trade_journal_tool import _apply_filter
 
 
 def _frame() -> pd.DataFrame:

@@ -19,6 +19,7 @@ import pytest
 _MODULE_PATH = (
     Path(__file__).resolve().parents[1]
     / "src"
+    / "research"
     / "skills"
     / "ashare-pre-st-filter"
     / "scripts"

@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from src.session.checkpoint import ResponseCheckpoint
-from src.session.events import EventBus
-from src.session.models import Attempt, AttemptStatus, Message, Session
-from src.session.service import SessionService
-from src.session.store import SessionStore
+from src.runtime.session.checkpoint import ResponseCheckpoint
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import Attempt, AttemptStatus, Message, Session
+from src.runtime.session.service import SessionService
+from src.runtime.session.store import SessionStore
 
 
 class _DummyIndex:
@@ -23,7 +23,7 @@ class _DummyIndex:
 
 
 def _service(store: SessionStore, runs_dir: Path, monkeypatch) -> SessionService:
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: _DummyIndex())
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: _DummyIndex())
     return SessionService(store=store, event_bus=EventBus(), runs_dir=runs_dir)
 
 

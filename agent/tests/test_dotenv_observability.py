@@ -15,10 +15,10 @@ from pathlib import Path
 
 import pytest
 
-import src.providers.llm as llm
-from src.config.accessor import get_env_config, reset_env_config
+import src.runtime.providers.llm as llm
+from src.platform.config.accessor import get_env_config, reset_env_config
 
-LOGGER = "src.providers.llm"
+LOGGER = "src.runtime.providers.llm"
 
 
 @pytest.fixture

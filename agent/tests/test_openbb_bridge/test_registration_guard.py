@@ -13,7 +13,7 @@ import sys
 import pytest
 from fastapi import FastAPI
 
-from src.openbb_bridge import try_register_openbb_routes
+from src.interfaces.openbb_bridge import try_register_openbb_routes
 
 
 class _BlockOpenBBAI:
@@ -32,7 +32,7 @@ class _BlockOpenBBAI:
 def without_openbb_ai(monkeypatch: pytest.MonkeyPatch) -> None:
     """Simulate a base install with no ``openbb`` extra."""
     for name in list(sys.modules):
-        if name.startswith("openbb_ai") or name.startswith("src.openbb_bridge."):
+        if name.startswith("openbb_ai") or name.startswith("src.interfaces.openbb_bridge."):
             monkeypatch.delitem(sys.modules, name)
     monkeypatch.setattr(sys, "meta_path", [_BlockOpenBBAI(), *sys.meta_path])
 
@@ -48,7 +48,7 @@ def test_registration_mounts_both_routes_with_the_extra():
     pytest.importorskip("openbb_ai")
     app = FastAPI()
     # register_openbb_routes resolves auth off the host module, so import it.
-    import api_server  # noqa: F401
+    import src.interfaces.api_server as api_server  # noqa: F401
 
     assert try_register_openbb_routes(app) is True
     paths = {getattr(route, "path", "") for route in app.routes}
@@ -58,7 +58,7 @@ def test_registration_mounts_both_routes_with_the_extra():
 def test_registration_failure_never_escapes(monkeypatch: pytest.MonkeyPatch):
     """A broken bridge must not take the core API down."""
     pytest.importorskip("openbb_ai")
-    from src.openbb_bridge import routes as bridge_routes
+    from src.interfaces.openbb_bridge import routes as bridge_routes
 
     def _boom(app):
         raise RuntimeError("bridge exploded")

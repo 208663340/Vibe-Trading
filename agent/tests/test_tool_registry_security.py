@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.tools import build_registry
+from src.runtime.tools import build_registry
 
 
 def test_shell_tools_absent_from_default_registry(monkeypatch: pytest.MonkeyPatch) -> None:

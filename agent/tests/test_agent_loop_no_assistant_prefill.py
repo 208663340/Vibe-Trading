@@ -14,9 +14,9 @@ from typing import Any
 
 import pytest
 
-import src.agent.loop as loop_mod
-from src.agent.loop import AgentLoop
-from src.agent.trace import TraceWriter
+import src.runtime.agent.loop as loop_mod
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.trace import TraceWriter
 
 
 class _StubLLM:
@@ -68,8 +68,8 @@ class _StubLLM:
 
 
 def _build_agent(llm: Any, max_iter: int = 3, tmp_run_dir: Path | None = None) -> AgentLoop:
-    from src.tools import build_registry
-    from src.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
+    from src.runtime.memory.persistent import PersistentMemory
 
     pm = PersistentMemory()
     agent = AgentLoop(

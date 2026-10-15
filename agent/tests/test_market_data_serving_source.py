@@ -3,8 +3,8 @@
 import pandas as pd
 import pytest
 
-from backtest.loaders import registry
-from src.market_data import fetch_market_data
+from src.backtest.loaders import registry
+from src.markets.market_data import fetch_market_data
 
 
 def _bars():

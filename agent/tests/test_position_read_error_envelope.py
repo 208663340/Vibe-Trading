@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.trading.connectors.futu import sdk as futu_sdk
-from src.trading.connectors.okx import sdk as okx_sdk
+from src.markets.trading.connectors.futu import sdk as futu_sdk
+from src.markets.trading.connectors.okx import sdk as okx_sdk
 
 pytestmark = pytest.mark.unit
 

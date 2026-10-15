@@ -33,8 +33,8 @@ from unittest.mock import patch
 
 import pytest
 
-import src.tools.etf_holdings_tool as etf
-from src.tools.etf_holdings_tool import EtfHoldingsTool
+import src.runtime.tools.etf_holdings_tool as etf
+from src.runtime.tools.etf_holdings_tool import EtfHoldingsTool
 
 # ── Fixtures shaped exactly like the live payloads ───────────────────────────
 

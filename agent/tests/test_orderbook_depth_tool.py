@@ -20,8 +20,8 @@ from typing import Any
 
 import pytest
 
-from src.tools import orderbook_depth_tool
-from src.tools.orderbook_depth_tool import OrderBookDepthTool
+from src.runtime.tools import orderbook_depth_tool
+from src.runtime.tools.orderbook_depth_tool import OrderBookDepthTool
 
 
 def _raw_book(

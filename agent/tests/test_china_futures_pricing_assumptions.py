@@ -24,7 +24,7 @@ import logging
 
 import pytest
 
-from backtest.engines.china_futures import (
+from src.backtest.engines.china_futures import (
     _COMMISSION,
     _DEFAULT_COMMISSION,
     _DEFAULT_MARGIN_RATE,
@@ -97,7 +97,7 @@ class TestPricingAssumptionsAreReported:
         self, caplog: pytest.LogCaptureFixture
     ) -> None:
         engine = _engine("pg2412.DCE")
-        with caplog.at_level(logging.WARNING, logger="backtest.engines.china_futures"):
+        with caplog.at_level(logging.WARNING, logger="src.backtest.engines.china_futures"):
             for _ in range(50):
                 engine.get_margin_rate("pg2412.DCE")
 
@@ -119,7 +119,7 @@ class TestPricingAssumptionsAreReported:
 
 class TestDiagnosticsSeam:
     def test_base_engine_declares_nothing_by_default(self) -> None:
-        from backtest.engines.china_a import ChinaAEngine
+        from src.backtest.engines.china_a import ChinaAEngine
 
         assert ChinaAEngine({"initial_capital": 1_000_000})._engine_diagnostics() == {}
 

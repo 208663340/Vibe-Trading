@@ -35,14 +35,14 @@ _futu_stub.RET_OK = 0
 _futu_stub.KLType = _KLType
 sys.modules.setdefault("futu", _futu_stub)
 
-from backtest.loaders.futu import (  # noqa: E402
+from src.backtest.loaders.futu import (  # noqa: E402
     FutuLoader,
     _normalize_frame,
     _to_futu_symbol,
     _to_futu_ktype,
 )
 from tests.loader_contract import assert_loader_contract
-from backtest.loaders.base import NoAvailableSourceError  # noqa: E402
+from src.backtest.loaders.base import NoAvailableSourceError  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -167,7 +167,7 @@ class TestNormalizeFrame:
 
 class TestIsAvailable:
     def test_false_when_host_missing(self, monkeypatch):
-        from src.config.accessor import reset_env_config
+        from src.platform.config.accessor import reset_env_config
 
         monkeypatch.setenv("FUTU_HOST", "")
         monkeypatch.setenv("FUTU_PORT", "11111")
@@ -176,7 +176,7 @@ class TestIsAvailable:
         reset_env_config()
 
     def test_false_when_port_missing(self, monkeypatch):
-        from src.config.accessor import reset_env_config
+        from src.platform.config.accessor import reset_env_config
 
         monkeypatch.setenv("FUTU_HOST", "127.0.0.1")
         monkeypatch.setenv("FUTU_PORT", "0")
@@ -185,7 +185,7 @@ class TestIsAvailable:
         reset_env_config()
 
     def test_true_when_connection_succeeds(self, monkeypatch):
-        from src.config.accessor import reset_env_config
+        from src.platform.config.accessor import reset_env_config
 
         monkeypatch.setenv("FUTU_HOST", "127.0.0.1")
         monkeypatch.setenv("FUTU_PORT", "11111")
@@ -197,7 +197,7 @@ class TestIsAvailable:
         reset_env_config()
 
     def test_false_when_connection_raises(self, monkeypatch):
-        from src.config.accessor import reset_env_config
+        from src.platform.config.accessor import reset_env_config
 
         monkeypatch.setenv("FUTU_HOST", "127.0.0.1")
         monkeypatch.setenv("FUTU_PORT", "11111")
@@ -265,7 +265,7 @@ class TestFetch:
     def test_forwards_page_key_and_normalizes_all_pages_once(
         self, loader, mock_ctx, monkeypatch
     ):
-        import backtest.loaders.futu as futu_loader
+        import src.backtest.loaders.futu as futu_loader
 
         first = _make_kline_df(["2024-01-02 00:00:00"])
         second = _make_kline_df(["2024-01-03 00:00:00"])
@@ -291,7 +291,7 @@ class TestFetch:
         )
 
     def test_later_page_failure_discards_symbol(self, loader, mock_ctx, monkeypatch):
-        import backtest.loaders.futu as futu_loader
+        import src.backtest.loaders.futu as futu_loader
 
         mock_ctx.request_history_kline.side_effect = [
             (0, _make_kline_df(["2024-01-02 00:00:00"]), b"next-page"),
@@ -308,7 +308,7 @@ class TestFetch:
     def test_empty_success_is_not_returned_or_cached(
         self, loader, mock_ctx, monkeypatch
     ):
-        import backtest.loaders.futu as futu_loader
+        import src.backtest.loaders.futu as futu_loader
 
         mock_ctx.request_history_kline.return_value = (0, pd.DataFrame(), None)
         cache_put = MagicMock()

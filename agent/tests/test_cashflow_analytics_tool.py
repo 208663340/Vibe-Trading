@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.tools.cashflow_analytics_tool import CashFlowPerformanceTool
+from src.runtime.tools.cashflow_analytics_tool import CashFlowPerformanceTool
 
 
 def _valuations() -> list[dict[str, object]]:
@@ -220,7 +220,7 @@ def test_an_unsolvable_irr_is_reported_as_a_note_not_a_failure() -> None:
 
 def test_the_tool_is_auto_discovered_by_the_agent_registry() -> None:
     """Creating the module is sufficient to expose the read-only agent tool."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
     tool = registry.get("cashflow_performance")
@@ -230,7 +230,7 @@ def test_the_tool_is_auto_discovered_by_the_agent_registry() -> None:
 
 def test_the_tool_places_no_orders() -> None:
     """Guard the red line: this is a research surface with no execution path."""
-    from src.tools import cashflow_analytics_tool
+    from src.runtime.tools import cashflow_analytics_tool
 
     source = Path(cashflow_analytics_tool.__file__).read_text(encoding="utf-8")
     assert "place_order" not in source

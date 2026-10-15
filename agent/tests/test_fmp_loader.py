@@ -1,6 +1,6 @@
 """Tests for fmp_loader: auth gating, symbol mapping, parsing, batch resilience.
 
-All HTTP is mocked at :func:`backtest.loaders._http.throttled_get_json` (imported
+All HTTP is mocked at :func:`src.backtest.loaders._http.throttled_get_json` (imported
 into the loader module), so no test touches a live FMP endpoint.
 """
 
@@ -9,9 +9,9 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from backtest.loaders import fmp_loader as fl
+from src.backtest.loaders import fmp_loader as fl
 from tests.loader_contract import assert_loader_contract
-from backtest.loaders.fmp_loader import DataLoader, _fmp_symbol, _parse_historical
+from src.backtest.loaders.fmp_loader import DataLoader, _fmp_symbol, _parse_historical
 
 
 def _body(symbol, bars):
@@ -29,7 +29,7 @@ class TestRegistration:
     """Loader self-registers with the expected metadata."""
 
     def test_registered_in_registry(self):
-        from backtest.loaders import registry
+        from src.backtest.loaders import registry
 
         registry._ensure_registered()
         # Importing the module fired @register regardless of registry bootstrap.
@@ -215,7 +215,7 @@ class TestParseHistorical:
             },
         ]
 
-        with caplog.at_level("WARNING", logger="backtest.loaders.fmp_loader"):
+        with caplog.at_level("WARNING", logger="src.backtest.loaders.fmp_loader"):
             df = _parse_historical(_body("AAPL", bars))
 
         assert df is not None

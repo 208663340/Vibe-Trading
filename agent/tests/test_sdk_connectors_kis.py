@@ -13,10 +13,10 @@ from datetime import datetime, timezone
 
 import pytest
 
-from src.live.classification import ToolClass
-from src.trading import profiles, service
-from src.trading.connectors.kis import sdk as kis
-from src.trading.connectors.kis.classification import KIS_TOOL_CLASS
+from src.markets.live.classification import ToolClass
+from src.markets.trading import profiles, service
+from src.markets.trading.connectors.kis import sdk as kis
+from src.markets.trading.connectors.kis.classification import KIS_TOOL_CLASS
 
 pytestmark = pytest.mark.unit
 

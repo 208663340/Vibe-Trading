@@ -15,12 +15,12 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.china_a import (
+from src.backtest.engines.china_a import (
     ChinaAEngine,
     _bar_date,
     _price_limit,
 )
-from backtest.models import Position
+from src.backtest.models import Position
 
 
 # ---------------------------------------------------------------------------

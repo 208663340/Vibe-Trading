@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from backtest.loaders import finnhub_loader as fh
+from src.backtest.loaders import finnhub_loader as fh
 
 
 def test_unsupported_interval_does_not_hit_api() -> None:
     """Runner ``1H`` must not fall through to Finnhub resolution=D."""
     with patch.object(fh, "throttled_get_json") as mock_get:
-        with patch("src.config.accessor.get_env_config") as cfg:
+        with patch("src.platform.config.accessor.get_env_config") as cfg:
             c = MagicMock()
             c.data.finnhub_api_key = "KEY"
             # Explicit: a bare MagicMock reads truthy, which would switch the
@@ -27,7 +27,7 @@ def test_unsupported_interval_does_not_hit_api() -> None:
 
 def test_four_hour_interval_also_rejected() -> None:
     with patch.object(fh, "throttled_get_json") as mock_get:
-        with patch("src.config.accessor.get_env_config") as cfg:
+        with patch("src.platform.config.accessor.get_env_config") as cfg:
             c = MagicMock()
             c.data.finnhub_api_key = "KEY"
             # Explicit: a bare MagicMock reads truthy, which would switch the
@@ -53,7 +53,7 @@ def test_daily_interval_still_fetches() -> None:
         "v": [1000],
     }
     with patch.object(fh, "throttled_get_json", return_value=payload) as mock_get:
-        with patch("src.config.accessor.get_env_config") as cfg:
+        with patch("src.platform.config.accessor.get_env_config") as cfg:
             c = MagicMock()
             c.data.finnhub_api_key = "KEY"
             # Explicit: a bare MagicMock reads truthy, which would switch the

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pandas as pd
 import pytest
 
-from backtest.loaders.tushare_fundamentals import (
+from src.backtest.loaders.tushare_fundamentals import (
     SchemaValidationError,
     TushareFundamentalProvider,
     UnknownTableError,
@@ -539,7 +539,7 @@ def test_provider_failures_keep_the_wrapped_message(monkeypatch) -> None:
     A stray ValueError from inside enrichment is a provider failure and must
     keep the "Tushare enrichment failed" wrapper that names it as such.
     """
-    from backtest.engines import base as base_engine
+    from src.backtest.engines import base as base_engine
 
     def boom(*args: object, **kwargs: object) -> None:
         raise ValueError("provider returned nonsense")
@@ -560,7 +560,7 @@ def test_provider_failures_keep_the_wrapped_message(monkeypatch) -> None:
 
 
 def test_subdaily_contract_error_is_not_reworded(monkeypatch) -> None:
-    from backtest.engines import base as base_engine
+    from src.backtest.engines import base as base_engine
 
     monkeypatch.setattr(
         base_engine,

@@ -19,15 +19,15 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import scheduled_routes
-from src.scheduled_research.models import (
+import src.interfaces.api_server as api_server
+from src.interfaces.api import scheduled_routes
+from src.research.scheduled_research.models import (
     DeliveryRecord,
     DeliveryStatus,
     JobStatus,
     ScheduledResearchJob,
 )
-from src.scheduled_research.store import ScheduledResearchJobStore
+from src.research.scheduled_research.store import ScheduledResearchJobStore
 
 
 @pytest.fixture
@@ -407,7 +407,7 @@ def test_list_includes_timezone(client: TestClient, store: ScheduledResearchJobS
 def test_create_tz_cron_defaults_next_run_to_first_authored_occurrence(
     client: TestClient, store: ScheduledResearchJobStore
 ):
-    from src.scheduled_research.executor import next_due
+    from src.research.scheduled_research.executor import next_due
 
     before = int(__import__("time").time() * 1000)
     response = client.post(
@@ -554,7 +554,7 @@ def test_create_rejects_a_blank_timezone_for_both_schedule_forms(
 def test_list_carries_the_last_verdict_record(
     client: TestClient, store: ScheduledResearchJobStore
 ):
-    from src.scheduled_research.verdict import VerdictItem, VerdictRecord
+    from src.research.scheduled_research.verdict import VerdictItem, VerdictRecord
 
     verdict = VerdictRecord(
         session_id="sess-9",
@@ -687,7 +687,7 @@ def test_protected_pdf_update_persists_only_boolean_and_requires_secret(client, 
 
 
 def test_protect_pdf_round_trip_contains_boolean_only():
-    from src.scheduled_research.models import ScheduledResearchJob
+    from src.research.scheduled_research.models import ScheduledResearchJob
 
     job = ScheduledResearchJob(
         id="safe-job",

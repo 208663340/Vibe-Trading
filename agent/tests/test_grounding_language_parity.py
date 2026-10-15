@@ -27,7 +27,7 @@ import tempfile
 
 import pytest
 
-from src.agent.grounding import GroundingLedger
+from src.runtime.agent.grounding import GroundingLedger
 
 
 def _has_issues(text: str) -> bool:

@@ -1,7 +1,7 @@
 """Default-deny / fail-closed classification gate (SPEC §7.3 threat (d), §7.4).
 
 Stands up a MOCK MCP server (reusing the ``client_factory`` seam in
-``src.tools.mcp``) exposing the four classification-critical shapes:
+``src.runtime.tools.mcp``) exposing the four classification-critical shapes:
 
 * a genuine READ tool in the curated map,
 * a genuine WRITE tool in the curated map,
@@ -27,12 +27,12 @@ import pytest
 from fastmcp.client.client import CallToolResult
 from mcp import types as mcp_types
 
-from src.live.classification import ToolClass, classify_tool
-from src.live.order_guard import LiveOrderGuardTool
-from src.live.registry import wrap_live_broker_tools
-from src.trading.connectors.robinhood.classification import ROBINHOOD_TOOL_CLASS
-from src.trading.connectors.robinhood.extractor import extract_order_intent
-from src.tools.mcp import MCPRemoteTool, build_mcp_tool_wrappers
+from src.markets.live.classification import ToolClass, classify_tool
+from src.markets.live.order_guard import LiveOrderGuardTool
+from src.markets.live.registry import wrap_live_broker_tools
+from src.markets.trading.connectors.robinhood.classification import ROBINHOOD_TOOL_CLASS
+from src.markets.trading.connectors.robinhood.extractor import extract_order_intent
+from src.runtime.tools.mcp import MCPRemoteTool, build_mcp_tool_wrappers
 
 pytestmark = pytest.mark.unit
 
@@ -111,7 +111,7 @@ def _factory() -> _MockMCPServer:
 
 
 def _make_config():
-    from src.config.schema import MCPServerConfig
+    from src.platform.config.schema import MCPServerConfig
 
     return MCPServerConfig.model_validate(
         {

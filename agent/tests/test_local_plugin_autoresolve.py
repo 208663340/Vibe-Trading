@@ -13,8 +13,8 @@ from typing import Any
 
 import pytest
 
-from src.trading.connections import ConnectionStore
-from src.trading.service import check_connection
+from src.markets.trading.connections import ConnectionStore
+from src.markets.trading.service import check_connection
 
 _ADAPTER = """\
 def check_status(*, credentials, config):
@@ -74,11 +74,11 @@ def runtime_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     root = tmp_path / "runtime"
     root.mkdir()
     monkeypatch.setattr(
-        "src.trading.credentials.CredentialStore.backend",
+        "src.markets.trading.credentials.CredentialStore.backend",
         property(lambda self: _NoSecretsBackend()),
     )
-    monkeypatch.setattr("src.trading.connections.get_runtime_root", lambda: root)
-    monkeypatch.setattr("src.trading.local_plugins.get_runtime_root", lambda: root)
+    monkeypatch.setattr("src.markets.trading.connections.get_runtime_root", lambda: root)
+    monkeypatch.setattr("src.markets.trading.local_plugins.get_runtime_root", lambda: root)
     plugin_dir = root / "connectors" / "fake"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "connector.json").write_text(

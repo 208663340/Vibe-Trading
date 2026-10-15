@@ -23,13 +23,13 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-import src.channels.manager as manager_module
-from src.api import channels_config_routes as routes
-from src.channels.base import BaseChannel
-from src.channels.bus.events import OutboundMessage
-from src.channels.bus.queue import MessageBus
-from src.channels.manager import ChannelManager
+import src.interfaces.api_server as api_server
+import src.interfaces.channels.manager as manager_module
+from src.interfaces.api import channels_config_routes as routes
+from src.interfaces.channels.base import BaseChannel
+from src.interfaces.channels.bus.events import OutboundMessage
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.manager import ChannelManager
 
 CLIENT_ID = "ding-client-id-1234567890"
 STORED_SECRET = "stored-secret-abcdefghij"

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.api.security import LOOPBACK_SUBJECT, SHARED_KEY_SUBJECT
-from src.session.models import (
+from src.interfaces.api.security import LOOPBACK_SUBJECT, SHARED_KEY_SUBJECT
+from src.runtime.session.models import (
     ATTRIBUTABLE_AUTH_METHODS,
     AuthMethod,
     Principal,
@@ -164,7 +164,7 @@ def test_unknown_owner_and_unattributable_owner_are_different_states():
 
 
 def test_validate_api_auth_returns_a_shared_key_principal(monkeypatch):
-    from src.api import security
+    from src.interfaces.api import security
 
     monkeypatch.setattr(security, "_configured_api_key", lambda: "secret-key")
 
@@ -185,7 +185,7 @@ def test_validate_api_auth_returns_a_shared_key_principal(monkeypatch):
 
 
 def test_validate_api_auth_returns_a_loopback_principal_when_no_key(monkeypatch):
-    from src.api import security
+    from src.interfaces.api import security
 
     monkeypatch.setattr(security, "_configured_api_key", lambda: "")
     monkeypatch.setattr(security, "_is_local_client", lambda request: True)
@@ -202,7 +202,7 @@ def test_validate_api_auth_returns_a_loopback_principal_when_no_key(monkeypatch)
 def test_a_bad_credential_still_raises_and_returns_no_principal(monkeypatch):
     from fastapi import HTTPException
 
-    from src.api import security
+    from src.interfaces.api import security
 
     monkeypatch.setattr(security, "_configured_api_key", lambda: "secret-key")
 

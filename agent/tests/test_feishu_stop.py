@@ -22,8 +22,8 @@ import time
 
 import pytest
 
-from src.channels.bus.queue import MessageBus
-from src.channels.feishu import FeishuChannel
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.feishu import FeishuChannel
 
 
 class FakeConn:

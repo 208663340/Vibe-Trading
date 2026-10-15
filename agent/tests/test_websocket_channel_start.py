@@ -5,9 +5,9 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from src.channels.websocket import WebSocketChannel
-from src.channelsui.websocket_logging import websockets_server_logger
-from src.channelsui.gateway_services import build_gateway_services
+from src.interfaces.channels.websocket import WebSocketChannel
+from src.interfaces.channelsui.websocket_logging import websockets_server_logger
+from src.interfaces.channelsui.gateway_services import build_gateway_services
 
 
 def test_websockets_server_logger_is_a_logger_not_a_factory():
@@ -17,7 +17,7 @@ def test_websockets_server_logger_is_a_logger_not_a_factory():
 
 
 def test_websocket_channel_starts_on_a_unix_socket():
-    from src.channels.bus.queue import MessageBus
+    from src.interfaces.channels.bus.queue import MessageBus
 
     # macOS caps unix socket paths at 104 chars, so keep it short
     import tempfile, uuid as _uuid

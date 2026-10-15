@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 import requests
 
-from backtest.loaders import nobitex
+from src.backtest.loaders import nobitex
 from tests.loader_contract import assert_loader_contract
 
 
@@ -191,7 +191,7 @@ class TestFetch:
 
 class TestRoutingPattern:
     def test_source_pattern_matches_irt_pairs_only(self):
-        from src.market_data import detect_source
+        from src.markets.market_data import detect_source
 
         assert detect_source("BTCIRT") == "nobitex"
         assert detect_source("BTC-IRT") == "nobitex"
@@ -212,7 +212,7 @@ def test_toman_sources_never_degrade_into_the_crypto_chain(monkeypatch) -> None:
     """
     import pytest
 
-    from backtest.loaders import registry as loader_registry
+    from src.backtest.loaders import registry as loader_registry
 
     loader_registry._ensure_registered()
     for source in ("nobitex", "wallex"):

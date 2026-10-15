@@ -10,8 +10,8 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.providers.llm import ChatOpenAIWithReasoning, build_llm, provider_diagnostics
+from src.platform.config.accessor import reset_env_config
+from src.runtime.providers.llm import ChatOpenAIWithReasoning, build_llm, provider_diagnostics
 
 
 def _stream_response(text: str) -> httpx.Response:
@@ -205,7 +205,7 @@ def test_an_explicit_header_wins_over_its_ambient_twin_on_the_wire() -> None:
 
 def test_build_rejects_non_ascii_openrouter_api_key_before_transport() -> None:
     """A malformed Bearer credential should name its setting without leaking it."""
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     env = {
         "LANGCHAIN_PROVIDER": "openrouter",
@@ -226,7 +226,7 @@ def test_build_rejects_non_ascii_openrouter_api_key_before_transport() -> None:
 
 def test_build_passes_openrouter_credentials_explicitly() -> None:
     """The relay client should retain the selected key for header restoration."""
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     captured: dict[str, object] = {}
 
@@ -256,7 +256,7 @@ def test_build_passes_openrouter_credentials_explicitly() -> None:
 
 def test_provider_doctor_reports_header_safety_without_values() -> None:
     """Doctor should identify a bad header source while keeping values secret."""
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     env = {
         "LANGCHAIN_PROVIDER": "openrouter",
@@ -358,7 +358,7 @@ def test_stream_requests_usage_and_forwards_real_counts() -> None:
 def test_stream_usage_rejection_self_heals_and_is_remembered() -> None:
     """An endpoint that 400s on stream_options gets one stateless retry, and
     later calls skip the doomed attempt entirely."""
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     calls: list[str] = []
 
@@ -403,7 +403,7 @@ def test_stream_usage_rejection_self_heals_and_is_remembered() -> None:
 
 
 def test_stream_usage_unsupported_error_detection() -> None:
-    import src.providers.llm as llm_mod
+    import src.runtime.providers.llm as llm_mod
 
     assert llm_mod._is_stream_usage_unsupported_error(ValueError("Unknown parameter: 'stream_options' is unsupported"))
     assert llm_mod._is_stream_usage_unsupported_error(

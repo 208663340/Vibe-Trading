@@ -8,7 +8,7 @@ from tests.slack_stubs import install_slack_stubs
 
 install_slack_stubs()
 
-from src.channels.slack import SlackChannel  # noqa: E402
+from src.interfaces.channels.slack import SlackChannel  # noqa: E402
 
 
 def test_split_md_row_keeps_empty_edge_cells() -> None:

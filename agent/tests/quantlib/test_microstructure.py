@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from src.quantlib.microstructure import (
+from src.research.quantlib.microstructure import (
     amihud_illiquidity,
     kyles_lambda,
     roll_effective_spread,

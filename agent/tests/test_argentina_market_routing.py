@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import pytest
 
-from backtest.engines._market_hooks import _detect_market, code_currency
-from backtest.loaders.registry import FALLBACK_CHAINS
-from backtest.loaders.yahoo_loader import _is_supported as yahoo_is_supported
-from backtest.loaders.yfinance_loader import _to_yfinance_symbol
-from backtest.runner import _create_market_engine, _detect_source
-from src.market_data import detect_source
-from src.tools.stock_profile_tool import _market_for
+from src.backtest.engines._market_hooks import _detect_market, code_currency
+from src.backtest.loaders.registry import FALLBACK_CHAINS
+from src.backtest.loaders.yahoo_loader import _is_supported as yahoo_is_supported
+from src.backtest.loaders.yfinance_loader import _to_yfinance_symbol
+from src.backtest.runner import _create_market_engine, _detect_source
+from src.markets.market_data import detect_source
+from src.runtime.tools.stock_profile_tool import _market_for
 
 
 @pytest.mark.parametrize("symbol", ["GGAL.BA", "PAMP.BA", "GOOGL.BA"])

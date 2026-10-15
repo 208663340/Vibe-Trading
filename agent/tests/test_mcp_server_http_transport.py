@@ -60,7 +60,7 @@ def test_mcp_server_http_transport() -> None:
     proc = subprocess.Popen(
         [
             sys.executable,
-            str(AGENT_DIR / "mcp_server.py"),
+            str(AGENT_DIR / "src" / "interfaces" / "mcp_server.py"),
             "--transport",
             "http",
             "--port",

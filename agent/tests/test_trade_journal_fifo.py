@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from src.tools.trade_journal_tool import build_frame_adjust, pair_trades_fifo
+from src.runtime.tools.trade_journal_tool import build_frame_adjust, pair_trades_fifo
 
 
 def _df(rows: list[tuple]) -> pd.DataFrame:

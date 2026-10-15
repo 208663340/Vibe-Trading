@@ -7,7 +7,7 @@ import uuid
 
 import pytest
 
-from src.strategy_store.models import (
+from src.research.strategy_store.models import (
     Artifact,
     ArtifactStatus,
     ArtifactType,
@@ -21,8 +21,8 @@ from src.strategy_store.models import (
     validate_model_registration,
     validate_validation_status_transition,
 )
-from src.strategy_store.store import InMemoryStrategyStore
-from src.strategy_store.decay import DecayEvaluator, DecayThresholds
+from src.research.strategy_store.store import InMemoryStrategyStore
+from src.research.strategy_store.decay import DecayEvaluator, DecayThresholds
 
 
 # ---------------------------------------------------------------------------
@@ -33,8 +33,8 @@ from src.strategy_store.decay import DecayEvaluator, DecayThresholds
 @pytest.fixture(autouse=True)
 def _reset_store(tmp_path):
     """Reset the shared store singleton before each test."""
-    import src.strategy_store._shared as shared
-    from src.strategy_store.sqlite_store import SqliteStrategyStore
+    import src.research.strategy_store._shared as shared
+    from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
     shared._store = SqliteStrategyStore(db_path=tmp_path / "test.db")
     yield
@@ -370,7 +370,7 @@ class TestSdmTools:
     """Integration tests for the three SDM BaseTool wrappers."""
 
     def test_register_tool_factor(self):
-        from src.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
 
         tool = SdmRegisterTool()
         result = json.loads(
@@ -388,7 +388,7 @@ class TestSdmTools:
         assert result["artifact"]["type"] == "factor"
 
     def test_register_tool_strategy(self):
-        from src.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
 
         tool = SdmRegisterTool()
         result = json.loads(
@@ -403,15 +403,15 @@ class TestSdmTools:
         assert result["artifact"]["type"] == "strategy"
 
     def test_register_tool_missing_required(self):
-        from src.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
 
         tool = SdmRegisterTool()
         result = json.loads(tool.execute(artifact_type="factor"))
         assert result["status"] == "error"
 
     def test_status_tool_list(self):
-        from src.tools.sdm_register_tool import SdmRegisterTool
-        from src.tools.sdm_status_tool import SdmStatusTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_status_tool import SdmStatusTool
 
         SdmRegisterTool().execute(
             artifact_type="factor", name="f1", universe="CSI300"
@@ -421,8 +421,8 @@ class TestSdmTools:
         assert result["count"] == 1
 
     def test_status_tool_detail(self):
-        from src.tools.sdm_register_tool import SdmRegisterTool
-        from src.tools.sdm_status_tool import SdmStatusTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_status_tool import SdmStatusTool
 
         reg_result = json.loads(
             SdmRegisterTool().execute(
@@ -437,8 +437,8 @@ class TestSdmTools:
         assert "decay_history" in result
 
     def test_status_tool_disable_enable(self):
-        from src.tools.sdm_register_tool import SdmRegisterTool
-        from src.tools.sdm_status_tool import SdmStatusTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_status_tool import SdmStatusTool
 
         reg = json.loads(
             SdmRegisterTool().execute(
@@ -464,8 +464,8 @@ class TestSdmTools:
         assert en["artifact"]["status"] == "active"
 
     def test_status_tool_decay_check_insufficient(self):
-        from src.tools.sdm_register_tool import SdmRegisterTool
-        from src.tools.sdm_status_tool import SdmStatusTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_status_tool import SdmStatusTool
 
         reg = json.loads(
             SdmRegisterTool().execute(
@@ -480,15 +480,15 @@ class TestSdmTools:
         assert result["signal"] == "insufficient_data"
 
     def test_decay_scan_tool_empty(self):
-        from src.tools.sdm_decay_scan_tool import SdmDecayScanTool
+        from src.runtime.tools.sdm_decay_scan_tool import SdmDecayScanTool
 
         result = json.loads(SdmDecayScanTool().execute())
         assert result["status"] == "ok"
         assert result["summary"]["total_scanned"] == 0
 
     def test_decay_scan_tool_dry_run(self):
-        from src.tools.sdm_register_tool import SdmRegisterTool
-        from src.tools.sdm_decay_scan_tool import SdmDecayScanTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_decay_scan_tool import SdmDecayScanTool
 
         # Register an ACTIVE factor with bench history
         reg = json.loads(
@@ -498,7 +498,7 @@ class TestSdmTools:
         )
         aid = reg["artifact"]["id"]
 
-        import src.strategy_store._shared as shared
+        import src.research.strategy_store._shared as shared
 
         store = shared._store
         assert store is not None
@@ -518,7 +518,7 @@ class TestSdmTools:
 
     def test_register_tool_duplicate_rejected(self):
         """Registering the same (name, universe) twice returns an error."""
-        from src.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
 
         first = json.loads(
             SdmRegisterTool().execute(
@@ -536,8 +536,8 @@ class TestSdmTools:
 
     def test_decay_scan_no_evaluable_metrics_insufficient(self):
         """3+ bench rows with all-None metrics report insufficient_data, not HEALTHY."""
-        from src.tools.sdm_register_tool import SdmRegisterTool
-        from src.tools.sdm_decay_scan_tool import SdmDecayScanTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_decay_scan_tool import SdmDecayScanTool
 
         reg = json.loads(
             SdmRegisterTool().execute(
@@ -546,7 +546,7 @@ class TestSdmTools:
         )
         aid = reg["artifact"]["id"]
 
-        import src.strategy_store._shared as shared
+        import src.research.strategy_store._shared as shared
 
         store = shared._store
         assert store is not None
@@ -561,8 +561,8 @@ class TestSdmTools:
 
     def test_status_tool_decay_check_no_evaluable_metrics(self):
         """decay_check with all-None metrics reports insufficient_data."""
-        from src.tools.sdm_register_tool import SdmRegisterTool
-        from src.tools.sdm_status_tool import SdmStatusTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_status_tool import SdmStatusTool
 
         reg = json.loads(
             SdmRegisterTool().execute(
@@ -571,7 +571,7 @@ class TestSdmTools:
         )
         aid = reg["artifact"]["id"]
 
-        import src.strategy_store._shared as shared
+        import src.research.strategy_store._shared as shared
 
         store = shared._store
         assert store is not None
@@ -586,8 +586,8 @@ class TestSdmTools:
 
     def test_decay_scan_tool_active_to_monitoring_transition(self):
         """Non-dry-run scan transitions active → monitoring after 3+ warnings."""
-        from src.tools.sdm_register_tool import SdmRegisterTool
-        from src.tools.sdm_decay_scan_tool import SdmDecayScanTool
+        from src.runtime.tools.sdm_register_tool import SdmRegisterTool
+        from src.runtime.tools.sdm_decay_scan_tool import SdmDecayScanTool
 
         reg = json.loads(
             SdmRegisterTool().execute(
@@ -596,7 +596,7 @@ class TestSdmTools:
         )
         aid = reg["artifact"]["id"]
 
-        import src.strategy_store._shared as shared
+        import src.research.strategy_store._shared as shared
 
         store = shared._store
         assert store is not None
@@ -645,7 +645,7 @@ class TestSqliteStore:
     @pytest.fixture(autouse=True)
     def _setup(self, tmp_path):
         """Create a temporary SQLite store for each test."""
-        from src.strategy_store.sqlite_store import SqliteStrategyStore
+        from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
         self.store = SqliteStrategyStore(db_path=tmp_path / "sqlite_test.db")
 
@@ -846,7 +846,7 @@ class TestSqliteStore:
 
     def test_persistence_across_instances(self):
         """Data persists when creating a new store instance with same db_path."""
-        from src.strategy_store.sqlite_store import SqliteStrategyStore
+        from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
         db_path = self.store.db_path
         aid = self.store.register_artifact(_make_artifact(name="persist_factor"))
@@ -875,7 +875,7 @@ class TestSqliteStore:
 
     def test_protocol_satisfied(self):
         """SqliteStrategyStore satisfies StrategyStoreProtocol."""
-        from src.strategy_store.store import StrategyStoreProtocol
+        from src.research.strategy_store.store import StrategyStoreProtocol
 
         assert isinstance(self.store, StrategyStoreProtocol)
 
@@ -1148,7 +1148,7 @@ class TestModelGovernanceStore:
 
 
 def _sqlite_store(tmp_path):
-    from src.strategy_store.sqlite_store import SqliteStrategyStore
+    from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
     return SqliteStrategyStore(db_path=tmp_path / f"gov_{uuid.uuid4().hex[:8]}.db")
 
@@ -1282,7 +1282,7 @@ class TestSchemaMigration:
     def test_old_db_opens_and_reads_via_new_code(self, tmp_path):
         """The most important test: a DB written before governance fields
         existed must still be readable (and writable) by the new store."""
-        from src.strategy_store.sqlite_store import SqliteStrategyStore
+        from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
         db_path = tmp_path / "legacy.db"
         _build_legacy_db(db_path)
@@ -1310,7 +1310,7 @@ class TestSchemaMigration:
 
     def test_old_db_still_writable_after_migration(self, tmp_path):
         """New writes (including governance fields) work on a migrated DB."""
-        from src.strategy_store.sqlite_store import SqliteStrategyStore
+        from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
         db_path = tmp_path / "legacy_write.db"
         _build_legacy_db(db_path)
@@ -1339,7 +1339,7 @@ class TestSchemaMigration:
 
     def test_old_db_update_status_still_works(self, tmp_path):
         """update_status (unrelated to governance) keeps working on a migrated row."""
-        from src.strategy_store.sqlite_store import SqliteStrategyStore
+        from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
         db_path = tmp_path / "legacy_status.db"
         _build_legacy_db(db_path)
@@ -1356,7 +1356,7 @@ class TestSchemaMigration:
 
     def test_migration_is_idempotent(self, tmp_path):
         """Running the column-migration twice does not error or duplicate columns."""
-        from src.strategy_store.sqlite_store import SqliteStrategyStore
+        from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
         db_path = tmp_path / "idempotent.db"
         _build_legacy_db(db_path)
@@ -1383,7 +1383,7 @@ class TestSchemaMigration:
 
     def test_migration_idempotent_across_fresh_reopen(self, tmp_path):
         """Re-opening an already-migrated DB with a fresh store instance is safe."""
-        from src.strategy_store.sqlite_store import SqliteStrategyStore
+        from src.research.strategy_store.sqlite_store import SqliteStrategyStore
 
         db_path = tmp_path / "reopen.db"
         _build_legacy_db(db_path)
@@ -1414,7 +1414,7 @@ class TestOrderingWithTiedTimestamps:
         monkeypatch.setattr(module, "_now_iso", lambda: self.PINNED)
 
     def test_in_memory_artifacts_newest_first_on_tie(self, monkeypatch):
-        from src.strategy_store import store as store_module
+        from src.research.strategy_store import store as store_module
 
         self._pin(monkeypatch, store_module)
         s = store_module.InMemoryStrategyStore()
@@ -1426,7 +1426,7 @@ class TestOrderingWithTiedTimestamps:
         assert names == ["tied_2", "tied_1", "tied_0"]
 
     def test_in_memory_bench_history_newest_first_on_tie(self, monkeypatch):
-        from src.strategy_store import store as store_module
+        from src.research.strategy_store import store as store_module
 
         self._pin(monkeypatch, store_module)
         s = store_module.InMemoryStrategyStore()
@@ -1437,7 +1437,7 @@ class TestOrderingWithTiedTimestamps:
         assert [r.sharpe for r in s.get_bench_history(aid)] == [2.0, 1.0, 0.0]
 
     def test_sqlite_artifacts_newest_first_on_tie(self, monkeypatch, tmp_path):
-        from src.strategy_store import sqlite_store as sqlite_module
+        from src.research.strategy_store import sqlite_store as sqlite_module
 
         self._pin(monkeypatch, sqlite_module)
         s = sqlite_module.SqliteStrategyStore(db_path=tmp_path / "tied.db")
@@ -1464,7 +1464,7 @@ class TestOrderingWithTiedTimestamps:
     # read them as coverage of that clause.
 
     def test_in_memory_decay_history_newest_first_on_tie(self, monkeypatch):
-        from src.strategy_store import store as store_module
+        from src.research.strategy_store import store as store_module
 
         self._pin(monkeypatch, store_module)
         s = store_module.InMemoryStrategyStore()
@@ -1477,7 +1477,7 @@ class TestOrderingWithTiedTimestamps:
         assert [snap.consecutive_warnings for snap in history] == [2, 1, 0]
 
     def test_sqlite_bench_history_newest_first_on_tie(self, monkeypatch, tmp_path):
-        from src.strategy_store import sqlite_store as sqlite_module
+        from src.research.strategy_store import sqlite_store as sqlite_module
 
         self._pin(monkeypatch, sqlite_module)
         s = sqlite_module.SqliteStrategyStore(db_path=tmp_path / "tied_bench.db")
@@ -1488,7 +1488,7 @@ class TestOrderingWithTiedTimestamps:
         assert [r.sharpe for r in s.get_bench_history(aid)] == [2.0, 1.0, 0.0]
 
     def test_sqlite_decay_history_newest_first_on_tie(self, monkeypatch, tmp_path):
-        from src.strategy_store import sqlite_store as sqlite_module
+        from src.research.strategy_store import sqlite_store as sqlite_module
 
         self._pin(monkeypatch, sqlite_module)
         s = sqlite_module.SqliteStrategyStore(db_path=tmp_path / "tied_decay.db")

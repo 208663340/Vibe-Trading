@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.goal.policy import reject_live_execution_objective
+from src.runtime.goal.policy import reject_live_execution_objective
 
 
 @pytest.mark.parametrize(

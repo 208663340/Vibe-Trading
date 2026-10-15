@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 import yaml
 
-import backtest.loaders.local_loader as local_loader
+import src.backtest.loaders.local_loader as local_loader
 from tests.loader_contract import assert_loader_contract
 
 
@@ -161,7 +161,7 @@ def test_local_loader_warns_and_keeps_source_when_upsampling(
         ],
     )
 
-    with caplog.at_level(logging.WARNING, logger="backtest.loaders.local_loader"):
+    with caplog.at_level(logging.WARNING, logger="src.backtest.loaders.local_loader"):
         frames = local_loader.DataLoader().fetch(
             ["AAA.US"], "2026-01-01", "2026-01-03", interval="4H"
         )

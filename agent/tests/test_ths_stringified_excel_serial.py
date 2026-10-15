@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.tools.trade_journal_parsers import load_dataframe, parse_file, parse_tonghuashun
+from src.runtime.tools.trade_journal_parsers import load_dataframe, parse_file, parse_tonghuashun
 
 
 def test_parse_tonghuashun_stringified_excel_serial() -> None:

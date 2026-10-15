@@ -14,7 +14,7 @@ import tempfile
 
 import pytest
 
-from src.agent.loop import AgentLoop
+from src.runtime.agent.loop import AgentLoop
 
 
 class _Registry:
@@ -117,7 +117,7 @@ def test_the_skill_coverage_limit_is_stated_not_implied(trace_dir):
 
 def test_a_manifest_failure_never_breaks_the_run(trace_dir, monkeypatch):
     # A provenance record that can kill a run is worse than a missing one.
-    import src.governance.manifest as manifest_mod
+    import src.platform.governance.manifest as manifest_mod
 
     def boom(**kwargs):
         raise RuntimeError("disk on fire")

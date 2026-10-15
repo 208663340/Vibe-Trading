@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.mt5.reads import _TIMEFRAME_MAP
+from src.markets.trading.connectors.mt5.reads import _TIMEFRAME_MAP
 
 
 def test_timeframe_map_accepts_project_hour_day_tokens() -> None:

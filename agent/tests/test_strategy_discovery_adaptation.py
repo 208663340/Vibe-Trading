@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from src.strategy_discovery.adaptation import parent_adaptation_blockers
-from src.strategy_discovery.models import (
+from src.research.strategy_discovery.adaptation import parent_adaptation_blockers
+from src.research.strategy_discovery.models import (
     DECAY_STALE,
     MIN_TRADES,
     QUALITY_ADEQUATE,

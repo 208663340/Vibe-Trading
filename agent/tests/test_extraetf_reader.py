@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from src.portfolio.extraetf import (
+from src.markets.portfolio.extraetf import (
     ExtraEtfFormatError,
     parse_export,
     read_export,
@@ -782,7 +782,7 @@ def test_reader_imports_only_the_standard_library():
     import ast
     from pathlib import Path
 
-    import src.portfolio.extraetf as module
+    import src.markets.portfolio.extraetf as module
 
     source = Path(module.__file__).read_text(encoding="utf-8")
     roots = set()

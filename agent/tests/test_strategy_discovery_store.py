@@ -1,4 +1,4 @@
-"""Frozen-contract tests for ``src.strategy_discovery.store`` — issue #969.
+"""Frozen-contract tests for ``src.research.strategy_discovery.store`` — issue #969.
 
 ``EvidenceStore`` is the facade-owned SQLite cache keyed by
 ``(strategy_id, regime)``. These tests pin: explicit tmp-path initialization,
@@ -18,8 +18,8 @@ import sqlite3
 import pytest
 
 try:
-    from src.strategy_discovery import models as sd_models
-    from src.strategy_discovery.evidence_store import EvidenceStore
+    from src.research.strategy_discovery import models as sd_models
+    from src.research.strategy_discovery.evidence_store import EvidenceStore
 
     STORE_AVAILABLE = True
 except ImportError:
@@ -29,7 +29,7 @@ except ImportError:
 
 requires_store = pytest.mark.skipif(
     not STORE_AVAILABLE,
-    reason="waiting on sibling A: src.strategy_discovery.evidence_store not landed yet (issue #969)",
+    reason="waiting on sibling A: src.research.strategy_discovery.evidence_store not landed yet (issue #969)",
 )
 
 

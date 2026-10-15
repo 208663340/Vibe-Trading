@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from backtest.loaders.tushare import (
+from src.backtest.loaders.tushare import (
     DataLoader,
     _is_crypto,
     _is_etf_listed,
@@ -411,7 +411,7 @@ class TestRateLimitBackoff:
     """Only a quota rejection is retried; a real failure still fails fast."""
 
     def test_a_quota_rejection_is_retried_then_succeeds(self, monkeypatch):
-        from backtest.loaders import tushare as mod
+        from src.backtest.loaders import tushare as mod
 
         monkeypatch.setattr(mod.time, "sleep", lambda _s: None)
         calls = {"n": 0}
@@ -426,7 +426,7 @@ class TestRateLimitBackoff:
         assert calls["n"] == 3
 
     def test_a_real_failure_is_not_retried(self, monkeypatch):
-        from backtest.loaders import tushare as mod
+        from src.backtest.loaders import tushare as mod
 
         monkeypatch.setattr(mod.time, "sleep", lambda _s: None)
         calls = {"n": 0}
@@ -441,13 +441,13 @@ class TestRateLimitBackoff:
         assert calls["n"] == 1
 
     def test_the_backoff_schedule_crosses_the_quota_window(self):
-        from backtest.loaders.tushare import _RATE_LIMIT_BACKOFF_SECONDS
+        from src.backtest.loaders.tushare import _RATE_LIMIT_BACKOFF_SECONDS
 
         # The quota window is a minute; the schedule has to be able to outlast it.
         assert sum(_RATE_LIMIT_BACKOFF_SECONDS) >= 60.0
 
     def test_an_exhausted_schedule_finally_propagates(self, monkeypatch):
-        from backtest.loaders import tushare as mod
+        from src.backtest.loaders import tushare as mod
 
         monkeypatch.setattr(mod.time, "sleep", lambda _s: None)
 
@@ -469,6 +469,6 @@ class TestRateLimitBackoff:
         ],
     )
     def test_classification(self, message, limited):
-        from backtest.loaders.tushare import _is_rate_limited
+        from src.backtest.loaders.tushare import _is_rate_limited
 
         assert _is_rate_limited(RuntimeError(message)) is limited

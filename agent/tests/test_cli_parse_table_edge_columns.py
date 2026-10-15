@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from cli.ui.transcript import _parse_table, _split_row
+from src.interfaces.cli.ui.transcript import _parse_table, _split_row
 
 
 def test_split_row_keeps_empty_edge_cells() -> None:

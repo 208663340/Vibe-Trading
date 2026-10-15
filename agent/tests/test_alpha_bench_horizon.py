@@ -18,10 +18,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors import cli_handlers
-from src.factors.bench_runner import run_bench
-from src.factors.bench_runner_strict import run_bench_strict
-from src.tools.alpha_bench_tool import _validate_horizon, run_alpha_bench
+from src.research.factors import cli_handlers
+from src.research.factors.bench_runner import run_bench
+from src.research.factors.bench_runner_strict import run_bench_strict
+from src.runtime.tools.alpha_bench_tool import _validate_horizon, run_alpha_bench
 
 
 # ── run_bench meta ──────────────────────────────────────────────────────────
@@ -56,9 +56,9 @@ def _setup_bench(monkeypatch: pytest.MonkeyPatch, captured: dict[str, Any]) -> M
         captured["horizon"] = horizon
         return p["close"].pct_change(fill_method=None).shift(-1)
 
-    monkeypatch.setattr("src.factors.bench_runner._load_universe_panel", lambda u, p: panel)
-    monkeypatch.setattr("src.factors.bench_runner._compute_forward_returns", fake_fwd)
-    monkeypatch.setattr("src.factors.bench_runner.get_default_registry", lambda: reg)
+    monkeypatch.setattr("src.research.factors.bench_runner._load_universe_panel", lambda u, p: panel)
+    monkeypatch.setattr("src.research.factors.bench_runner._compute_forward_returns", fake_fwd)
+    monkeypatch.setattr("src.research.factors.bench_runner.get_default_registry", lambda: reg)
     return reg
 
 
@@ -90,7 +90,7 @@ def test_run_bench_invalid_horizon_errors_without_crashing(monkeypatch: pytest.M
     # No fake for _compute_forward_returns here: the real engine validation
     # must turn horizon=0 into a clean error entry, not a traceback.
     monkeypatch.setattr(
-        "src.factors.bench_runner._load_universe_panel", lambda u, p: _make_panel()
+        "src.research.factors.bench_runner._load_universe_panel", lambda u, p: _make_panel()
     )
     reg = MagicMock()
     reg.list.return_value = ["alpha_0"]
@@ -132,7 +132,7 @@ def _setup_strict(monkeypatch: pytest.MonkeyPatch, captured: dict[str, Any]) -> 
         "vwap": close, "amount": close * 1_000_000,
     }
     monkeypatch.setattr(
-        "src.factors.bench_runner_strict._load_universe_panel",
+        "src.research.factors.bench_runner_strict._load_universe_panel",
         lambda universe, period: panel,  # noqa: ARG005
     )
 
@@ -141,7 +141,7 @@ def _setup_strict(monkeypatch: pytest.MonkeyPatch, captured: dict[str, Any]) -> 
         return p["close"].pct_change(fill_method=None).shift(-1)
 
     monkeypatch.setattr(
-        "src.factors.bench_runner_strict._compute_forward_returns",
+        "src.research.factors.bench_runner_strict._compute_forward_returns",
         fake_fwd,
     )
 
@@ -294,7 +294,7 @@ def _reg(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture()
 def _no_report(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
-    import src.tools.alpha_bench_tool as tool
+    import src.runtime.tools.alpha_bench_tool as tool
 
     monkeypatch.setattr(tool, "_default_output_dir", lambda: tmp_path)
 
@@ -302,7 +302,7 @@ def _no_report(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
 def test_cli_horizon_reaches_legacy_runner(
     capsys, monkeypatch: pytest.MonkeyPatch, _reg, _no_report
 ) -> None:
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     called: dict[str, Any] = {}
 
@@ -321,7 +321,7 @@ def test_cli_horizon_reaches_legacy_runner(
 def test_cli_horizon_default_reaches_legacy_runner_as_one(
     capsys, monkeypatch: pytest.MonkeyPatch, _reg, _no_report
 ) -> None:
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     called: dict[str, Any] = {}
 
@@ -340,7 +340,7 @@ def test_cli_horizon_default_reaches_legacy_runner_as_one(
 def test_cli_horizon_reaches_strict_runner(
     capsys, monkeypatch: pytest.MonkeyPatch, _reg, _no_report
 ) -> None:
-    import src.factors.bench_runner_strict as strict_mod
+    import src.research.factors.bench_runner_strict as strict_mod
 
     called: dict[str, Any] = {}
 
@@ -371,7 +371,7 @@ def test_horizon_namespace_without_attribute_defaults_to_one(
 ) -> None:
     # Pre-existing callers/tests build Namespaces without a horizon attribute;
     # the handler must fall back to 1 rather than raise AttributeError.
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     called: dict[str, Any] = {}
 
@@ -412,7 +412,7 @@ def test_horizon_argparse_parses_and_rejects() -> None:
 def test_json_envelope_still_parses_with_horizon(
     capsys, monkeypatch: pytest.MonkeyPatch, _reg, _no_report
 ) -> None:
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     monkeypatch.setattr(legacy_mod, "run_bench", lambda **kw: _legacy_result())
     rc = cli_handlers.cmd_alpha_bench(_ns(horizon=21))
@@ -428,7 +428,7 @@ def test_json_envelope_still_parses_with_horizon(
 def test_json_envelope_discloses_horizon_and_exclusions(
     capsys, monkeypatch: pytest.MonkeyPatch, _reg, _no_report
 ) -> None:
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     result = _legacy_result()
     result.update(
@@ -473,7 +473,7 @@ def test_run_bench_rejects_out_of_range_horizon_before_panel_load(
     from unittest.mock import Mock
 
     fetch = Mock()
-    monkeypatch.setattr("src.factors.bench_runner._load_universe_panel", fetch)
+    monkeypatch.setattr("src.research.factors.bench_runner._load_universe_panel", fetch)
     reg = MagicMock()
     reg.list.return_value = ["alpha_0"]
     reg.get.return_value = MagicMock(meta={"theme": ["test"], "formula_latex": ""})

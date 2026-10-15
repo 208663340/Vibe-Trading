@@ -27,7 +27,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.metrics import bar_returns, buy_and_hold_return
+from src.backtest.metrics import bar_returns, buy_and_hold_return
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +107,7 @@ def test_infinite_prior_price_is_undefined_not_minus_one() -> None:
 
 def test_infinite_prior_price_is_logged(caplog) -> None:
     """It must be loud, like every other undefined bar."""
-    with caplog.at_level(logging.WARNING, logger="backtest.metrics"):
+    with caplog.at_level(logging.WARNING, logger="src.backtest.metrics"):
         bar_returns(pd.Series([10.0, np.inf, 42.0]), label="INF")
 
     assert "INF" in caplog.text
@@ -156,7 +156,7 @@ def test_align_keeps_move_across_halt_longer_than_ffill_limit() -> None:
     long halts stay visible as NaN; the returns matrix it hands to the optimizer
     and the benchmark must still credit the across-gap move to the resumed bar.
     """
-    from backtest.engines.base import _align
+    from src.backtest.engines.base import _align
 
     dates = pd.date_range("2025-01-06", periods=10, freq="B")
 

@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines._market_hooks import _detect_market
-from backtest.engines.vietnam_equity import (
+from src.backtest.engines._market_hooks import _detect_market
+from src.backtest.engines.vietnam_equity import (
     HOSE_LOT_SIZE,
     VietnamEquityEngine,
     hose_price_limits,
@@ -15,7 +15,7 @@ from backtest.engines.vietnam_equity import (
     hose_tick_size,
     newest_opening_bar_idx,
 )
-from backtest.models import Position
+from src.backtest.models import Position
 
 
 def _engine(**overrides) -> VietnamEquityEngine:

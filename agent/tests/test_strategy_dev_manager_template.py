@@ -8,6 +8,7 @@ import pandas as pd
 _TEMPLATE_PATH = (
     Path(__file__).parents[1]
     / "src"
+    / "research"
     / "skills"
     / "strategy-dev-manager"
     / "templates"

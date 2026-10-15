@@ -2,7 +2,7 @@
 
 ``AgentLoop._run_bound`` used to resolve its terminal status, end event,
 and result dict inline in a 100-line tail; that ladder now lives in
-``src.agent.run_outcome`` and is called from ``loop.py``. These tests pin
+``src.runtime.agent.run_outcome`` and is called from ``loop.py``. These tests pin
 each branch of the ladder directly — something the pre-extraction layout
 could only exercise by stubbing a whole LLM — plus the re-export surface
 ``loop.py`` must keep importing.
@@ -16,9 +16,9 @@ from typing import Optional
 
 import pytest
 
-import src.agent.loop as loop
-import src.agent.run_outcome as run_outcome
-from src.agent.run_outcome import (
+import src.runtime.agent.loop as loop
+import src.runtime.agent.run_outcome as run_outcome
+from src.runtime.agent.run_outcome import (
     OutcomeInputs,
     RunOutcome,
     build_end_event,
@@ -37,7 +37,7 @@ RE_EXPORTS = [
 
 @pytest.mark.parametrize("name", RE_EXPORTS)
 def test_loop_reexports(name: str) -> None:
-    """Every moved name resolves through ``src.agent.loop`` (back-compat)."""
+    """Every moved name resolves through ``src.runtime.agent.loop`` (back-compat)."""
     assert getattr(loop, name) is getattr(run_outcome, name)
 
 
@@ -91,7 +91,7 @@ class TestResolveFinalStatus:
         assert out.status == "failed"
         assert out.reason is not None
         assert out.reason.startswith("content_filter_circuit_breaker:")
-        from src.providers.content_filter import MAX_CONSECUTIVE_CONTENT_FILTER_SKIPS
+        from src.runtime.providers.content_filter import MAX_CONSECUTIVE_CONTENT_FILTER_SKIPS
         assert str(MAX_CONSECUTIVE_CONTENT_FILTER_SKIPS) in out.reason
 
     def test_success_with_released_fallback_reason(self) -> None:

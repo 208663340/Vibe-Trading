@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.session.store import SessionStore
+from src.runtime.session.store import SessionStore
 
 
 def test_atomic_json_write_roundtrips_unicode(tmp_path: Path) -> None:
@@ -29,7 +29,7 @@ def test_failed_atomic_replace_preserves_previous_json(
         del source, destination
         raise OSError("simulated replace failure")
 
-    monkeypatch.setattr("src.session.store.os.replace", fail_replace)
+    monkeypatch.setattr("src.runtime.session.store.os.replace", fail_replace)
     with pytest.raises(OSError, match="replace failure"):
         SessionStore._write_json(target, {"status": "new"})
 

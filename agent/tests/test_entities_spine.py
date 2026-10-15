@@ -7,16 +7,16 @@ from datetime import date, datetime
 
 import pytest
 
-from src.entities.cashflow import (
+from src.platform.entities.cashflow import (
     CashFlow,
     CashFlowSeries,
     CurrencyMismatchError,
     normalize_kind,
 )
-from src.entities.ingest import CashFlowIngestError, load_cashflows
-from src.entities.cashflow import FxRate, FxRateTable, MissingExchangeRateError, translate_cashflows
-from src.entities.ingest import PanelIngestError, PanelObservation, load_panel
-from src.entities.models import (
+from src.platform.entities.ingest import CashFlowIngestError, load_cashflows
+from src.platform.entities.cashflow import FxRate, FxRateTable, MissingExchangeRateError, translate_cashflows
+from src.platform.entities.ingest import PanelIngestError, PanelObservation, load_panel
+from src.platform.entities.models import (
     Bond,
     Entity,
     EntityType,
@@ -681,7 +681,7 @@ def test_zero_coupon_bond_is_valid():
 
 def test_spine_does_not_widen_the_bar_price_panel():
     """A nav must never become a column a bar engine could price as a close."""
-    from backtest.runner import _PRICE_PANEL_COLUMNS, _VALID_INTERVALS
+    from src.backtest.runner import _PRICE_PANEL_COLUMNS, _VALID_INTERVALS
 
     assert _PRICE_PANEL_COLUMNS == ("open", "high", "low", "close", "volume", "vwap", "amount")
     assert "nav" not in _PRICE_PANEL_COLUMNS
@@ -1068,7 +1068,7 @@ def test_panel_path_does_not_touch_the_bar_price_panel_gate():
     """Same architectural guarantee as CashFlowSeries: the panel ingest path
     must never widen what a bar engine will accept as a price column.
     """
-    from backtest.runner import _PRICE_PANEL_COLUMNS, _VALID_INTERVALS
+    from src.backtest.runner import _PRICE_PANEL_COLUMNS, _VALID_INTERVALS
 
     assert _PRICE_PANEL_COLUMNS == ("open", "high", "low", "close", "volume", "vwap", "amount")
     assert "nav" not in _PRICE_PANEL_COLUMNS

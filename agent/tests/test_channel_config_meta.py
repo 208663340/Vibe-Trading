@@ -13,14 +13,14 @@ from pathlib import Path
 
 import pytest
 
-from src.channels import config_meta as _config_meta
-from src.channels.config_meta import (
+from src.interfaces.channels import config_meta as _config_meta
+from src.interfaces.channels.config_meta import (
     SECRET_KEY_RE,
     channel_field_hints,
     is_secret_key,
     split_values_secrets,
 )
-from src.channels.registry import discover_channel_names, load_channel_class
+from src.interfaces.channels.registry import discover_channel_names, load_channel_class
 
 # Discovery already excludes the helper modules (``registry._INTERNAL``), so
 # this is the real channel surface. The sweep below locks it at 16.
@@ -462,7 +462,7 @@ def test_slack_group_policy_choices_pin() -> None:
     assert choices == ["open", "mention", "allowlist"]
     assert all(isinstance(choice, str) for choice in choices)
 
-    source = (_REPO_ROOT / "agent/src/channels/slack.py").read_text(encoding="utf-8")
+    source = (_REPO_ROOT / "agent/src/interfaces/channels/slack.py").read_text(encoding="utf-8")
     for choice in choices:
         assert f'group_policy == "{choice}"' in source, choice
 
@@ -593,7 +593,7 @@ def test_discord_group_policy_choices_pin() -> None:
     assert choices == ["mention", "open"]
     assert all(isinstance(choice, str) for choice in choices)
 
-    source = (_REPO_ROOT / "agent/src/channels/discord.py").read_text(encoding="utf-8")
+    source = (_REPO_ROOT / "agent/src/interfaces/channels/discord.py").read_text(encoding="utf-8")
     for choice in choices:
         assert f'group_policy == "{choice}"' in source, choice
 

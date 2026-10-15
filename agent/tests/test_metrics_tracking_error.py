@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.metrics import calc_metrics
+from src.backtest.metrics import calc_metrics
 
 _DATES = pd.bdate_range("2025-01-01", periods=60)
 

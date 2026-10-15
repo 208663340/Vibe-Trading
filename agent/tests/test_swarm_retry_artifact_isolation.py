@@ -37,10 +37,10 @@ from unittest.mock import patch
 
 import pytest
 
-from src.swarm.models import SwarmAgentSpec, SwarmTask, WorkerResult
-from src.swarm.runtime import SwarmRuntime
-from src.swarm.store import SwarmStore
-from src.swarm.worker import (
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmTask, WorkerResult
+from src.runtime.swarm.runtime import SwarmRuntime
+from src.runtime.swarm.store import SwarmStore
+from src.runtime.swarm.worker import (
     _collect_artifacts,
     _resolve_summary,
     agent_artifact_dir,
@@ -168,7 +168,7 @@ def test_stale_report_not_returned_after_retry(tmp_path: Path) -> None:
             error="attempt 2: provider error",
         )
 
-    with patch("src.swarm.runtime.run_worker", side_effect=fake_run_worker):
+    with patch("src.runtime.swarm.runtime.run_worker", side_effect=fake_run_worker):
         result = runtime._run_worker_with_retries(
             agent_spec=agent_spec,
             task=task,
@@ -221,7 +221,7 @@ def test_stale_non_report_artifact_not_leaked_after_retry(tmp_path: Path) -> Non
             error="attempt 2: provider error",
         )
 
-    with patch("src.swarm.runtime.run_worker", side_effect=fake_run_worker):
+    with patch("src.runtime.swarm.runtime.run_worker", side_effect=fake_run_worker):
         result = runtime._run_worker_with_retries(
             agent_spec=agent_spec,
             task=task,
@@ -280,7 +280,7 @@ def test_successful_retry_only_reflects_current_attempt_artifacts(
             artifact_paths=_collect_artifacts(run_dir, artifact_dir),
         )
 
-    with patch("src.swarm.runtime.run_worker", side_effect=fake_run_worker):
+    with patch("src.runtime.swarm.runtime.run_worker", side_effect=fake_run_worker):
         result = runtime._run_worker_with_retries(
             agent_spec=agent_spec,
             task=task,
@@ -330,7 +330,7 @@ def test_earlier_task_artifacts_survive_a_later_task_on_the_same_agent(
     task1 = SwarmTask(id="task-1", agent_id="analyst", prompt_template="do x")
     task2 = SwarmTask(id="task-2", agent_id="analyst", prompt_template="do y")
 
-    with patch("src.swarm.runtime.run_worker", side_effect=fake_run_worker):
+    with patch("src.runtime.swarm.runtime.run_worker", side_effect=fake_run_worker):
         result1 = runtime._run_worker_with_retries(
             agent_spec=agent_spec,
             task=task1,
@@ -402,7 +402,7 @@ def test_retrying_one_task_does_not_touch_a_concurrent_sibling_tasks_output(
             artifact_paths=_collect_artifacts(run_dir, artifact_dir),
         )
 
-    with patch("src.swarm.runtime.run_worker", side_effect=fake_run_worker):
+    with patch("src.runtime.swarm.runtime.run_worker", side_effect=fake_run_worker):
         runtime._run_worker_with_retries(
             agent_spec=agent_spec,
             task=task_a,

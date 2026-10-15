@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pytest
 
-# (tool, param) pairs that are list/dict-typed in agent/mcp_server.py.
+# (tool, param) pairs that are list/dict-typed in agent/src/interfaces/mcp_server.py.
 LIST_DICT_PARAMS = {
     "start_research_goal": ("criteria",),
     "add_goal_evidence": (
@@ -46,11 +46,11 @@ LIST_DICT_PARAMS = {
 
 @pytest.fixture(scope="module")
 def mcp_server():
-    """Import agent/mcp_server.py without executing main()."""
+    """Import agent/src/interfaces/mcp_server.py without executing main()."""
     agent_dir = Path(__file__).resolve().parent.parent
     if str(agent_dir) not in sys.path:
         sys.path.insert(0, str(agent_dir))
-    return importlib.import_module("mcp_server")
+    return importlib.import_module("src.interfaces.mcp_server")
 
 
 @pytest.fixture(scope="module")
@@ -122,7 +122,7 @@ def test_coerce_json_string_passes_through_everything_else(mcp_server) -> None:
 
 def test_optional_string_list_is_coerced(mcp_server, tmp_path, monkeypatch) -> None:
     """run_shadow_backtest.markets as a JSON string must not fail validation."""
-    from src.goal import GoalStore
+    from src.runtime.goal import GoalStore
 
     monkeypatch.setattr(mcp_server, "_goal_store", GoalStore(db_path=tmp_path / "g.db"))
     monkeypatch.setattr(mcp_server, "_mcp_session_id", None)
@@ -157,7 +157,7 @@ def test_required_dict_list_is_coerced(mcp_server) -> None:
 
 def test_real_containers_still_work(mcp_server, tmp_path, monkeypatch) -> None:
     """Well-behaved clients sending real arrays/objects are unaffected."""
-    from src.goal import GoalStore
+    from src.runtime.goal import GoalStore
 
     monkeypatch.setattr(mcp_server, "_goal_store", GoalStore(db_path=tmp_path / "g.db"))
     monkeypatch.setattr(mcp_server, "_mcp_session_id", None)

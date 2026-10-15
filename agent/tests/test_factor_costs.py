@@ -1,4 +1,4 @@
-"""Tests for backtest.factor_costs.
+"""Tests for src.backtest.factor_costs.
 
 The load-bearing test is the one showing a high-turnover factor is eroded and a
 low-turnover one is not. A cost model that charges everyone equally, or charges
@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.factor_costs import (
+from src.backtest.factor_costs import (
     DEFAULT_MAX_PARTICIPATION,
     MARKET_BORROW_RATES,
     apply_adv_capacity,

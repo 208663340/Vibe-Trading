@@ -20,15 +20,15 @@ from pathlib import Path
 
 import pytest
 
-import src.swarm.runtime as rt
-from src.swarm.models import (
+import src.runtime.swarm.runtime as rt
+from src.runtime.swarm.models import (
     SwarmAgentSpec,
     SwarmRun,
     SwarmTask,
     TaskStatus,
     WorkerResult,
 )
-from src.swarm.store import SwarmStore
+from src.runtime.swarm.store import SwarmStore
 
 
 def _make_run(tmp_path: Path) -> tuple[SwarmStore, rt.SwarmRuntime, SwarmRun]:
@@ -127,7 +127,7 @@ def test_blocked_downstream_emits_task_blocked_event(tmp_path, risk_fails):
 
 def test_run_marked_failed_when_downstream_blocked(tmp_path, risk_fails):
     """The whole run must be RunStatus.failed when any task is blocked."""
-    from src.swarm.models import RunStatus
+    from src.runtime.swarm.models import RunStatus
 
     store, runtime, run = _make_run(tmp_path)
     runtime._execute_run(run, threading.Event())

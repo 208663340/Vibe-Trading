@@ -13,7 +13,7 @@ import time
 
 import pytest
 
-from backtest.loaders.baostock_loader import (
+from src.backtest.loaders.baostock_loader import (
     _DEFAULT_READ_TIMEOUT,
     _READ_TIMEOUT_ENV,
     _baostock_socket_guard,
@@ -297,7 +297,7 @@ def test_guard_serializes_sessions_and_restores_socket_and_patch() -> None:
 
 
 def test_guard_contention_is_bounded_and_does_not_change_active_session() -> None:
-    from backtest.loaders.baostock_loader import _BAOSTOCK_LOCK
+    from src.backtest.loaders.baostock_loader import _BAOSTOCK_LOCK
 
     original_send = bs.util.socketutil.send_msg
     with _BAOSTOCK_LOCK:
@@ -311,8 +311,8 @@ def test_guard_contention_is_bounded_and_does_not_change_active_session() -> Non
 @pytest.mark.parametrize("mode", ["silent", "closed"])
 def test_real_sdk_login_failure_reaches_market_data_fallback(monkeypatch, mode):
     import pandas as pd
-    from backtest.loaders.baostock_loader import DataLoader
-    from src.market_data import fetch_market_data
+    from src.backtest.loaders.baostock_loader import DataLoader
+    from src.markets.market_data import fetch_market_data
 
     finished = threading.Event()
 

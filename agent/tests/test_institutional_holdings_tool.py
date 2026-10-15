@@ -19,9 +19,9 @@ from xml.sax.saxutils import escape
 
 import pytest
 
-from src.config.limits import TOOL_RESULT_LIMIT
-from src.tools import institutional_holdings_tool as iht
-from src.tools.institutional_holdings_tool import InstitutionalHoldingsTool
+from src.platform.config.limits import TOOL_RESULT_LIMIT
+from src.runtime.tools import institutional_holdings_tool as iht
+from src.runtime.tools.institutional_holdings_tool import InstitutionalHoldingsTool
 
 _NS = 'xmlns="http://www.sec.gov/edgar/document/thirteenf/informationtable"'
 
@@ -1646,7 +1646,7 @@ class TestToolContract:
         assert schema["parameters"]["properties"]["mode"]["enum"] == list(iht._MODES)
 
     def test_the_tool_is_auto_discovered(self) -> None:
-        from src.tools import build_registry
+        from src.runtime.tools import build_registry
 
         assert "get_institutional_holdings" in build_registry()
 

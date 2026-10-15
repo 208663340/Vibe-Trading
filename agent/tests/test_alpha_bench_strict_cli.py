@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from src.factors import cli_handlers
+from src.research.factors import cli_handlers
 
 
 def _ns(**overrides):
@@ -105,7 +105,7 @@ class _FakeReg:
 @pytest.fixture()
 def _no_report(monkeypatch, tmp_path):
     """Keep the HTML report side effect contained."""
-    import src.tools.alpha_bench_tool as tool
+    import src.runtime.tools.alpha_bench_tool as tool
 
     monkeypatch.setattr(tool, "_default_output_dir", lambda: tmp_path)
 
@@ -116,7 +116,7 @@ def _reg(monkeypatch):
 
 
 def _run(capsys, args, monkeypatch):
-    import src.factors.bench_runner_strict as strict_mod
+    import src.research.factors.bench_runner_strict as strict_mod
 
     called = {}
 
@@ -164,7 +164,7 @@ def test_strict_routes_existing_oos_split(capsys, monkeypatch, _reg, _no_report)
 
 
 def test_default_routes_to_legacy_runner(capsys, monkeypatch, _reg, _no_report):
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     called = {}
 
@@ -238,7 +238,7 @@ def test_strict_envelope_forwards_alpha_t_stats(capsys, monkeypatch, _reg, _no_r
 
 def test_legacy_envelope_gains_no_strict_fields(capsys, monkeypatch, _reg, _no_report):
     """A non-strict run's rows are unchanged — the fields are additive only."""
-    import src.factors.bench_runner as legacy_mod
+    import src.research.factors.bench_runner as legacy_mod
 
     monkeypatch.setattr(legacy_mod, "run_bench", lambda *a, **k: _legacy_result())
     cli_handlers.cmd_alpha_bench(_ns(strict=False))
@@ -255,7 +255,7 @@ def _report_html(tmp_path):
 
 def test_strict_report_renders_alpha_t_table(capsys, monkeypatch, tmp_path, _reg):
     """The HTML report gains a strict section carrying the same numbers."""
-    import src.tools.alpha_bench_tool as tool
+    import src.runtime.tools.alpha_bench_tool as tool
 
     monkeypatch.setattr(tool, "_default_output_dir", lambda: tmp_path)
     _run(capsys, _ns(strict=True, oos_split="2023-01-01"), monkeypatch)
@@ -267,8 +267,8 @@ def test_strict_report_renders_alpha_t_table(capsys, monkeypatch, tmp_path, _reg
 
 def test_legacy_report_has_no_strict_section(capsys, monkeypatch, tmp_path, _reg):
     """Non-strict reports are untouched by the strict section."""
-    import src.factors.bench_runner as legacy_mod
-    import src.tools.alpha_bench_tool as tool
+    import src.research.factors.bench_runner as legacy_mod
+    import src.runtime.tools.alpha_bench_tool as tool
 
     monkeypatch.setattr(tool, "_default_output_dir", lambda: tmp_path)
     monkeypatch.setattr(legacy_mod, "run_bench", lambda *a, **k: _legacy_result())

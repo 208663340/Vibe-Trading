@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from cli import _legacy
+from src.interfaces.cli import _legacy
 
 
 def test_data_parser_accepts_status_mode_and_usage() -> None:

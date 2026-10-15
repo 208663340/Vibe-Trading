@@ -10,6 +10,7 @@ import pytest
 SKILL_MD = (
     Path(__file__).resolve().parents[1]
     / "src"
+    / "research"
     / "skills"
     / "correlation-analysis"
     / "SKILL.md"
@@ -43,8 +44,8 @@ def test_engle_granger_handles_series_name(name):
 
 def test_engle_granger_example_uses_quantlib_not_a_local_fit():
     """The unnamed-series KeyError lived in a hand-rolled OLS fit inside the
-    skill; the tested implementation is ``src.quantlib.timeseries``."""
+    skill; the tested implementation is ``src.research.quantlib.timeseries``."""
     code = _engle_granger_code()
 
-    assert "from src.quantlib.timeseries import" in code
+    assert "from src.research.quantlib.timeseries import" in code
     assert "sm.OLS" not in code

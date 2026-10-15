@@ -16,9 +16,9 @@ import socket
 from pathlib import Path
 from typing import Any
 
-from src.channels.bus.queue import MessageBus
-from src.channels.websocket import WebSocketChannel
-from src.channelsui.gateway_services import build_gateway_services
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.websocket import WebSocketChannel
+from src.interfaces.channelsui.gateway_services import build_gateway_services
 
 WS_TOKEN = "ws-token-secret-1234567890"
 

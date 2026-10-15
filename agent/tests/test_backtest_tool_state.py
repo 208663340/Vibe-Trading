@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.tools.backtest_tool import run_backtest
+from src.runtime.tools.backtest_tool import run_backtest
 
 
 @dataclass
@@ -40,7 +40,7 @@ def tool_run_dir(tmp_path, monkeypatch) -> Path:
 
 
 def _run_with_result(run_dir: Path, result: _FakeRunResult) -> dict:
-    with patch("src.tools.backtest_tool.emit_progress"), patch("src.tools.backtest_tool.Runner") as runner_cls:
+    with patch("src.runtime.tools.backtest_tool.emit_progress"), patch("src.runtime.tools.backtest_tool.Runner") as runner_cls:
         runner_cls.return_value.execute.return_value = result
         return json.loads(run_backtest(str(run_dir)))
 
@@ -93,7 +93,7 @@ def test_missing_signal_engine_names_the_directory_it_checked(tool_run_dir):
 
 
 def test_timeout_records_state_failed_and_returns_error_envelope(tool_run_dir):
-    with patch("src.tools.backtest_tool.emit_progress"), patch("src.tools.backtest_tool.Runner") as runner_cls:
+    with patch("src.runtime.tools.backtest_tool.emit_progress"), patch("src.runtime.tools.backtest_tool.Runner") as runner_cls:
         runner_cls.return_value.timeout = 300
         runner_cls.return_value.execute.side_effect = subprocess.TimeoutExpired(cmd="runner.py", timeout=300)
         envelope = json.loads(run_backtest(str(tool_run_dir)))
@@ -106,7 +106,7 @@ def test_timeout_records_state_failed_and_returns_error_envelope(tool_run_dir):
 
 def test_backtest_uses_configured_tool_timeout(tool_run_dir, monkeypatch):
     monkeypatch.setenv("VIBE_TRADING_TOOL_TIMEOUT_SECONDS", "42")
-    with patch("src.tools.backtest_tool.emit_progress"), patch("src.tools.backtest_tool.Runner") as runner_cls:
+    with patch("src.runtime.tools.backtest_tool.emit_progress"), patch("src.runtime.tools.backtest_tool.Runner") as runner_cls:
         runner_cls.return_value.execute.return_value = _FakeRunResult(success=True, exit_code=0)
         run_backtest(str(tool_run_dir))
 
@@ -117,7 +117,7 @@ def test_timeout_persists_partial_runner_output(tool_run_dir):
     timeout = subprocess.TimeoutExpired(
         cmd="runner.py", timeout=300, output="partial stdout", stderr="partial stderr"
     )
-    with patch("src.tools.backtest_tool.emit_progress"), patch("src.tools.backtest_tool.Runner") as runner_cls:
+    with patch("src.runtime.tools.backtest_tool.emit_progress"), patch("src.runtime.tools.backtest_tool.Runner") as runner_cls:
         runner_cls.return_value.timeout = 300
         runner_cls.return_value.execute.side_effect = timeout
         envelope = json.loads(run_backtest(str(tool_run_dir)))

@@ -42,7 +42,7 @@ def test_build_registry_without_agent_config_loads_local_tools_only() -> None:
     This is the "zero-change" contract for callers that do not opt into MCP
     config yet.
     """
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
 
@@ -57,7 +57,7 @@ def test_build_registry_without_agent_config_loads_local_tools_only() -> None:
 
 def test_build_registry_without_agent_config_does_not_raise() -> None:
     """build_registry() with default arguments must not raise any exception."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     try:
         registry = build_registry()
@@ -69,7 +69,7 @@ def test_build_registry_without_agent_config_does_not_raise() -> None:
 
 def test_build_registry_without_agent_config_returns_well_known_local_tools() -> None:
     """Well-known local tool names must survive a no-config build_registry call."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
     names = set(registry.tool_names)
@@ -87,7 +87,7 @@ def test_build_registry_without_agent_config_returns_well_known_local_tools() ->
 
 
 def _import_mcp_server():
-    """Import agent/mcp_server.py without executing main().
+    """Import agent/src/interfaces/mcp_server.py without executing main().
 
     Returns:
         The imported mcp_server module.
@@ -100,17 +100,17 @@ def _import_mcp_server():
         sys.path.insert(0, str(agent_dir))
 
     # Use importlib so we can re-import cleanly in tests.
-    if "mcp_server" in sys.modules:
-        return sys.modules["mcp_server"]
-    return importlib.import_module("mcp_server")
+    if "src.interfaces.mcp_server" in sys.modules:
+        return sys.modules["src.interfaces.mcp_server"]
+    return importlib.import_module("src.interfaces.mcp_server")
 
 
 def test_mcp_server_imports_without_raising() -> None:
-    """agent/mcp_server.py must import cleanly (no side-effects on import)."""
+    """agent/src/interfaces/mcp_server.py must import cleanly (no side-effects on import)."""
     try:
         mod = _import_mcp_server()
     except Exception as exc:  # noqa: BLE001
-        pytest.fail(f"import mcp_server raised: {exc!r}")
+        pytest.fail(f"import src.interfaces.mcp_server as mcp_server raised: {exc!r}")
 
     assert mod is not None
 
@@ -225,7 +225,7 @@ def test_mcp_resolve_shell_tools_env_opt_in(monkeypatch: pytest.MonkeyPatch) -> 
 
 def test_mcp_registry_omits_shell_tools_under_default_policy(monkeypatch: pytest.MonkeyPatch) -> None:
     """A registry built with the server's fail-closed default omits bash tools."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     monkeypatch.delenv("VIBE_TRADING_ENABLE_SHELL_TOOLS", raising=False)
     mod = _import_mcp_server()

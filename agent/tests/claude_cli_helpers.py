@@ -14,7 +14,7 @@ from typing import Any, Callable
 
 import pytest
 
-from src.providers import claude_cli_models
+from src.runtime.providers import claude_cli_models
 
 # Answers one ``claude -p`` turn from a reply list, one reply per call.
 _FAKE_CLI = textwrap.dedent("""\
@@ -194,7 +194,7 @@ def use_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     Args:
         monkeypatch: Fixture used to set the provider environment.
     """
-    import src.providers.llm as llm
+    import src.runtime.providers.llm as llm
 
     monkeypatch.setenv("LANGCHAIN_PROVIDER", "claude-cli")
     monkeypatch.setenv("LANGCHAIN_MODEL_NAME", "claude-opus-5-5")

@@ -1,6 +1,6 @@
 """Tests for the Tiingo US-equity OHLCV loader.
 
-All HTTP is mocked at :func:`backtest.loaders._http.throttled_get_json` (imported
+All HTTP is mocked at :func:`src.backtest.loaders._http.throttled_get_json` (imported
 into the loader module as ``throttled_get_json``), so no test touches a live
 Tiingo endpoint.
 """
@@ -12,7 +12,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from backtest.loaders.tiingo_loader import (
+from src.backtest.loaders.tiingo_loader import (
     DataLoader,
     _resolve_key,
     _rows_to_frame,
@@ -265,7 +265,7 @@ def test_a_dropped_row_is_reported_not_truncated_in_silence(caplog) -> None:
         },
     ]
 
-    with caplog.at_level("WARNING", logger="backtest.loaders.tiingo_loader"):
+    with caplog.at_level("WARNING", logger="src.backtest.loaders.tiingo_loader"):
         df = _rows_to_frame(rows)
 
     assert df is not None
@@ -281,7 +281,7 @@ def test_a_dropped_row_is_reported_not_truncated_in_silence(caplog) -> None:
 def test_fetch_returns_normalized_frame(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TIINGO_API_KEY", "real-token-123")
     with patch(
-        "backtest.loaders.tiingo_loader.throttled_get_json",
+        "src.backtest.loaders.tiingo_loader.throttled_get_json",
         return_value=_sample_rows(),
     ) as mock_get:
         out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-05")
@@ -303,7 +303,7 @@ def test_fetch_returns_normalized_frame(monkeypatch: pytest.MonkeyPatch) -> None
 
 def test_fetch_without_key_returns_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("TIINGO_API_KEY", raising=False)
-    with patch("backtest.loaders.tiingo_loader.throttled_get_json") as mock_get:
+    with patch("src.backtest.loaders.tiingo_loader.throttled_get_json") as mock_get:
         out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-05")
     assert out == {}
     mock_get.assert_not_called()  # no key -> no HTTP
@@ -311,7 +311,7 @@ def test_fetch_without_key_returns_empty(monkeypatch: pytest.MonkeyPatch) -> Non
 
 def test_fetch_skips_non_us_symbols(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TIINGO_API_KEY", "real-token-123")
-    with patch("backtest.loaders.tiingo_loader.throttled_get_json") as mock_get:
+    with patch("src.backtest.loaders.tiingo_loader.throttled_get_json") as mock_get:
         out = DataLoader().fetch(["00700.HK", "BTC-USDT"], "2024-01-01", "2024-01-05")
     assert out == {}
     mock_get.assert_not_called()  # symbols rejected before any request
@@ -327,7 +327,7 @@ def test_fetch_one_bad_symbol_does_not_abort_batch(
             raise RuntimeError("boom")
         return _sample_rows()
 
-    with patch("backtest.loaders.tiingo_loader.throttled_get_json", side_effect=fake_get):
+    with patch("src.backtest.loaders.tiingo_loader.throttled_get_json", side_effect=fake_get):
         out = DataLoader().fetch(["AAPL.US", "MSFT.US"], "2024-01-01", "2024-01-05")
 
     assert "AAPL.US" not in out  # failing symbol skipped
@@ -336,7 +336,7 @@ def test_fetch_one_bad_symbol_does_not_abort_batch(
 
 def test_fetch_empty_payload_omits_symbol(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TIINGO_API_KEY", "real-token-123")
-    with patch("backtest.loaders.tiingo_loader.throttled_get_json", return_value=[]):
+    with patch("src.backtest.loaders.tiingo_loader.throttled_get_json", return_value=[]):
         out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-05")
     assert out == {}
 
@@ -353,8 +353,8 @@ def test_fetch_rejects_bad_date_range(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_loader_self_registers() -> None:
-    import backtest.loaders.tiingo_loader  # noqa: F401  (import triggers @register)
-    from backtest.loaders.registry import LOADER_REGISTRY
+    import src.backtest.loaders.tiingo_loader  # noqa: F401  (import triggers @register)
+    from src.backtest.loaders.registry import LOADER_REGISTRY
 
     assert "tiingo" in LOADER_REGISTRY
     cls = LOADER_REGISTRY["tiingo"]

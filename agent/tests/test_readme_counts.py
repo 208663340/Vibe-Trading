@@ -95,7 +95,7 @@ def _mcp_tool_names() -> list[str]:
     """
     if str(AGENT_DIR) not in sys.path:
         sys.path.insert(0, str(AGENT_DIR))
-    mod = sys.modules.get("mcp_server") or importlib.import_module("mcp_server")
+    mod = sys.modules.get("src.interfaces.mcp_server") or importlib.import_module("src.interfaces.mcp_server")
     return [tool.name for tool in asyncio.run(mod.mcp.list_tools())]
 
 
@@ -110,7 +110,7 @@ def _bundled_skill_count() -> int:
     """
     if str(AGENT_DIR) not in sys.path:
         sys.path.insert(0, str(AGENT_DIR))
-    from src.agent.skills import SkillsLoader
+    from src.runtime.agent.skills import SkillsLoader
 
     loader = SkillsLoader(user_skills_dir=AGENT_DIR / "__no_user_skills__")
     return len(loader.skills)
@@ -127,12 +127,12 @@ def _engine_count() -> int:
     """
     excluded = {"__init__", "base", "futures_base", "_market_hooks", "options_portfolio"}
     return len(
-        [p for p in (AGENT_DIR / "backtest" / "engines").glob("*.py") if p.stem not in excluded]
+        [p for p in (AGENT_DIR / "src" / "backtest" / "engines").glob("*.py") if p.stem not in excluded]
     )
 
 
 def _quantlib_export_count() -> int:
-    """Count the public functions `src/quantlib` exports.
+    """Count the public functions `src/research/quantlib` exports.
 
     The Quant Library badge states this number, and the whole point of the
     layer is that a formula has exactly one implementation — so the badge is
@@ -147,10 +147,10 @@ def _quantlib_export_count() -> int:
 
     if str(AGENT_DIR) not in sys.path:
         sys.path.insert(0, str(AGENT_DIR))
-    quantlib = importlib.import_module("src.quantlib")
+    quantlib = importlib.import_module("src.research.quantlib")
 
     total = 0
-    for module in pkgutil.walk_packages(quantlib.__path__, "src.quantlib."):
+    for module in pkgutil.walk_packages(quantlib.__path__, "src.research.quantlib."):
         exported = getattr(importlib.import_module(module.name), "__all__", None)
         if exported:
             total += len(exported)
@@ -158,7 +158,7 @@ def _quantlib_export_count() -> int:
 
 
 def _quantlib_module_count() -> int:
-    """Count the `src/quantlib` submodules the badge claims.
+    """Count the `src/research/quantlib` submodules the badge claims.
 
     Counted the same way the function total is: a submodule that exports an
     `__all__` is one module of the library. The badge states both numbers and
@@ -174,12 +174,12 @@ def _quantlib_module_count() -> int:
 
     if str(AGENT_DIR) not in sys.path:
         sys.path.insert(0, str(AGENT_DIR))
-    quantlib = importlib.import_module("src.quantlib")
+    quantlib = importlib.import_module("src.research.quantlib")
 
     return len(
         [
             module
-            for module in pkgutil.walk_packages(quantlib.__path__, "src.quantlib.")
+            for module in pkgutil.walk_packages(quantlib.__path__, "src.research.quantlib.")
             if getattr(importlib.import_module(module.name), "__all__", None)
         ]
     )
@@ -194,8 +194,8 @@ def _counts() -> dict[str, int]:
     return {
         "skills": _bundled_skill_count(),
         "brokers": EXPECTED_BROKERS,
-        "presets": len(list((AGENT_DIR / "src" / "swarm" / "presets").glob("*.yaml"))),
-        "alphas": len([p for p in (AGENT_DIR / "src" / "factors" / "zoo").rglob("*.py")
+        "presets": len(list((AGENT_DIR / "src" / "runtime" / "swarm" / "presets").glob("*.yaml"))),
+        "alphas": len([p for p in (AGENT_DIR / "src" / "research" / "factors" / "zoo").rglob("*.py")
                        if p.stem != "__init__"]),
         "engines": _engine_count(),
         "quantlib": _quantlib_export_count(),
@@ -318,7 +318,7 @@ def _keyless_agent_tool_count() -> int:
         [
             sys.executable,
             "-c",
-            "from src.tools import build_registry; print(len(build_registry().tool_names))",
+            "from src.runtime.tools import build_registry; print(len(build_registry().tool_names))",
         ],
         cwd=AGENT_DIR,
         env=env,
@@ -332,14 +332,14 @@ def _keyless_agent_tool_count() -> int:
 
 @pytest.mark.parametrize("name", READMES)
 def test_repo_tree_states_the_real_agent_tool_count(name: str) -> None:
-    """The repository-tree comment on src/tools/ must state the real registry size.
+    """The repository-tree comment on src/runtime/tools/ must state the real registry size.
 
     This line sat at 97 while the registry shipped 105 — an eight-tool silent
     drift that no test could see, because nothing measured it.
     """
     tree = [line for line in _read(name).splitlines() if re.search(r"│\s+│\s+├── tools/\s+#", line)]
 
-    assert len(tree) == 1, f"{name}: expected one src/tools/ tree line, found {len(tree)}"
+    assert len(tree) == 1, f"{name}: expected one src/runtime/tools/ tree line, found {len(tree)}"
     assert str(_keyless_agent_tool_count()) in _numbers(tree[0])
 
 
@@ -383,7 +383,7 @@ def test_the_slash_table_is_the_router(name: str) -> None:
     """
     if str(AGENT_DIR) not in sys.path:
         sys.path.insert(0, str(AGENT_DIR))
-    from cli.commands.slash_router import SLASH_COMMANDS
+    from src.interfaces.cli.commands.slash_router import SLASH_COMMANDS
 
     # Scoped to the TUI table: the IM-channels section further down has its own
     # slash table (``/new``, ``/pairing list``) for a different command set.
@@ -444,7 +444,7 @@ def test_brokers_without_paper_trading_are_named_as_exceptions(name: str) -> Non
     """
     if str(AGENT_DIR) not in sys.path:
         sys.path.insert(0, str(AGENT_DIR))
-    from src.trading.service import list_profiles
+    from src.markets.trading.service import list_profiles
 
     by_connector: dict[str, list] = {}
     for profile in list_profiles():
@@ -480,7 +480,7 @@ def test_the_pinned_broker_count_matches_the_shipped_connectors() -> None:
     """
     if str(AGENT_DIR) not in sys.path:
         sys.path.insert(0, str(AGENT_DIR))
-    from src.trading.service import list_profiles
+    from src.markets.trading.service import list_profiles
 
     shipped = sorted({profile.connector for profile in list_profiles()})
     assert EXPECTED_BROKERS == len(shipped), (
@@ -500,7 +500,7 @@ def test_every_shipped_connector_appears_in_the_broker_table(name: str) -> None:
     """
     if str(AGENT_DIR) not in sys.path:
         sys.path.insert(0, str(AGENT_DIR))
-    from src.trading.service import list_profiles
+    from src.markets.trading.service import list_profiles
 
     # Brokers are written under their product name, which is not always the
     # connector id. Broker names stay in Latin script in all five locales, so
@@ -526,7 +526,7 @@ def test_every_shipped_connector_appears_in_the_broker_table(name: str) -> None:
 def test_the_skill_category_table_matches_the_frontmatter() -> None:
     """Each category row must carry the number of skills declaring it."""
     counts: dict[str, int] = {}
-    for skill_md in sorted((AGENT_DIR / "src" / "skills").glob("*/SKILL.md")):
+    for skill_md in sorted((AGENT_DIR / "src" / "research" / "skills").glob("*/SKILL.md")):
         declared = re.search(r"^category:\s*(.+)$", skill_md.read_text(encoding="utf-8"), re.M)
         key = declared.group(1).strip() if declared else "(none)"
         counts[key] = counts.get(key, 0) + 1
@@ -580,7 +580,7 @@ def _readme_loader_names(text: str) -> list[str]:
 @pytest.mark.parametrize("readme", READMES)
 def test_readme_loader_tree_line_matches_the_registry(readme: str) -> None:
     """Every README's loaders line must name exactly the registered sources."""
-    from backtest.loaders.registry import LOADER_REGISTRY, _ensure_registered
+    from src.backtest.loaders.registry import LOADER_REGISTRY, _ensure_registered
 
     _ensure_registered()
     registered = set(LOADER_REGISTRY)
@@ -636,7 +636,7 @@ def _source_intro_line(text: str) -> str:
 @pytest.mark.parametrize("readme", READMES)
 def test_data_sources_prose_states_the_real_source_count(readme: str) -> None:
     """The headline source count must be the registry's, in every language."""
-    from backtest.loaders.registry import LOADER_REGISTRY, _ensure_registered
+    from src.backtest.loaders.registry import LOADER_REGISTRY, _ensure_registered
 
     _ensure_registered()
     line = _source_intro_line(_read(readme))
@@ -655,7 +655,7 @@ def test_every_registered_source_appears_in_the_data_sources_table(readme: str) 
     is shipped to nobody. Checked against the registry rather than against
     the other READMEs, so all six being uniformly wrong still fails.
     """
-    from backtest.loaders.registry import LOADER_REGISTRY, _ensure_registered
+    from src.backtest.loaders.registry import LOADER_REGISTRY, _ensure_registered
 
     _ensure_registered()
     rows = [l for l in _read(readme).splitlines() if l.startswith("| `")]
@@ -713,7 +713,7 @@ def test_fallback_chains_are_written_in_the_order_the_loader_walks(readme: str) 
     loader never walks is wrong, and a chain the loader walks that no bullet
     shows is missing.
     """
-    from backtest.loaders.registry import _DEFAULT_CHAINS
+    from src.backtest.loaders.registry import _DEFAULT_CHAINS
 
     code = {tuple(chain) for chain in _DEFAULT_CHAINS.values()}
     written = _readme_chains(readme)

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from backtest.run_card import write_run_card
+from src.backtest.run_card import write_run_card
 
 
 def test_run_card_records_model_and_warns_when_window_precedes_cutoff(

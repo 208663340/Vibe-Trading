@@ -1,7 +1,7 @@
 """Tests for the margin-trading (融资融券) tool.
 
 No request leaves the process: the success path patches the shared Eastmoney
-client (:func:`backtest.loaders.eastmoney_client.get_json`) so the tool's own
+client (:func:`src.backtest.loaders.eastmoney_client.get_json`) so the tool's own
 parsing/envelope logic runs against a canned datacenter payload, and the error
 path makes that boundary raise.
 """
@@ -11,8 +11,8 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from backtest.loaders import eastmoney_client
-from src.tools.margin_trading_tool import MarginTradingTool
+from src.backtest.loaders import eastmoney_client
+from src.runtime.tools.margin_trading_tool import MarginTradingTool
 
 
 def _datacenter_payload() -> dict:
@@ -104,7 +104,7 @@ class TestErrors:
         with patch.object(
             eastmoney_client, "get_json", side_effect=RuntimeError("eastmoney boom")
         ), patch(
-            "src.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading",
+            "src.runtime.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading",
             side_effect=RuntimeError("no fallback"),
         ):
             out = tool.execute(code="600519.SH", days=5)
@@ -123,7 +123,7 @@ class TestErrors:
         with patch.object(
             eastmoney_client, "get_json", side_effect=RuntimeError("eastmoney boom")
         ), patch(
-            "src.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading",
+            "src.runtime.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading",
             return_value=fallback,
         ) as fallback_fetch:
             out = tool.execute(code="600519.SH", days=5)
@@ -140,7 +140,7 @@ class TestErrors:
         with patch.object(
             eastmoney_client, "get_json", return_value={"result": {"data": []}}
         ), patch(
-            "src.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading",
+            "src.runtime.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading",
             side_effect=RuntimeError("no fallback"),
         ):
             out = tool.execute(code="600519.SH")

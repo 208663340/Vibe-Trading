@@ -37,8 +37,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("w4a")
 
-from src.factors.bench_runner import run_bench  # noqa: E402
-from src.tools.alpha_bench_tool import run_alpha_bench  # noqa: E402
+from src.research.factors.bench_runner import run_bench  # noqa: E402
+from src.runtime.tools.alpha_bench_tool import run_alpha_bench  # noqa: E402
 
 
 REPORTS_DIR = Path.home() / ".vibe-trading" / "reports"
@@ -54,7 +54,7 @@ BENCHES = [
 def _run_one(bench: dict) -> dict:
     """Run a single bench end-to-end. Returns a summary entry.
 
-    Delegates the math to ``src.factors.bench_runner.run_bench``; this wrapper
+    Delegates the math to ``src.research.factors.bench_runner.run_bench``; this wrapper
     just adds the HTML report (via ``run_alpha_bench``) and persists the raw
     per-alpha rows for downstream tooling, both of which the CLI driver wants
     but the API route does not.
@@ -144,7 +144,7 @@ def main() -> int:
         "zoos": {},
     }
 
-    from src.config.accessor import get_env_config
+    from src.platform.config.accessor import get_env_config
 
     tushare_ok = bool(get_env_config().data.tushare_token)
     if not tushare_ok:

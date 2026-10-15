@@ -15,9 +15,9 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.grounding import GroundingLedger
+from src.runtime.agent.grounding import GroundingLedger
 from tests.grounding_parameter_helpers import declared_parameter
-from src.agent.grounding.figures import Figure, parse_figures_block, scan_figures, strip_figures_block
+from src.runtime.agent.grounding.figures import Figure, parse_figures_block, scan_figures, strip_figures_block
 
 pytestmark = pytest.mark.unit
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from src.quantlib.copula import (
+from src.research.quantlib.copula import (
     clayton_copula_cdf,
     clayton_tail_dependence,
     fit_copula_from_tau,

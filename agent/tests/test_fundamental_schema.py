@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backtest.loaders._fundamental_schema import (
+from src.backtest.loaders._fundamental_schema import (
     DERIVED_FIELDS,
     RAW_FIELDS,
     SEC_CONCEPT_MAP,
@@ -107,7 +107,7 @@ def test_asset_growth_uses_annual_period_over_period_semantics() -> None:
 
 def test_asset_growth_reads_a_year_ahead_on_a_daily_densified_panel() -> None:
     # load_fundamental_panel densifies every dependency to the daily price
-    # index before a derived field runs (backtest.runner passes index=
+    # index before a derived field runs (src.backtest.runner passes index=
     # panel["close"].index), so total_assets arrives here as a forward-filled
     # daily series, never one row per annual period_end. A row-positional
     # shift(1) then compares yesterday to today (flat 0% every ordinary day,

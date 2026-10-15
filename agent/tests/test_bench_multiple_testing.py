@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.bench_runner import run_bench
-from src.quantlib.multipletesting import MIN_OBSERVATIONS, expected_maximum_sharpe
+from src.research.factors.bench_runner import run_bench
+from src.research.quantlib.multipletesting import MIN_OBSERVATIONS, expected_maximum_sharpe
 
 
 def _make_panel(n_symbols: int = 10, n_days: int = 120):
@@ -41,9 +41,9 @@ def _setup(monkeypatch, n_alphas=8, n_days=120):
         rng.standard_normal(p["close"].shape), index=p["close"].index, columns=p["close"].columns
     )
 
-    monkeypatch.setattr("src.factors.bench_runner._load_universe_panel", lambda u, p: panel)
-    monkeypatch.setattr("src.factors.bench_runner._compute_forward_returns", lambda p, horizon=1: return_df)
-    monkeypatch.setattr("src.factors.bench_runner.get_default_registry", lambda: reg)
+    monkeypatch.setattr("src.research.factors.bench_runner._load_universe_panel", lambda u, p: panel)
+    monkeypatch.setattr("src.research.factors.bench_runner._compute_forward_returns", lambda p, horizon=1: return_df)
+    monkeypatch.setattr("src.research.factors.bench_runner.get_default_registry", lambda: reg)
     return reg
 
 

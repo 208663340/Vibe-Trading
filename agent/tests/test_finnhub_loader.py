@@ -1,7 +1,7 @@
 """Tests for finnhub_loader: symbol mapping, payload parsing, auth gating, errors.
 
 All HTTP is mocked — no test ever reaches a live Finnhub endpoint. The loader
-imports ``throttled_get_json`` from :mod:`backtest.loaders._http` into its own
+imports ``throttled_get_json`` from :mod:`src.backtest.loaders._http` into its own
 namespace, so we monkeypatch that name on the ``finnhub_loader`` module.
 """
 
@@ -11,9 +11,9 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from backtest.loaders import finnhub_loader
+from src.backtest.loaders import finnhub_loader
 from tests.loader_contract import assert_loader_contract
-from backtest.loaders.finnhub_loader import (
+from src.backtest.loaders.finnhub_loader import (
     DataLoader,
     _to_epoch_seconds,
     _to_finnhub_symbol,

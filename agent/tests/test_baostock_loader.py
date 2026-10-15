@@ -2,7 +2,7 @@
 
 Ensures both baostock native (sh.601398) and tushare-style (601398.SH) codes work.
 """
-from backtest.loaders.baostock_loader import _is_a_share
+from src.backtest.loaders.baostock_loader import _is_a_share
 from tests.loader_contract import assert_loader_contract
 
 
@@ -60,7 +60,7 @@ class TestFetchOneCodeHandling:
     def test_baostock_native_passthrough(self):
         """baostock native format (sh.601398) should pass through unchanged."""
         from unittest.mock import MagicMock
-        from backtest.loaders.baostock_loader import DataLoader
+        from src.backtest.loaders.baostock_loader import DataLoader
 
         loader = DataLoader()
         bs_mock = MagicMock()
@@ -77,7 +77,7 @@ class TestFetchOneCodeHandling:
     def test_tushare_style_converted(self):
         """tushare-style format (601398.SH) should be converted to sh.601398."""
         from unittest.mock import MagicMock
-        from backtest.loaders.baostock_loader import DataLoader
+        from src.backtest.loaders.baostock_loader import DataLoader
 
         loader = DataLoader()
         bs_mock = MagicMock()
@@ -94,7 +94,7 @@ class TestFetchOneCodeHandling:
     def test_tushare_sz_style_converted(self):
         """tushare-style SZ (000001.SZ) should be converted to sz.000001."""
         from unittest.mock import MagicMock
-        from backtest.loaders.baostock_loader import DataLoader
+        from src.backtest.loaders.baostock_loader import DataLoader
 
         loader = DataLoader()
         bs_mock = MagicMock()
@@ -114,7 +114,7 @@ class TestVolumeUnitNormalization:
 
     def test_volume_shares_normalized_to_lots(self):
         from unittest.mock import MagicMock
-        from backtest.loaders.baostock_loader import DataLoader
+        from src.backtest.loaders.baostock_loader import DataLoader
 
         loader = DataLoader()
         bs_mock = MagicMock()
@@ -134,7 +134,7 @@ class TestVolumeUnitNormalization:
 
     def test_odd_lot_volume_keeps_fractional_lots(self):
         from unittest.mock import MagicMock
-        from backtest.loaders.baostock_loader import DataLoader
+        from src.backtest.loaders.baostock_loader import DataLoader
 
         loader = DataLoader()
         bs_mock = MagicMock()

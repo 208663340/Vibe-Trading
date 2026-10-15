@@ -12,8 +12,8 @@ import datetime as dt
 
 import pandas as pd
 
-from backtest.loaders import india_broker_loader as mod
-from backtest.loaders.india_broker_loader import DataLoader, _base_symbol, _exchange_for
+from src.backtest.loaders import india_broker_loader as mod
+from src.backtest.loaders.india_broker_loader import DataLoader, _base_symbol, _exchange_for
 from tests.loader_contract import assert_loader_contract
 
 

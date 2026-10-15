@@ -1,8 +1,8 @@
 """Tests for the trade journal analyzer and its broker-format parsers.
 
-Covers ``src.tools.trade_journal_parsers`` (format detection, side/symbol
+Covers ``src.runtime.tools.trade_journal_parsers`` (format detection, side/symbol
 normalization, market inference, end-to-end parse) and
-``src.tools.trade_journal_tool`` (FIFO pairing, profile/behavior metrics,
+``src.runtime.tools.trade_journal_tool`` (FIFO pairing, profile/behavior metrics,
 filtering, and the analyze_trade_journal error/dispatch paths).
 """
 
@@ -14,7 +14,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.tools.trade_journal_parsers import (
+from src.runtime.tools.trade_journal_parsers import (
     TradeRecord,
     _infer_market_from_symbol,
     _normalize_side,
@@ -29,7 +29,7 @@ from src.tools.trade_journal_parsers import (
     parse_file,
     records_to_dataframe,
 )
-from src.tools.trade_journal_tool import (
+from src.runtime.tools.trade_journal_tool import (
     _apply_filter,
     _compute_behavior,
     _compute_profile,

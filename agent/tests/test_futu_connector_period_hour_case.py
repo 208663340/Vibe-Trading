@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.futu import sdk as futu_sdk
+from src.markets.trading.connectors.futu import sdk as futu_sdk
 
 
 def test_kltype_map_accepts_project_hour_tokens() -> None:

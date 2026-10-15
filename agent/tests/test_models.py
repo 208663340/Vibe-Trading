@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.models import EquitySnapshot, Position, TradeRecord
+from src.backtest.models import EquitySnapshot, Position, TradeRecord
 
 
 class TestPosition:

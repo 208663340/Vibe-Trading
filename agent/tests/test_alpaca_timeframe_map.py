@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.alpaca.sdk import _rest_timeframe
+from src.markets.trading.connectors.alpaca.sdk import _rest_timeframe
 
 
 def test_project_hour_tokens_map_to_hour_not_day() -> None:

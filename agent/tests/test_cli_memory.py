@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-import cli
-from src.memory.persistent import PersistentMemory
+import src.interfaces.cli as cli
+from src.runtime.memory.persistent import PersistentMemory
 
 
 def _seed(tmp_path: Path) -> PersistentMemory:

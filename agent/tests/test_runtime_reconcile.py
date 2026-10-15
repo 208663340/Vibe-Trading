@@ -18,8 +18,8 @@ from typing import Any, Mapping, Sequence
 
 import pytest
 
-import src.live.paths as paths
-from src.live.runtime.reconcile import (
+import src.markets.live.paths as paths
+from src.markets.live.runtime.reconcile import (
     CorruptRuntimeState,
     DeltaKind,
     ReconcileReport,

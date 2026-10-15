@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 
-from src.providers.chat import ChatLLM
+from src.runtime.providers.chat import ChatLLM
 
 
 class _SyncClient:
@@ -114,7 +114,7 @@ def test_close_keeps_langchain_cached_transport_open_for_a_sibling_adapter() -> 
     ownership marker, ``close()`` closed ``root_client`` and every later
     adapter on the same base URL failed with "client has been closed".
     """
-    from src.providers.llm import ChatOpenAIWithReasoning
+    from src.runtime.providers.llm import ChatOpenAIWithReasoning
 
     base_url = "https://lifecycle-regression.invalid/v1"
     first = ChatOpenAIWithReasoning(model="m", api_key="sk-test", base_url=base_url)

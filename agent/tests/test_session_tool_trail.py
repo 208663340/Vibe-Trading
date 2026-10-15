@@ -8,11 +8,11 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.session.events import EventBus
-from src.session.models import Attempt, Message, Session
-from src.session.service import SessionService
-from src.session.store import SessionStore
+import src.interfaces.api_server as api_server
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import Attempt, Message, Session
+from src.runtime.session.service import SessionService
+from src.runtime.session.store import SessionStore
 
 
 class _DummyIndex:
@@ -24,7 +24,7 @@ class _DummyIndex:
 
 
 def _service(tmp_path: Path, monkeypatch) -> SessionService:
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: _DummyIndex())
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: _DummyIndex())
     return SessionService(
         store=SessionStore(tmp_path / "sessions"),
         event_bus=EventBus(),
@@ -191,16 +191,16 @@ def test_run_with_agent_consolidates_tool_events_by_call_id(
         def cancel(self) -> None:
             pass
 
-    monkeypatch.setattr("src.tools.build_registry", lambda **kwargs: object())
-    monkeypatch.setattr("src.providers.chat.ChatLLM", lambda: object())
-    monkeypatch.setattr("src.memory.persistent.PersistentMemory", lambda: object())
-    monkeypatch.setattr("src.agent.loop.AgentLoop", _DummyAgentLoop)
+    monkeypatch.setattr("src.runtime.tools.build_registry", lambda **kwargs: object())
+    monkeypatch.setattr("src.runtime.providers.chat.ChatLLM", lambda: object())
+    monkeypatch.setattr("src.runtime.memory.persistent.PersistentMemory", lambda: object())
+    monkeypatch.setattr("src.runtime.agent.loop.AgentLoop", _DummyAgentLoop)
     monkeypatch.setattr(
-        "src.config.loader.load_runtime_agent_config",
+        "src.platform.config.loader.load_runtime_agent_config",
         lambda overrides=None: object(),
     )
     monkeypatch.setattr(
-        "src.config.loader.sanitize_session_overrides",
+        "src.platform.config.loader.sanitize_session_overrides",
         lambda overrides: dict(overrides),
     )
     service = _service(tmp_path, monkeypatch)

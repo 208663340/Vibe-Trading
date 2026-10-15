@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.multipletesting.
+"""Tests for src.research.quantlib.multipletesting.
 
 The load-bearing tests here are the ones that show a correction actually bites:
 a Sharpe that passes uncorrected and fails once the trial count is admitted, and
@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 from scipy.stats import norm
 
-from src.quantlib.multipletesting import (
+from src.research.quantlib.multipletesting import (
     DEFAULT_CSCV_SPLITS,
     EULER_MASCHERONI,
     GAUSSIAN_KURTOSIS,

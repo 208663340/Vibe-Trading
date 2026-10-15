@@ -16,7 +16,7 @@ defect arrived one file at a time (#1397 and #1398 each fixed a single call
 site while eleven more sat untouched, two of them in files those same PRs
 edited).
 
-Equity-curve returns in ``backtest/`` are deliberately out of scope: the engine
+Equity-curve returns in ``src/backtest/`` are deliberately out of scope: the engine
 builds that series with a value on every bar and ``metrics.py`` documents its
 ``.fillna(0.0)`` choice at the seam.
 """
@@ -26,7 +26,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-SKILLS_ROOT = Path(__file__).resolve().parents[1] / "src" / "skills"
+SKILLS_ROOT = Path(__file__).resolve().parents[1] / "src" / "research" / "skills"
 
 # Matches a call and captures its argument list, including the empty one.
 _CALL = re.compile(r"\.pct_change\(([^)]*)\)")

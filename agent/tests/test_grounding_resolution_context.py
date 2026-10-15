@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from src.agent.grounding import GroundingLedger
+from src.runtime.agent.grounding import GroundingLedger
 
 
 def _resolver_payload(query: str, candidates: list[dict[str, Any]]) -> str:

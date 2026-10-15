@@ -2,7 +2,7 @@
 
 Covers the open-file integration seam the orchestrator and parcel R6 own:
 - C1: a ``propose_mandate_profiles`` tool_result is translated into a top-level
-  ``mandate.proposal`` SSE frame WITHOUT touching the protected ``src/agent/loop.py``.
+  ``mandate.proposal`` SSE frame WITHOUT touching the protected ``src/runtime/agent/loop.py``.
 - C2: ``GET /live/status`` surfaces the dormant-by-default channel (auth, mandate,
   runner liveness, halt) and ``POST /live/authorize`` is a discover-only on-ramp.
 - Runner control: ``POST /live/runner/start|stop`` are privileged surface actions
@@ -24,7 +24,7 @@ from fastapi.testclient import TestClient
 
 import pytest
 
-import api_server
+import src.interfaces.api_server as api_server
 from tests import robinhood_mcp_helpers as rh
 
 
@@ -101,11 +101,11 @@ def test_live_status_blank_broker_rejected(tmp_path: Path, monkeypatch) -> None:
 
 
 def test_live_status_converts_heartbeat_milliseconds_to_api_seconds(tmp_path, monkeypatch) -> None:
-    from src.live.runtime import liveness
+    from src.markets.live.runtime import liveness
 
     _live_env(tmp_path, monkeypatch)
     now = 1_700_000_000
-    monkeypatch.setattr("src.api.live_routes.time.time", lambda: now)
+    monkeypatch.setattr("src.interfaces.api.live_routes.time.time", lambda: now)
     liveness.write_heartbeat("robinhood", now_ms=(now - 45) * 1000)
     state = api_server._runner_liveness_state("robinhood")
     assert state.alive is True
@@ -114,7 +114,7 @@ def test_live_status_converts_heartbeat_milliseconds_to_api_seconds(tmp_path, mo
 
 
 def test_live_status_keeps_an_owned_long_running_tick_alive(tmp_path, monkeypatch) -> None:
-    from src.live.runtime import liveness
+    from src.markets.live.runtime import liveness
 
     _live_env(tmp_path, monkeypatch)
     liveness.write_heartbeat("robinhood", now_ms=int(time.time() * 1000) - 300_000)
@@ -196,7 +196,7 @@ def test_runner_start_blocked_by_kill_switch(tmp_path: Path, monkeypatch) -> Non
     monkeypatch.setattr(
         api_server, "_active_mandate_state", lambda broker: _valid_mandate_state(broker)
     )
-    from src.live.halt import trip_halt
+    from src.markets.live.halt import trip_halt
 
     trip_halt(by="test", reason="safety", broker="robinhood")
 
@@ -664,8 +664,8 @@ def test_stop_during_async_start_still_cleans_up_its_scheduler(tmp_path, monkeyp
 
 
 def test_api_stop_terminates_the_real_scheduler_task(tmp_path, monkeypatch) -> None:
-    from src.live.runtime.scheduler import Job, Scheduler
-    from src.live.runtime import liveness
+    from src.markets.live.runtime.scheduler import Job, Scheduler
+    from src.markets.live.runtime import liveness
 
     _live_env(tmp_path, monkeypatch)
     monkeypatch.setattr(api_server, "_active_mandate_state", lambda b: _valid_mandate_state(b))
@@ -827,9 +827,9 @@ def test_build_live_runner_wires_a_real_runner(tmp_path, monkeypatch) -> None:
     (True, "agent", False), (False, "agent", True),
 ])
 def test_live_runner_owns_its_actual_background_session_attempt(tmp_path, monkeypatch, cancel, phase, fails) -> None:
-    from src.session.events import EventBus
-    from src.session.service import SessionService
-    from src.session.store import SessionStore
+    from src.runtime.session.events import EventBus
+    from src.runtime.session.service import SessionService
+    from src.runtime.session.store import SessionStore
 
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path), raising=False)
     monkeypatch.setattr(api_server, "_runner_factory", None, raising=False)

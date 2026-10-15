@@ -8,10 +8,10 @@ from unittest.mock import patch
 
 import pytest
 
-import src.providers.llm as llm_mod
-from src.agent.loop import _normalize_llm_usage, _record_llm_usage
-from src.config.accessor import get_env_config, reset_env_config
-from src.providers.chat import ChatLLM, prompt_cache_messages
+import src.runtime.providers.llm as llm_mod
+from src.runtime.agent.loop import _normalize_llm_usage, _record_llm_usage
+from src.platform.config.accessor import get_env_config, reset_env_config
+from src.runtime.providers.chat import ChatLLM, prompt_cache_messages
 
 
 @pytest.fixture(autouse=True)

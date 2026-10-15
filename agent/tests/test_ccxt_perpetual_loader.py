@@ -8,8 +8,8 @@ import json
 import pytest
 import pandas as pd
 
-from backtest.loaders.base import make_loader_cache_key
-from backtest.loaders.ccxt_loader import _parse_ccxt_symbol, _validate_bracket_artifact
+from src.backtest.loaders.base import make_loader_cache_key
+from src.backtest.loaders.ccxt_loader import _parse_ccxt_symbol, _validate_bracket_artifact
 from tests.loader_contract import assert_loader_contract
 
 
@@ -131,11 +131,11 @@ def test_spot_and_perpetual_cache_keys_cannot_collide() -> None:
 def test_perpetual_fetch_separates_execution_and_mark_prices(monkeypatch) -> None:
     exchange = _PerpetualExchange()
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     frame = DataLoader().fetch(
         ["BTC-USDT-PERP"], "2024-01-01", "2024-01-01", interval="1H"
@@ -156,11 +156,11 @@ def test_perpetual_fetch_rejects_unsynchronized_mark_rows(monkeypatch) -> None:
     mark_rows[1][0] += 60_000
     exchange = _PerpetualExchange(mark_rows=mark_rows)
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     with pytest.raises(ValueError, match="mark-price timestamps"):
         DataLoader().fetch(
@@ -171,11 +171,11 @@ def test_perpetual_fetch_rejects_unsynchronized_mark_rows(monkeypatch) -> None:
 def test_perpetual_fetch_aligns_explicit_zero_funding_settlement(monkeypatch) -> None:
     exchange = _PerpetualExchange()
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     frame = DataLoader().fetch(
         ["BTC-USDT-PERP"], "2024-01-01", "2024-01-01", interval="1H"
@@ -189,11 +189,11 @@ def test_perpetual_fetch_aligns_explicit_zero_funding_settlement(monkeypatch) ->
 def test_perpetual_fetch_rejects_missing_required_funding_settlement(monkeypatch) -> None:
     exchange = _PerpetualExchange(funding_rows=[])
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     with pytest.raises(ValueError, match="funding settlement"):
         DataLoader().fetch(
@@ -208,11 +208,11 @@ def test_perpetual_fetch_rejects_duplicate_funding_settlement(monkeypatch) -> No
         {"timestamp": start, "fundingRate": 0.0002},
     ])
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     with pytest.raises(ValueError, match="duplicate funding settlement"):
         DataLoader().fetch(
@@ -226,11 +226,11 @@ def test_perpetual_fetch_has_no_bracket_columns_without_artifact(monkeypatch) ->
     fake exchange has no ``fetch_leverage_tiers`` at all)."""
     exchange = _PerpetualExchange()
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     frame = DataLoader().fetch(
         ["BTC-USDT-PERP"], "2024-01-01", "2024-01-01", interval="1H"
@@ -245,11 +245,11 @@ def test_perpetual_fetch_has_no_bracket_columns_without_artifact(monkeypatch) ->
 def test_perpetual_fetch_attaches_valid_bracket_artifact(monkeypatch) -> None:
     exchange = _PerpetualExchange()
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     artifact = _make_bracket_artifact()
     frame = DataLoader().fetch(
@@ -266,11 +266,11 @@ def test_perpetual_fetch_attaches_valid_bracket_artifact(monkeypatch) -> None:
 def test_strict_perpetual_fetch_without_artifact_fails_closed_before_any_call(monkeypatch) -> None:
     exchange = _PerpetualExchange()
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     with pytest.raises(ValueError, match="requires a maintenance-bracket artifact"):
         DataLoader().fetch(
@@ -283,11 +283,11 @@ def test_strict_perpetual_fetch_without_artifact_fails_closed_before_any_call(mo
 def test_strict_perpetual_fetch_with_valid_artifact_succeeds(monkeypatch) -> None:
     exchange = _PerpetualExchange()
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     artifact = _make_bracket_artifact()
     frame = DataLoader().fetch(
@@ -367,11 +367,11 @@ def test_perpetual_fetch_rounds_funding_settlement_jitter(monkeypatch) -> None:
         funding_rows=[{"timestamp": start + 11, "fundingRate": 0.0003}]
     )
     monkeypatch.setattr(
-        "backtest.loaders.ccxt_loader.DataLoader._get_exchange",
+        "src.backtest.loaders.ccxt_loader.DataLoader._get_exchange",
         lambda _self, instrument_type="spot": exchange,
     )
 
-    from backtest.loaders.ccxt_loader import DataLoader
+    from src.backtest.loaders.ccxt_loader import DataLoader
 
     frame = DataLoader().fetch(
         ["BTC-USDT-PERP"], "2024-01-01", "2024-01-01", interval="1H"

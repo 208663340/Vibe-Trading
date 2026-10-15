@@ -1,6 +1,6 @@
 """Every version string the project publishes must be the packaged version.
 
-`pyproject.toml` is the source of truth: `agent/cli/_version.py` derives
+`pyproject.toml` is the source of truth: `agent/src/interfaces/cli/_version.py` derives
 `__version__` from it, and the MCP server advertises that. Everything else is
 a hand-maintained copy, and each copy that nothing compares is a copy that
 rots silently.

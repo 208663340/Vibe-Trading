@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from backtest.engines.vietnam_equity import VietnamEquityEngine
+from src.backtest.engines.vietnam_equity import VietnamEquityEngine
 
 CODE = "VIC.VN"
 

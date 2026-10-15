@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.tools.alpha_bench_tool import _split_alphas_by_universe_support
+from src.runtime.tools.alpha_bench_tool import _split_alphas_by_universe_support
 
 _SPECS = {
     "fund_us": {"columns_required": ["fund:roe"], "theme": ["quality"], "formula_latex": ""},
@@ -78,12 +78,12 @@ def _panel() -> dict[str, pd.DataFrame]:
 def test_run_bench_excludes_with_disclosure_and_benches_the_rest(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.factors.bench_runner import run_bench
+    from src.research.factors.bench_runner import run_bench
 
     panel = _panel()
-    monkeypatch.setattr("src.factors.bench_runner._load_universe_panel", lambda u, p: panel)
+    monkeypatch.setattr("src.research.factors.bench_runner._load_universe_panel", lambda u, p: panel)
     monkeypatch.setattr(
-        "src.factors.bench_runner._prepare_bench_panel", lambda reg, ids, pnl, u, p: pnl
+        "src.research.factors.bench_runner._prepare_bench_panel", lambda reg, ids, pnl, u, p: pnl
     )
     monkeypatch.setenv("VIBE_TRADING_BENCH_WORKERS", "1")
     reg = _registry(_SPECS)
@@ -102,10 +102,10 @@ def test_run_bench_excludes_with_disclosure_and_benches_the_rest(
 def test_run_bench_all_excluded_errors_before_loading_the_panel(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.factors.bench_runner import run_bench
+    from src.research.factors.bench_runner import run_bench
 
     fetch = Mock()
-    monkeypatch.setattr("src.factors.bench_runner._load_universe_panel", fetch)
+    monkeypatch.setattr("src.research.factors.bench_runner._load_universe_panel", fetch)
     reg = _registry({"fund_us": _SPECS["fund_us"]})
 
     result = run_bench(zoo="fundamental", universe="csi300", period="2020-2021", registry=reg)
@@ -117,12 +117,12 @@ def test_run_bench_all_excluded_errors_before_loading_the_panel(
 
 
 def test_run_bench_sp500_selection_is_untouched(monkeypatch: pytest.MonkeyPatch) -> None:
-    from src.factors.bench_runner import run_bench
+    from src.research.factors.bench_runner import run_bench
 
     panel = _panel()
-    monkeypatch.setattr("src.factors.bench_runner._load_universe_panel", lambda u, p: panel)
+    monkeypatch.setattr("src.research.factors.bench_runner._load_universe_panel", lambda u, p: panel)
     monkeypatch.setattr(
-        "src.factors.bench_runner._prepare_bench_panel", lambda reg, ids, pnl, u, p: pnl
+        "src.research.factors.bench_runner._prepare_bench_panel", lambda reg, ids, pnl, u, p: pnl
     )
     monkeypatch.setenv("VIBE_TRADING_BENCH_WORKERS", "1")
     reg = _registry(_SPECS)
@@ -144,10 +144,10 @@ def test_run_bench_sp500_selection_is_untouched(monkeypatch: pytest.MonkeyPatch)
 def test_tool_all_excluded_returns_error_envelope(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
-    import src.tools.alpha_bench_tool as tool
+    import src.runtime.tools.alpha_bench_tool as tool
 
     reg = _registry({"fund_us": _SPECS["fund_us"]})
-    monkeypatch.setattr("src.factors.registry.get_default_registry", lambda: reg)
+    monkeypatch.setattr("src.research.factors.registry.get_default_registry", lambda: reg)
     monkeypatch.setattr(tool, "_default_output_dir", lambda: tmp_path)
     load = Mock()
     monkeypatch.setattr(tool, "_load_universe_panel", load)

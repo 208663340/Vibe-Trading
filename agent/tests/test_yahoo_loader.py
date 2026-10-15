@@ -11,7 +11,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from backtest.loaders.yahoo_loader import (
+from src.backtest.loaders.yahoo_loader import (
     DataLoader,
     _epoch_seconds,
     _is_intraday_interval,
@@ -238,7 +238,7 @@ class TestFetch:
             _row("2024-01-03", 10.5, 12, 10, 11.5, 2000),
         ]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, "USD"),
         ) as mock_chart:
             out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-31")
@@ -255,7 +255,7 @@ class TestFetch:
     def test_fetch_preserves_provider_quote_currency(self):
         rows = [_row("2024-01-02", 10, 11, 9, 10.5, 1000)]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, "ARS"),
         ):
             out = DataLoader().fetch(["GGAL.BA"], "2024-01-01", "2024-01-31")
@@ -264,7 +264,7 @@ class TestFetch:
     def test_fetch_leaves_missing_quote_currency_absent(self):
         rows = [_row("2024-01-02", 10, 11, 9, 10.5, 1000)]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, ""),
         ):
             out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-31")
@@ -276,7 +276,7 @@ class TestFetch:
             _row("2024-01-03", 10.5, 12, 10, 11.5, 2000),
         ]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, "INR"),
         ) as mock_chart:
             out = DataLoader().fetch(["RELIANCE.NS"], "2024-01-01", "2024-01-31")
@@ -287,7 +287,7 @@ class TestFetch:
 
     def test_non_us_hk_india_symbol_skipped(self):
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart"
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart"
         ) as mock_chart:
             out = DataLoader().fetch(["601398.SH"], "2024-01-01", "2024-01-31")
         assert out == {}
@@ -300,7 +300,7 @@ class TestFetch:
             _row("2024-01-02", 117, 118, 116, 117.5, 1000),
         ]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, "GBp"),
         ) as mock_chart:
             out = DataLoader().fetch(["VOD.L"], "2024-01-01", "2024-01-31")
@@ -321,7 +321,7 @@ class TestFetch:
     def test_gbp_quoted_lse_line_passes_unscaled(self):
         rows = [_row("2024-01-02", 107.0, 108.0, 106.0, 107.8, 1000)]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, "GBP"),
         ):
             out = DataLoader().fetch(["VUSA.L"], "2024-01-01", "2024-01-31")
@@ -336,7 +336,7 @@ class TestFetch:
     def test_usd_quoted_lse_line_is_omitted(self):
         rows = [_row("2024-01-02", 146.0, 147.0, 145.0, 146.4, 1000)]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, "USD"),
         ):
             out = DataLoader().fetch(["VUSD.L"], "2024-01-01", "2024-01-31")
@@ -346,7 +346,7 @@ class TestFetch:
     def test_lse_line_with_missing_currency_is_omitted(self):
         rows = [_row("2024-01-02", 117.0, 118.0, 116.0, 117.5, 1000)]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, ""),
         ):
             out = DataLoader().fetch(["VOD.L"], "2024-01-01", "2024-01-31")
@@ -358,7 +358,7 @@ class TestFetch:
             _row("2024-01-02", 10, 11, 9, 10.5, 1000),
         ]
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(rows, "USD"),
         ):
             out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-31")
@@ -378,7 +378,7 @@ class TestFetch:
             return good_rows, "USD"
 
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             side_effect=fake_chart,
         ):
             out = DataLoader().fetch(
@@ -389,14 +389,14 @@ class TestFetch:
 
     def test_empty_codes_short_circuits(self):
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart"
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart"
         ) as mock_chart:
             assert DataLoader().fetch([], "2024-01-01", "2024-01-31") == {}
         mock_chart.assert_not_called()
 
     def test_no_data_symbol_omitted(self):
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=([], ""),
         ):
             out = DataLoader().fetch(["AAPL.US"], "2024-01-01", "2024-01-31")
@@ -433,7 +433,7 @@ def test_fetch_admits_a_line_only_in_its_markets_currency(
     """ar_equity is one ARS pool and ca_equity one CAD pool; both venues list USD lines."""
     rows = [_row("2024-01-02", 4.1, 4.3, 4.0, 4.2, 1000)]
     with patch(
-        "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+        "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
         return_value=(rows, declared),
     ):
         out = DataLoader().fetch([symbol], "2024-01-01", "2024-01-31")

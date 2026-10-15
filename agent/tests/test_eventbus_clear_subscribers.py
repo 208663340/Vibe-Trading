@@ -16,7 +16,7 @@ import asyncio
 
 import pytest
 
-from src.session.events import EventBus
+from src.runtime.session.events import EventBus
 
 
 def test_clear_removes_buffer() -> None:

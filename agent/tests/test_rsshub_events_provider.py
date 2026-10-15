@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.loaders.rsshub_events import (
+from src.backtest.loaders.rsshub_events import (
     DEFAULT_FEEDS,
     DEFAULT_TIMEOUT_S,
     EVENT_COLUMNS,

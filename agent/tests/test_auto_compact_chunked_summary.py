@@ -7,9 +7,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-from src.agent.loop import AgentLoop, _summary_chunks
-from src.agent.tools import ToolRegistry
-from src.agent.trace import TraceWriter
+from src.runtime.agent.loop import AgentLoop, _summary_chunks
+from src.runtime.agent.tools import ToolRegistry
+from src.runtime.agent.trace import TraceWriter
 
 
 class _CompactionLLM:
@@ -30,7 +30,7 @@ def _build_agent(llm: Any) -> AgentLoop:
 
 
 def test_replayed_payload_and_call_pair_survive_collapse_and_summary_until_request(tmp_path):
-    from src.agent import loop as loop_mod
+    from src.runtime.agent import loop as loop_mod
     payload = "replayed evidence " + "x" * 9000
     call = {"role": "assistant", "content": "", "tool_calls": [
         {"id": "leased", "type": "function", "function": {"name": "probe", "arguments": "{}"}}]}

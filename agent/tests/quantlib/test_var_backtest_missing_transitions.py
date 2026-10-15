@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.quantlib.var_backtest import christoffersen_conditional_coverage, var_backtest
+from src.research.quantlib.var_backtest import christoffersen_conditional_coverage, var_backtest
 
 
 @pytest.mark.parametrize("missing_side", ["returns", "var"])

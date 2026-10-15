@@ -20,9 +20,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.base import BaseEngine
-from backtest.engines.futures_base import FuturesBaseEngine
-from backtest.loaders.base import validate_ohlc
+from src.backtest.engines.base import BaseEngine
+from src.backtest.engines.futures_base import FuturesBaseEngine
+from src.backtest.loaders.base import validate_ohlc
 
 FIXTURE = Path(__file__).parent / "fixtures" / "negative_close_bars.csv"
 
@@ -70,7 +70,7 @@ def test_why_loader_drops_exact_zero_inf_downstream() -> None:
 
     The production return path no longer has this hazard: #872 moved
     ``benchmark.py`` and ``engines/base.py`` onto
-    :func:`backtest.metrics.bar_returns`, which defines a return only where the
+    :func:`src.backtest.metrics.bar_returns`, which defines a return only where the
     prior price is strictly positive and yields ``0.0`` otherwise. See
     ``test_nonpositive_returns.py`` for that contract.
 

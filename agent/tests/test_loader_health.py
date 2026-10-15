@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 import requests
 
-from backtest import loader_health as health
+from src.backtest import loader_health as health
 
 TODAY = date(2026, 9, 28)
 
@@ -23,7 +23,7 @@ def _registered_loaders():
     use is silently replaced by the real loader and the test reaches the live
     network instead of the stub.
     """
-    from backtest.loaders.registry import _ensure_registered
+    from src.backtest.loaders.registry import _ensure_registered
 
     _ensure_registered()
 
@@ -50,7 +50,7 @@ def test_retired_mootdx_is_excluded_with_reason_not_canaried():
 
 
 def test_new_loader_cannot_silently_disappear(monkeypatch):
-    from backtest.loaders.registry import LOADER_REGISTRY
+    from src.backtest.loaders.registry import LOADER_REGISTRY
 
     monkeypatch.setitem(LOADER_REGISTRY, "new_public_source", type("Loader", (), {"requires_auth": False}))
     assert "unmapped:new_public_source" in health.coverage_errors()
@@ -91,7 +91,7 @@ def test_no_keys_operator_home_or_cache_in_child(monkeypatch, tmp_path):
 
 
 def test_unavailable_endpoint_is_not_skipped(monkeypatch):
-    from backtest.loaders.registry import LOADER_REGISTRY
+    from src.backtest.loaders.registry import LOADER_REGISTRY
 
     monkeypatch.setitem(
         LOADER_REGISTRY,
@@ -113,13 +113,13 @@ def test_unavailable_endpoint_is_not_skipped(monkeypatch):
 
 
 def test_network_error_is_sanitized_and_retried(monkeypatch):
-    from backtest.loaders.registry import LOADER_REGISTRY
+    from src.backtest.loaders.registry import LOADER_REGISTRY
 
     calls = []
 
     def fetch(self, *args, **kwargs):
         calls.append(args)
-        logging.getLogger("backtest.loaders.tencent_loader").warning("GET https://secret:token@internal.example failed")
+        logging.getLogger("src.backtest.loaders.tencent_loader").warning("GET https://secret:token@internal.example failed")
         raise requests.exceptions.ConnectionError("https://secret:token@internal.example")
 
     monkeypatch.setitem(
@@ -205,7 +205,7 @@ def test_child_report_handling(monkeypatch, payload, status):
 
 
 def test_second_attempt_recovers_without_fallback(monkeypatch):
-    from backtest.loaders.registry import LOADER_REGISTRY
+    from src.backtest.loaders.registry import LOADER_REGISTRY
 
     calls = []
 
@@ -234,7 +234,7 @@ def test_second_attempt_recovers_without_fallback(monkeypatch):
 
 
 def _stub_loader(monkeypatch, source, *, fetch):
-    from backtest.loaders.registry import LOADER_REGISTRY
+    from src.backtest.loaders.registry import LOADER_REGISTRY
 
     monkeypatch.setitem(
         LOADER_REGISTRY,
@@ -247,7 +247,7 @@ def test_empty_frame_carries_the_loaders_own_reason(monkeypatch):
     """A blocked source must not report as a bare broken loader (#1621 item 2)."""
 
     def fetch(self, codes, start, end, *, interval):
-        logging.getLogger("backtest.loaders.stooq_loader").warning(
+        logging.getLogger("src.backtest.loaders.stooq_loader").warning(
             "stooq is serving an anti-bot challenge page instead of CSV data; "
             "treating it as unavailable for the rest of this process."
         )
@@ -264,7 +264,7 @@ def test_empty_frame_carries_the_loaders_own_reason(monkeypatch):
 
 def test_loader_evidence_is_sanitized(monkeypatch):
     def fetch(self, codes, start, end, *, interval):
-        logging.getLogger("backtest.loaders.stooq_loader").warning(
+        logging.getLogger("src.backtest.loaders.stooq_loader").warning(
             "GET https://api.example.com/v3/klines failed for /home/runner/.cache/vibe "
             "with api_key=abc123 from \\\\fileserver\\share"
         )
@@ -285,7 +285,7 @@ def test_a_loader_that_logs_then_raises_still_reports_its_reason(monkeypatch):
     """The generic handler path must keep the row (and the reason) alive."""
 
     def fetch(self, codes, start, end, *, interval):
-        logging.getLogger("backtest.loaders.tencent_loader").warning("tencent returned an unparsable body")
+        logging.getLogger("src.backtest.loaders.tencent_loader").warning("tencent returned an unparsable body")
         raise ValueError("boom")
 
     _stub_loader(monkeypatch, "tencent", fetch=fetch)
@@ -348,7 +348,7 @@ def test_sanitizer_drops_a_body_it_cannot_classify():
 
 def test_evidence_is_capped_and_deduplicated(monkeypatch):
     def fetch(self, codes, start, end, *, interval):
-        logger = logging.getLogger("backtest.loaders.stooq_loader")
+        logger = logging.getLogger("src.backtest.loaders.stooq_loader")
         for index in range(5):
             logger.warning("attempt %s failed", index)
         logger.warning("attempt 0 failed")
@@ -364,7 +364,7 @@ def test_healthy_probe_carries_no_evidence_even_when_the_loader_warns(monkeypatc
     """A warning during a fetch that then succeeds is not a reason for the row."""
 
     def fetch(self, codes, start, end, *, interval):
-        logging.getLogger("backtest.loaders.ccxt_loader").warning(
+        logging.getLogger("src.backtest.loaders.ccxt_loader").warning(
             "Unknown CCXT exchange binance, falling back to binance"
         )
         return {codes[0]: frame()}
@@ -378,7 +378,7 @@ def test_healthy_probe_carries_no_evidence_even_when_the_loader_warns(monkeypatc
 def test_another_loggers_warning_is_not_evidence(monkeypatch):
     """Guards the attach point: only this package's loaders may become evidence.
 
-    A logger outside the `backtest.loaders` hierarchy bypasses the handler
+    A logger outside the `src.backtest.loaders` hierarchy bypasses the handler
     entirely, so this also fails if the handler is ever moved to the root
     logger without a working name filter.
     """
@@ -466,14 +466,14 @@ def test_filesystem_warnings_are_omitted_in_full(path):
     ],
 )
 def test_real_tencent_warning_path_redacts_a_structured_exception(monkeypatch, message):
-    from backtest.loaders.tencent_loader import DataLoader
+    from src.backtest.loaders.tencent_loader import DataLoader
 
     def fetch_one(self, *args, **kwargs):
         raise ValueError(message)
 
     monkeypatch.setattr(DataLoader, "_fetch_one", fetch_one)
     monkeypatch.setattr(DataLoader, "is_available", lambda self: True)
-    from backtest.loaders.registry import LOADER_REGISTRY
+    from src.backtest.loaders.registry import LOADER_REGISTRY
 
     monkeypatch.setitem(LOADER_REGISTRY, "tencent", DataLoader)
     result = health.probe("tencent", TODAY)

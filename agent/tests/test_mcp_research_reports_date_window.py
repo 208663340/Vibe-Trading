@@ -13,9 +13,9 @@ from __future__ import annotations
 import inspect
 from unittest.mock import patch
 
-import mcp_server
-from src.tools import research_reports_tool as rrt
-from src.tools.research_reports_tool import ResearchReportsTool
+import src.interfaces.mcp_server as mcp_server
+from src.runtime.tools import research_reports_tool as rrt
+from src.runtime.tools.research_reports_tool import ResearchReportsTool
 
 _get_reports = getattr(mcp_server.get_research_reports, "fn", None) or getattr(
     mcp_server.get_research_reports, "__wrapped__", mcp_server.get_research_reports

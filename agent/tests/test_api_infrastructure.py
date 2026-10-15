@@ -5,8 +5,8 @@ from __future__ import annotations
 import os
 import pytest
 
-import api_server
-from src.api import _compat, security, models, helpers, state
+import src.interfaces.api_server as api_server
+from src.interfaces.api import _compat, security, models, helpers, state
 
 
 # ============================================================================
@@ -55,11 +55,11 @@ def test_api_key_monkeypatch(monkeypatch):
 def test_no_circular_imports():
     import importlib
     for mod_name in [
-        "src.api._compat",
-        "src.api.security",
-        "src.api.models",
-        "src.api.helpers",
-        "src.api.state",
+        "src.interfaces.api._compat",
+        "src.interfaces.api.security",
+        "src.interfaces.api.models",
+        "src.interfaces.api.helpers",
+        "src.interfaces.api.state",
     ]:
         importlib.import_module(mod_name)
 
@@ -347,7 +347,7 @@ def test_write_env_values_updates_export_prefixed_key(tmp_path):
 def test_session_service_writeback_to_host(monkeypatch):
     """_get_session_service should write back to api_server for monkeypatch compat."""
     monkeypatch.setenv("ENABLE_SESSION_RUNTIME", "false")
-    import src.api.state as state_mod
+    import src.interfaces.api.state as state_mod
     state_mod._session_service = None
     _compat.set_host_attr("_session_service", None)
 

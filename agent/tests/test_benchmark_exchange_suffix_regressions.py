@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from backtest.benchmark import resolve_benchmark
+from src.backtest.benchmark import resolve_benchmark
 
 
 @pytest.mark.parametrize("symbol", ["600000.SH", "600000.SS", "000001.SZ", "830799.BJ"])

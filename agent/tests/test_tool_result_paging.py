@@ -19,9 +19,9 @@ from unittest.mock import patch
 
 import pytest
 
-from src.config.limits import TOOL_RESULT_LIMIT, truncate_tool_result
-from src.tools._result_paging import fit_records
-from src.tools.financial_statements_tool import FinancialStatementsTool
+from src.platform.config.limits import TOOL_RESULT_LIMIT, truncate_tool_result
+from src.runtime.tools._result_paging import fit_records
+from src.runtime.tools.financial_statements_tool import FinancialStatementsTool
 
 
 class TestTruncationNotice:
@@ -136,9 +136,9 @@ class TestFinancialStatementsPaging:
 
     def _run(self, offset: int, period_count: int = 120):
         with patch(
-            "src.tools.financial_statements_tool.cik_for", return_value="0000320193"
+            "src.runtime.tools.financial_statements_tool.cik_for", return_value="0000320193"
         ), patch(
-            "src.tools.financial_statements_tool.get_company_facts",
+            "src.runtime.tools.financial_statements_tool.get_company_facts",
             return_value=_sec_facts(period_count),
         ):
             raw = FinancialStatementsTool().execute(
@@ -179,9 +179,9 @@ class TestFinancialStatementsPaging:
 
     def test_a_non_integer_offset_is_rejected(self):
         with patch(
-            "src.tools.financial_statements_tool.cik_for", return_value="0000320193"
+            "src.runtime.tools.financial_statements_tool.cik_for", return_value="0000320193"
         ), patch(
-            "src.tools.financial_statements_tool.get_company_facts",
+            "src.runtime.tools.financial_statements_tool.get_company_facts",
             return_value=_sec_facts(8),
         ):
             payload = json.loads(

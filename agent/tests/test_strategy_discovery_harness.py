@@ -1,8 +1,8 @@
-"""Frozen-contract tests for ``src.strategy_discovery.evidence_harness`` — #969.
+"""Frozen-contract tests for ``src.research.strategy_discovery.evidence_harness`` — #969.
 
 AC3 (evidence from reproducible runs only) is exercised here end to end on
 synthetic run directories built in tmp_path with the REAL engine artifact
-schema (``backtest/engines/base.py::_write_artifacts``):
+schema (``src/backtest/engines/base.py::_write_artifacts``):
 
 * ``artifacts/trades.csv`` — columns ``timestamp, code, side, price, qty,
   reason, pnl, holding_days, return_pct`` with TWO rows per round trip:
@@ -41,9 +41,9 @@ import pandas as pd
 import pytest
 
 try:
-    from src.strategy_discovery import evidence_harness as sd_harness
-    from src.strategy_discovery import models as sd_models
-    from src.strategy_discovery import run_artifacts as sd_artifacts
+    from src.research.strategy_discovery import evidence_harness as sd_harness
+    from src.research.strategy_discovery import models as sd_models
+    from src.research.strategy_discovery import run_artifacts as sd_artifacts
 
     HARNESS_AVAILABLE = True
 except ImportError:
@@ -54,7 +54,7 @@ except ImportError:
 
 requires_harness = pytest.mark.skipif(
     not HARNESS_AVAILABLE,
-    reason="waiting on sibling A: src.strategy_discovery.evidence_harness not landed yet (issue #969)",
+    reason="waiting on sibling A: src.research.strategy_discovery.evidence_harness not landed yet (issue #969)",
 )
 
 START = date(2024, 1, 1)
@@ -101,7 +101,7 @@ def _benchmark_series() -> pd.Series:
 
 
 def _engine_equity_frame() -> pd.DataFrame:
-    """equity.csv exactly as backtest/engines/base.py::_write_artifacts."""
+    """equity.csv exactly as src/backtest/engines/base.py::_write_artifacts."""
     bench = _benchmark_series()
     equity = pd.Series(
         [1_000_000.0 * (1.001**i) for i in range(DAYS)], index=bench.index
@@ -784,7 +784,7 @@ class TestMultiPositionCaveat:
 
 
 def _make_store(tmp_path):
-    from src.strategy_discovery.evidence_store import EvidenceStore
+    from src.research.strategy_discovery.evidence_store import EvidenceStore
 
     return EvidenceStore(tmp_path / "evidence.db")
 

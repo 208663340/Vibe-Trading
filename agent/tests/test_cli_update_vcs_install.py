@@ -8,7 +8,7 @@ from subprocess import CompletedProcess
 
 import pytest
 
-from cli.commands import update
+from src.interfaces.cli.commands import update
 
 
 @pytest.fixture

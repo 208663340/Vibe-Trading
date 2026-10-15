@@ -2,7 +2,7 @@
 
 write_run_card writes walk-forward / Monte-Carlo / bootstrap robustness
 results as "validation", a top-level sibling of "metrics" (see
-backtest/run_card.py). LinkAutopilotBacktestTool only ever read "metrics",
+src/backtest/run_card.py). LinkAutopilotBacktestTool only ever read "metrics",
 so an agent linking a backtest to a hypothesis received the performance
 numbers while silently losing the evidence needed to judge whether that
 performance is real or overfit.
@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from src.hypotheses import HypothesisRegistry
-from src.tools.autopilot_tool import LinkAutopilotBacktestTool, _get_hypothesis
+from src.research.hypotheses import HypothesisRegistry
+from src.runtime.tools.autopilot_tool import LinkAutopilotBacktestTool, _get_hypothesis
 
 
 @pytest.fixture()

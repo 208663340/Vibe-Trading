@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 
-SKILL_PATH = Path(__file__).parents[1] / "src" / "skills" / "ml-strategy" / "SKILL.md"
+SKILL_PATH = Path(__file__).parents[1] / "src" / "research" / "skills" / "ml-strategy" / "SKILL.md"
 
 
 def _python_block() -> str:

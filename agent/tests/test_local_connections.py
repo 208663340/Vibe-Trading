@@ -5,10 +5,10 @@ import os
 
 import pytest
 
-from src.trading.connections import ConnectionStore
-from src.trading.credentials import CredentialStore
-from src.trading.local_plugins import discover_plugins, parse_manifest
-from src.trading.plugin_scaffold import scaffold_connector, validate_connector
+from src.markets.trading.connections import ConnectionStore
+from src.markets.trading.credentials import CredentialStore
+from src.markets.trading.local_plugins import discover_plugins, parse_manifest
+from src.markets.trading.plugin_scaffold import scaffold_connector, validate_connector
 
 
 class _MemoryCredentials:
@@ -116,8 +116,8 @@ def test_installed_local_plugin_runs_through_the_trading_read_interface(
     tmp_path,
     monkeypatch,
 ):
-    from src.trading import connections, local_plugins
-    from src.trading.service import get_account, get_positions
+    from src.markets.trading import connections, local_plugins
+    from src.markets.trading.service import get_account, get_positions
 
     monkeypatch.setattr(local_plugins, "get_runtime_root", lambda: tmp_path)
     monkeypatch.setattr(connections, "get_runtime_root", lambda: tmp_path)
@@ -150,9 +150,9 @@ def test_builtin_sdk_connections_use_isolated_keyring_credentials(
     tmp_path,
     monkeypatch,
 ):
-    from src.trading import connections
-    from src.trading.profiles import profile_by_id
-    from src.trading.service import _sdk_config, _sdk_module
+    from src.markets.trading import connections
+    from src.markets.trading.profiles import profile_by_id
+    from src.markets.trading.service import _sdk_config, _sdk_module
 
     credentials = CredentialStore(_MemoryCredentials())
 
@@ -186,9 +186,9 @@ def test_builtin_sdk_connections_use_isolated_keyring_credentials(
 
 
 def test_builtin_sdk_connection_rejects_partial_vault_set(tmp_path, monkeypatch):
-    from src.trading import connections
-    from src.trading.profiles import profile_by_id
-    from src.trading.service import _sdk_config, _sdk_module
+    from src.markets.trading import connections
+    from src.markets.trading.profiles import profile_by_id
+    from src.markets.trading.service import _sdk_config, _sdk_module
 
     credentials = CredentialStore(_MemoryCredentials())
 
@@ -216,7 +216,7 @@ def test_builtin_sdk_connection_rejects_partial_vault_set(tmp_path, monkeypatch)
 
 
 def test_mcp_connector_discovery_exposes_onboarding_contract_without_values():
-    from src.tools.trading_connector_tool import TradingConnectionsTool
+    from src.runtime.tools.trading_connector_tool import TradingConnectionsTool
 
     payload = json.loads(TradingConnectionsTool().execute())
     okx = next(profile for profile in payload["profiles"] if profile["id"] == "okx-live-sdk-readonly")
@@ -252,10 +252,10 @@ def test_connection_scoped_overrides_obey_the_connector_allowlist(tmp_path, monk
     built from a raw merged mapping would not — and ``overrides`` is the one
     part of that payload that arrives from an MCP tool argument or REST body.
     """
-    import src.trading.connections as conns
-    from src.trading import service
-    from src.trading.connectors.okx import sdk as okx_sdk
-    from src.trading.profiles import profile_by_id
+    import src.markets.trading.connections as conns
+    from src.markets.trading import service
+    from src.markets.trading.connectors.okx import sdk as okx_sdk
+    from src.markets.trading.profiles import profile_by_id
 
     store, credentials = _vault_store(tmp_path, "main-okx", "okx-live-sdk-readonly")
     credentials.save("main-okx", {"api_key": "k", "api_secret": "s", "passphrase": "p"})
@@ -291,14 +291,14 @@ def test_every_sdk_connector_declares_an_override_allowlist():
     import importlib
     import pkgutil
 
-    from src.trading import connectors as connectors_pkg
-    from src.trading.service import _allowed_override_keys
+    from src.markets.trading import connectors as connectors_pkg
+    from src.markets.trading.service import _allowed_override_keys
 
     missing = []
     for info in pkgutil.iter_modules(connectors_pkg.__path__):
         try:
             module = importlib.import_module(
-                f"src.trading.connectors.{info.name}.sdk"
+                f"src.markets.trading.connectors.{info.name}.sdk"
             )
         except ModuleNotFoundError:
             continue  # connector without an SDK surface

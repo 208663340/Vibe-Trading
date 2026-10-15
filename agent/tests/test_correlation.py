@@ -1,10 +1,10 @@
-"""Tests for backtest/correlation.py"""
+"""Tests for src/backtest/correlation.py"""
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.correlation import (
+from src.backtest.correlation import (
     _normalize_symbol,
     _rolling_correlation_matrix,
     infer_market,
@@ -169,8 +169,8 @@ class TestFetchFallsThroughChain:
         )
 
     def test_falls_through_to_next_loader_when_first_returns_empty(self, monkeypatch):
-        from backtest.loaders import registry
-        from backtest.correlation import compute_correlation_matrix
+        from src.backtest.loaders import registry
+        from src.backtest.correlation import compute_correlation_matrix
 
         good_df = self._price_df()
 
@@ -321,7 +321,7 @@ def test_rolling_correlation_unnamed_datetime_index() -> None:
     """OHLCV frames with an unnamed DatetimeIndex must not KeyError on trade_date."""
     import numpy as np
     import pandas as pd
-    from backtest.correlation import _rolling_correlation_matrix
+    from src.backtest.correlation import _rolling_correlation_matrix
 
     idx = pd.date_range("2020-01-01", periods=40, freq="B")
     series = {

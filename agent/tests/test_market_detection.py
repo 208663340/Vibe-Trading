@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from backtest.engines._market_hooks import _is_china_futures, code_currency
-from backtest.runner import (
+from src.backtest.engines._market_hooks import _is_china_futures, code_currency
+from src.backtest.runner import (
     _detect_market,
     _detect_source,
     _group_codes_by_market,
@@ -231,7 +231,7 @@ class TestBareUsTickerRouting:
         assert _detect_market("EUR/USD") == "forex"
 
     def test_shadow_liquid_baskets_route_to_their_own_market(self) -> None:
-        from src.shadow_account.backtester import _LIQUID_BASKETS
+        from src.markets.shadow_account.backtester import _LIQUID_BASKETS
 
         expected = {
             "china_a": "a_share",

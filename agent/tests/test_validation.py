@@ -16,8 +16,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.models import TradeRecord
-from backtest.validation import (
+from src.backtest.models import TradeRecord
+from src.backtest.validation import (
     bootstrap_sharpe_ci,
     monte_carlo_test,
     run_validation,
@@ -423,7 +423,7 @@ class TestWriteValidationJson:
 
 def test_load_trades_blank_holding_days_defaults_to_zero(tmp_path: Path) -> None:
     """Blank holding_days cells must not abort validation with ValueError."""
-    from backtest.validation import _load_trades
+    from src.backtest.validation import _load_trades
 
     artifacts = tmp_path / "artifacts"
     artifacts.mkdir()
@@ -439,7 +439,7 @@ def test_load_trades_blank_holding_days_defaults_to_zero(tmp_path: Path) -> None
 
 
 def test_load_trades_prefers_fill_derived_holding_bars(tmp_path: Path) -> None:
-    from backtest.validation import _load_trades
+    from src.backtest.validation import _load_trades
 
     artifacts = tmp_path / "artifacts"
     artifacts.mkdir()

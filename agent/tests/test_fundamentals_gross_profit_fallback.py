@@ -15,7 +15,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.loaders import fundamentals_loader
+from src.backtest.loaders import fundamentals_loader
 
 
 def _facts(concept_rows: dict[str, list[dict[str, object]]]) -> dict[str, object]:

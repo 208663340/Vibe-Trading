@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from src.quantlib.credit import cds_price
+from src.research.quantlib.credit import cds_price
 
 
 @pytest.mark.parametrize("tenor", [0.1, 0.6, 1.1, 1.25])
@@ -19,7 +19,7 @@ def test_cds_regular_coupon_dates_and_final_stub(tenor):
 
 def test_quantlib_tool_prices_final_coupon_stub():
     import json
-    from src.tools.quantlib_tool import QuantlibCallTool
+    from src.runtime.tools.quantlib_tool import QuantlibCallTool
 
     result = json.loads(
         QuantlibCallTool().execute(

@@ -16,17 +16,17 @@ from typing import Any
 
 import pytest
 
-import src.live.enforcement as enforcement
-import src.live.order_guard as order_guard
-import src.live.paths as paths
-from src.live.enforcement import (
+import src.markets.live.enforcement as enforcement
+import src.markets.live.order_guard as order_guard
+import src.markets.live.paths as paths
+from src.markets.live.enforcement import (
     BREACH_KIND_INSTRUMENT,
     BREACH_KIND_QUANTITATIVE,
     BREACH_KIND_UNIVERSE,
     OrderIntent,
     check_mandate,
 )
-from src.live.mandate.model import (
+from src.markets.live.mandate.model import (
     MANDATE_SCHEMA_VERSION,
     AssetClass,
     ConsentMeta,
@@ -35,7 +35,7 @@ from src.live.mandate.model import (
     Mandate,
     UniverseConstraint,
 )
-from src.tools.mcp import MCPRemoteToolSpec
+from src.runtime.tools.mcp import MCPRemoteToolSpec
 from tests import robinhood_mcp_helpers as rh
 
 

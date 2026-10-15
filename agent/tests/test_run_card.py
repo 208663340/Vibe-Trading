@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from backtest.run_card import write_run_card
-from src.core.runner import Runner
+from src.backtest.run_card import write_run_card
+from src.platform.core.runner import Runner
 
 
 def test_config_hash_is_deterministic_independent_of_key_order(tmp_path: Path) -> None:
@@ -127,7 +127,7 @@ def test_json_and_markdown_files_are_written(tmp_path: Path) -> None:
 
 
 def test_api_run_response_includes_run_card(tmp_path: Path) -> None:
-    import api_server
+    import src.interfaces.api_server as api_server
 
     run_dir = tmp_path / "run_001"
     run_dir.mkdir()
@@ -173,7 +173,7 @@ def _write_chart_artifacts(run_dir: Path) -> None:
 
 
 def test_api_run_response_default_chart_payload_is_unchanged(tmp_path: Path) -> None:
-    import api_server
+    import src.interfaces.api_server as api_server
 
     run_dir = tmp_path / "run_chart_default"
     run_dir.mkdir()
@@ -188,7 +188,7 @@ def test_api_run_response_default_chart_payload_is_unchanged(tmp_path: Path) -> 
 
 
 def test_api_run_response_summary_chart_payload_discovers_symbols(tmp_path: Path) -> None:
-    import api_server
+    import src.interfaces.api_server as api_server
 
     run_dir = tmp_path / "run_chart_summary"
     run_dir.mkdir()
@@ -210,7 +210,7 @@ def test_api_run_response_summary_chart_payload_discovers_symbols(tmp_path: Path
 
 
 def test_api_run_response_can_filter_chart_symbol(tmp_path: Path) -> None:
-    import api_server
+    import src.interfaces.api_server as api_server
 
     run_dir = tmp_path / "run_chart_symbol"
     run_dir.mkdir()
@@ -231,7 +231,7 @@ def test_api_run_response_can_filter_chart_symbol(tmp_path: Path) -> None:
 
 
 def test_api_run_response_includes_llm_usage(tmp_path: Path) -> None:
-    import api_server
+    import src.interfaces.api_server as api_server
 
     run_dir = tmp_path / "run_001"
     run_dir.mkdir()
@@ -260,7 +260,7 @@ def test_runner_artifact_spec_surfaces_run_card_paths() -> None:
 
 
 def test_options_backtest_writes_run_card(tmp_path: Path) -> None:
-    from backtest.engines.options_portfolio import run_options_backtest
+    from src.backtest.engines.options_portfolio import run_options_backtest
 
     dates = pd.bdate_range("2025-01-01", periods=4)
     bars = pd.DataFrame(
@@ -361,7 +361,7 @@ def test_options_backtest_writes_run_card(tmp_path: Path) -> None:
 
 
 def test_api_run_response_includes_portfolio_studio_artifacts(tmp_path: Path) -> None:
-    import api_server
+    import src.interfaces.api_server as api_server
 
     run_dir = tmp_path / "run_studio"
     (run_dir / "artifacts").mkdir(parents=True)
@@ -385,7 +385,7 @@ def test_api_run_response_includes_portfolio_studio_artifacts(tmp_path: Path) ->
 
 
 def test_api_run_response_portfolio_studio_fields_none_when_absent(tmp_path: Path) -> None:
-    import api_server
+    import src.interfaces.api_server as api_server
 
     run_dir = tmp_path / "run_plain"
     run_dir.mkdir()

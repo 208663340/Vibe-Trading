@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.constraints import (
+from src.backtest.constraints import (
     GroupExposure,
     MaxWeight,
     MinWeight,
@@ -180,7 +180,7 @@ class TestEngineWiring:
     """The layer composes onto whatever optimizer the config selects."""
 
     def test_load_optimizer_applies_constraints(self) -> None:
-        from backtest.engines.base import _load_optimizer
+        from src.backtest.engines.base import _load_optimizer
 
         n_days, n_assets = 120, 4
         rng = np.random.default_rng(0)
@@ -203,7 +203,7 @@ class TestEngineWiring:
             assert (out.loc[dt].abs() <= 0.4 + 1e-9).all()
 
     def test_constraints_without_optimizer_warns_and_passes(self, capsys) -> None:
-        from backtest.engines.base import _load_optimizer
+        from src.backtest.engines.base import _load_optimizer
 
         config = {"constraints": [{"type": "max_weight", "cap": 0.4}]}
         assert _load_optimizer(config) is None

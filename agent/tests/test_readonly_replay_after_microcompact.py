@@ -4,18 +4,18 @@ import threading
 from types import SimpleNamespace
 
 
-from src.agent import loop as loop_mod
-from src.agent.context import ContextBuilder
-from src.agent.memory import WorkspaceMemory
-from src.agent.loop import (
+from src.runtime.agent import loop as loop_mod
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.memory import WorkspaceMemory
+from src.runtime.agent.loop import (
     AgentLoop,
     KEEP_RECENT,
     MAX_READONLY_REPLAY_RECOVERIES,
 )
-from src.agent.tool_progress import NO_PROGRESS_LIMIT, ToolProgress
-from src.providers.chat import LLMResponse, ToolCallRequest
-from src.agent.trace import TraceWriter
-from src.tools.web_reader_tool import WebReaderTool
+from src.runtime.agent.tool_progress import NO_PROGRESS_LIMIT, ToolProgress
+from src.runtime.providers.chat import LLMResponse, ToolCallRequest
+from src.runtime.agent.trace import TraceWriter
+from src.runtime.tools.web_reader_tool import WebReaderTool
 
 
 class _Registry:
@@ -301,7 +301,7 @@ class _VisibilityLLM:
                 )
             )
         self.monkeypatch.setattr(
-            __import__("src.agent.tuning", fromlist=["TOKEN_THRESHOLD"]),
+            __import__("src.runtime.agent.tuning", fromlist=["TOKEN_THRESHOLD"]),
             "TOKEN_THRESHOLD",
             max(2, int(loop_mod.estimate_tokens(future) * 1.6)),
             raising=False,

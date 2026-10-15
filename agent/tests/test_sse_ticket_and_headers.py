@@ -7,8 +7,8 @@ import logging
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import security
+import src.interfaces.api_server as api_server
+from src.interfaces.api import security
 
 
 def _remote_client() -> TestClient:
@@ -156,7 +156,7 @@ def test_security_headers_present_on_response() -> None:
 
 def test_csp_report_only_opt_out(monkeypatch: pytest.MonkeyPatch) -> None:
     """``VIBE_TRADING_CSP_REPORT_ONLY=1`` is the documented rollback switch."""
-    from src.config.accessor import reset_env_config
+    from src.platform.config.accessor import reset_env_config
 
     monkeypatch.setenv("VIBE_TRADING_CSP_REPORT_ONLY", "1")
     reset_env_config()

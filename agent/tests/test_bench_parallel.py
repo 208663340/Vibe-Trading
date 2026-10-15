@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.bench_runner import _compute_single_alpha, _init_bench_worker
+from src.research.factors.bench_runner import _compute_single_alpha, _init_bench_worker
 
 
 def _make_mock_panel(n_symbols: int = 10, n_days: int = 100):
@@ -30,7 +30,7 @@ class TestComputeSingleAlpha:
         close = panel["close"]
         return_df = close.pct_change().shift(-1).iloc[:-1]
 
-        with patch("src.factors.bench_runner.get_default_registry") as mock_reg:
+        with patch("src.research.factors.bench_runner.get_default_registry") as mock_reg:
             reg = MagicMock()
             mock_reg.return_value = reg
             reg.compute.return_value = close * np.random.randn(*close.shape)
@@ -45,7 +45,7 @@ class TestComputeSingleAlpha:
         return_df = close.pct_change().shift(-1).iloc[:-1]
         _init_bench_worker(panel, return_df)
 
-        with patch("src.factors.bench_runner.get_default_registry") as mock_reg:
+        with patch("src.research.factors.bench_runner.get_default_registry") as mock_reg:
             reg = MagicMock()
             mock_reg.return_value = reg
             reg.compute.return_value = close * np.random.randn(*close.shape)
@@ -58,7 +58,7 @@ class TestComputeSingleAlpha:
         panel = _make_mock_panel()
         return_df = pd.DataFrame()
 
-        with patch("src.factors.bench_runner.get_default_registry") as mock_reg:
+        with patch("src.research.factors.bench_runner.get_default_registry") as mock_reg:
             reg = MagicMock()
             mock_reg.return_value = reg
             reg.compute.side_effect = RuntimeError("test error")
@@ -79,9 +79,9 @@ class TestParallelBench:
         mock_reg.get.return_value = MagicMock(meta={"theme": ["test"], "formula_latex": ""})
         mock_reg.compute.side_effect = lambda aid, p: p["close"] * np.random.randn(*p["close"].shape)
 
-        monkeypatch.setattr("src.factors.bench_runner._load_universe_panel", lambda u, p: panel)
-        monkeypatch.setattr("src.factors.bench_runner._compute_forward_returns", lambda p, horizon=1: return_df)
-        monkeypatch.setattr("src.factors.bench_runner.get_default_registry", lambda: mock_reg)
+        monkeypatch.setattr("src.research.factors.bench_runner._load_universe_panel", lambda u, p: panel)
+        monkeypatch.setattr("src.research.factors.bench_runner._compute_forward_returns", lambda p, horizon=1: return_df)
+        monkeypatch.setattr("src.research.factors.bench_runner.get_default_registry", lambda: mock_reg)
         return mock_reg
 
     @pytest.mark.skipif(
@@ -89,7 +89,7 @@ class TestParallelBench:
         reason="Windows spawn does not inherit the monkeypatched registry used by this mock test",
     )
     def test_parallel_matches_sequential(self, monkeypatch):
-        from src.factors.bench_runner import run_bench
+        from src.research.factors.bench_runner import run_bench
 
         mock_reg = self._setup_mocks(monkeypatch)
 
@@ -104,7 +104,7 @@ class TestParallelBench:
         assert seq["n_alphas_tested"] == par["n_alphas_tested"]
 
     def test_progress_callback_fires(self, monkeypatch):
-        from src.factors.bench_runner import run_bench
+        from src.research.factors.bench_runner import run_bench
 
         mock_reg = self._setup_mocks(monkeypatch, n_alphas=3)
         monkeypatch.setenv("VIBE_TRADING_BENCH_WORKERS", "2")
@@ -119,7 +119,7 @@ class TestParallelBench:
         assert len(calls) == 3
 
     def test_only_filter_with_parallel(self, monkeypatch):
-        from src.factors.bench_runner import run_bench
+        from src.research.factors.bench_runner import run_bench
 
         mock_reg = self._setup_mocks(monkeypatch, n_alphas=5)
         monkeypatch.setenv("VIBE_TRADING_BENCH_WORKERS", "2")
@@ -134,7 +134,7 @@ class TestParallelBench:
         assert tested_ids <= {"alpha_0", "alpha_2"}
 
     def test_custom_registry_forces_sequential(self, monkeypatch):
-        from src.factors.bench_runner import run_bench
+        from src.research.factors.bench_runner import run_bench
 
         mock_reg = self._setup_mocks(monkeypatch, n_alphas=2)
         monkeypatch.setenv("VIBE_TRADING_BENCH_WORKERS", "2")
@@ -145,7 +145,7 @@ class TestParallelBench:
         assert mock_reg.compute.call_count == 2
 
     def test_invalid_worker_env_falls_back(self, monkeypatch):
-        from src.factors.bench_runner import run_bench
+        from src.research.factors.bench_runner import run_bench
 
         mock_reg = self._setup_mocks(monkeypatch, n_alphas=2)
         monkeypatch.setenv("VIBE_TRADING_BENCH_WORKERS", "not-an-int")

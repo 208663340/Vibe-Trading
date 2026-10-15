@@ -13,16 +13,16 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.global_equity import GlobalEquityEngine
-from backtest.engines._market_hooks import _detect_market, _detect_submarket, code_currency
-from backtest.loaders.base import (
+from src.backtest.engines.global_equity import GlobalEquityEngine
+from src.backtest.engines._market_hooks import _detect_market, _detect_submarket, code_currency
+from src.backtest.loaders.base import (
     is_lse_symbol,
     normalize_lse_quote_currency,
     scale_pence_to_currency,
 )
-from backtest.loaders.registry import FALLBACK_CHAINS
-from backtest.runner import _create_market_engine, _MARKET_TO_SOURCE
-from src.market_data import detect_source
+from src.backtest.loaders.registry import FALLBACK_CHAINS
+from src.backtest.runner import _create_market_engine, _MARKET_TO_SOURCE
+from src.markets.market_data import detect_source
 
 
 class TestUKSourceDetection:

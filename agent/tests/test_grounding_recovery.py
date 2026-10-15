@@ -18,13 +18,13 @@ from unittest.mock import patch
 
 import pytest
 
-from src.agent.grounding import GroundingLedger
-from src.agent.grounding.release import (
+from src.runtime.agent.grounding import GroundingLedger
+from src.runtime.agent.grounding.release import (
     MAX_GROUNDING_RECOVERY_ROUNDS,
     MAX_PRICE_EVIDENCE_ATTEMPTS,
     MAX_SYMBOL_RESOLUTION_ATTEMPTS,
 )
-from src.providers.chat import LLMResponse
+from src.runtime.providers.chat import LLMResponse
 from tests.message_roles_helpers import assert_system_messages_only_lead
 
 pytestmark = pytest.mark.unit
@@ -234,7 +234,7 @@ class TestRecoveryAction:
         validation = ledger.validate_final_answer("机器人ETF 现价 1.171。")
 
         with patch.multiple(
-            "src.agent.grounding.release",
+            "src.runtime.agent.grounding.release",
             MAX_SYMBOL_RESOLUTION_ATTEMPTS=10_000,
             MAX_PRICE_EVIDENCE_ATTEMPTS=10_000,
         ):
@@ -356,9 +356,9 @@ def _run_direct_loop(
     max_iterations: int = 8,
     events: list[tuple[str, dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
-    from src.agent.loop import AgentLoop
-    from src.memory.persistent import PersistentMemory
-    from src.tools import build_registry
+    from src.runtime.agent.loop import AgentLoop
+    from src.runtime.memory.persistent import PersistentMemory
+    from src.runtime.tools import build_registry
 
     pm = PersistentMemory()
     agent = AgentLoop(
@@ -380,7 +380,7 @@ def test_loop_runs_recovery_before_fallback(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """A rejected draft must drive search_symbol recovery before falling back."""
-    from src.agent.trace import TraceWriter
+    from src.runtime.agent.trace import TraceWriter
 
     llm = _FailingDraftLLM()
     events: list[tuple[str, dict[str, Any]]] = []

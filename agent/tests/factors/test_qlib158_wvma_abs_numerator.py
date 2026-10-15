@@ -23,11 +23,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.zoo.qlib158.wvma5 import compute as wvma5
-from src.factors.zoo.qlib158.wvma10 import compute as wvma10
-from src.factors.zoo.qlib158.wvma20 import compute as wvma20
-from src.factors.zoo.qlib158.wvma30 import compute as wvma30
-from src.factors.zoo.qlib158.wvma60 import compute as wvma60
+from src.research.factors.zoo.qlib158.wvma5 import compute as wvma5
+from src.research.factors.zoo.qlib158.wvma10 import compute as wvma10
+from src.research.factors.zoo.qlib158.wvma20 import compute as wvma20
+from src.research.factors.zoo.qlib158.wvma30 import compute as wvma30
+from src.research.factors.zoo.qlib158.wvma60 import compute as wvma60
 
 
 CASES = [(wvma5, 5), (wvma10, 10), (wvma20, 20), (wvma30, 30), (wvma60, 60)]

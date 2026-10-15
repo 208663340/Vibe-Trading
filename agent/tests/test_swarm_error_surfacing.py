@@ -21,11 +21,11 @@ import httpx
 import pytest
 from openai import AuthenticationError
 
-import mcp_server
-import src.swarm.runtime as rt
-from src.swarm.models import SwarmAgentSpec, SwarmRun, SwarmTask, WorkerResult
-from src.swarm.store import SwarmStore
-from src.tools.swarm_tool import _format_result
+import src.interfaces.mcp_server as mcp_server
+import src.runtime.swarm.runtime as rt
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmRun, SwarmTask, WorkerResult
+from src.runtime.swarm.store import SwarmStore
+from src.runtime.tools.swarm_tool import _format_result
 
 
 def _run(tmp_path: Path) -> SwarmRun:

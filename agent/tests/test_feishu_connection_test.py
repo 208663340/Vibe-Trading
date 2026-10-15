@@ -22,8 +22,8 @@ from typing import Any
 import httpx
 import pytest
 
-from src.channels.bus.queue import MessageBus
-from src.channels.feishu import FEISHU_AVAILABLE, FeishuChannel
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.feishu import FEISHU_AVAILABLE, FeishuChannel
 
 FEISHU_TOKEN_URL = (
     "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"

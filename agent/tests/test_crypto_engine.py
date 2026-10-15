@@ -17,12 +17,12 @@ import math
 import pandas as pd
 import pytest
 
-from backtest.engines.crypto import CryptoEngine
-from backtest.engines._market_hooks import (
+from src.backtest.engines.crypto import CryptoEngine
+from src.backtest.engines._market_hooks import (
     FUNDING_HOURS as _FUNDING_HOURS,
     _maintenance_rate,
 )
-from backtest.models import Position
+from src.backtest.models import Position
 
 _BRACKETS = (
     '[{"bracket_tier":1,"notional_cap":1000000.0,'
@@ -359,7 +359,7 @@ class TestFundingFee:
         assert initial - engine.capital == pytest.approx(4 * 6.0)
 
     def test_interval_span_hours_parser(self) -> None:
-        from backtest.engines._market_hooks import _interval_span_hours
+        from src.backtest.engines._market_hooks import _interval_span_hours
 
         assert _interval_span_hours("1m") == pytest.approx(1 / 60)
         assert _interval_span_hours("30m") == pytest.approx(0.5)

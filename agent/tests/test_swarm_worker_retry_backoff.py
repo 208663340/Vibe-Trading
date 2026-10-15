@@ -8,15 +8,15 @@ from unittest.mock import patch
 
 import pytest
 
-from src.config.accessor import reset_env_config
-from src.config.env_schema import SwarmConfig
-from src.swarm.models import SwarmAgentSpec, SwarmTask, WorkerResult
-from src.swarm.runtime import (
+from src.platform.config.accessor import reset_env_config
+from src.platform.config.env_schema import SwarmConfig
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmTask, WorkerResult
+from src.runtime.swarm.runtime import (
     SwarmRuntime,
     _worker_retry_budget_s,
     _worker_retry_delay_s,
 )
-from src.swarm.store import SwarmStore
+from src.runtime.swarm.store import SwarmStore
 
 
 def _runtime(tmp_path: Path) -> SwarmRuntime:
@@ -54,7 +54,7 @@ def test_worker_retry_delay_is_exponential_and_capped(monkeypatch) -> None:
     monkeypatch.setenv("SWARM_WORKER_RETRY_MAX_DELAY_S", "5")
     reset_env_config()
 
-    with patch("src.swarm.runtime.random.uniform", side_effect=lambda low, high: high):
+    with patch("src.runtime.swarm.runtime.random.uniform", side_effect=lambda low, high: high):
         assert [_worker_retry_delay_s(n) for n in range(1, 5)] == [2, 4, 5, 5]
 
     assert _worker_retry_budget_s(4) == 16
@@ -65,7 +65,7 @@ def test_worker_retry_delay_uses_equal_jitter(monkeypatch) -> None:
     monkeypatch.setenv("SWARM_WORKER_RETRY_MAX_DELAY_S", "30")
     reset_env_config()
 
-    with patch("src.swarm.runtime.random.uniform", return_value=3.0) as uniform:
+    with patch("src.runtime.swarm.runtime.random.uniform", return_value=3.0) as uniform:
         assert _worker_retry_delay_s(1) == 3.0
 
     uniform.assert_called_once_with(2.0, 4.0)
@@ -97,15 +97,15 @@ def test_failed_worker_waits_before_each_retry_and_reports_delay(
     ]
 
     with (
-        patch("src.swarm.runtime.run_worker", side_effect=results),
-        patch("src.swarm.runtime._worker_retry_delay_s", side_effect=[1.5, 3.0]),
+        patch("src.runtime.swarm.runtime.run_worker", side_effect=results),
+        patch("src.runtime.swarm.runtime._worker_retry_delay_s", side_effect=[1.5, 3.0]),
         patch.object(
             runtime,
             "_emit_event",
             side_effect=lambda _run_id, event: events.append(event),
         ),
         patch(
-            "src.swarm.runtime._wait_for_worker_retry",
+            "src.runtime.swarm.runtime._wait_for_worker_retry",
             side_effect=lambda delay, _event: waits.append(delay) or False,
         ),
     ):
@@ -130,9 +130,9 @@ def test_cancellation_interrupts_backoff_without_starting_another_attempt(
     )
 
     with (
-        patch("src.swarm.runtime.run_worker", return_value=failed) as run_worker,
-        patch("src.swarm.runtime._worker_retry_delay_s", return_value=10.0),
-        patch("src.swarm.runtime._wait_for_worker_retry", return_value=True),
+        patch("src.runtime.swarm.runtime.run_worker", return_value=failed) as run_worker,
+        patch("src.runtime.swarm.runtime._worker_retry_delay_s", return_value=10.0),
+        patch("src.runtime.swarm.runtime._wait_for_worker_retry", return_value=True),
     ):
         result = _run(runtime, tmp_path, cancel_event=cancel_event)
 

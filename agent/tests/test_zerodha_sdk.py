@@ -12,7 +12,7 @@ import datetime as dt
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from src.trading.connectors.zerodha import sdk as zsdk
+from src.markets.trading.connectors.zerodha import sdk as zsdk
 
 
 def _ist(y: int, m: int, d: int, hh: int = 0, mm: int = 0) -> datetime:
@@ -120,7 +120,7 @@ def test_bar_epoch_tolerates_naive_and_missing_input() -> None:
 
 def test_loader_alignment_no_first_day_loss(monkeypatch) -> None:
     """End-to-end: a window starting on a trading day keeps that day's bar."""
-    from backtest.loaders.india_broker_loader import _bars_to_frame
+    from src.backtest.loaders.india_broker_loader import _bars_to_frame
     # One daily bar dated 2024-04-01 midnight IST (the Kite convention).
     bars = [{"time": zsdk._bar_epoch(_ist(2024, 4, 1), day_bar=True),
              "open": 1.0, "high": 2.0, "low": 0.5, "close": 1.5, "volume": 10}]
@@ -305,7 +305,7 @@ def test_service_dispatch_reaches_zerodha_sdk(monkeypatch) -> None:
     (previously ValueError), returning the SDK's missing-config error."""
     # Deterministic: empty config regardless of any real zerodha.json on disk.
     monkeypatch.setattr(zsdk, "load_config", lambda: zsdk.ZerodhaConfig())
-    from src.trading.service import check_connection
+    from src.markets.trading.service import check_connection
 
     out = check_connection("zerodha-paper-sdk")
     assert out["status"] == "error"

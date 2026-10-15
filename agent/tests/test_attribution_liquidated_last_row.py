@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from src.api.attribution_core import _attribution_load_position_weights
+from src.interfaces.api.attribution_core import _attribution_load_position_weights
 
 SYMBOLS = ["AAA.HK", "BBB.HK"]
 

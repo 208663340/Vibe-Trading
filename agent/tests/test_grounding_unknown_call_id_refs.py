@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.context import _SYSTEM_PROMPT
-from src.agent.grounding import GroundingLedger
-from src.agent.loop import AgentLoop
-from src.agent.tools import BaseTool, ToolRegistry
-from src.agent.trace import TraceWriter
-from src.providers.chat import LLMResponse, ToolCallRequest
+from src.runtime.agent.context import _SYSTEM_PROMPT
+from src.runtime.agent.grounding import GroundingLedger
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.trace import TraceWriter
+from src.runtime.providers.chat import LLMResponse, ToolCallRequest
 
 pytestmark = pytest.mark.unit
 

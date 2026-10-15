@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.bench_runner_strict import (
+from src.research.factors.bench_runner_strict import (
     StrictThresholds,
     _shuffle_within_rows,
     alpha_series_paired,
@@ -231,7 +231,7 @@ def _stub_panel(monkeypatch: pytest.MonkeyPatch, n_rows: int = 80, n_cols: int =
              "open": close, "volume": close * 0 + 1_000_000,
              "vwap": close, "amount": close * 1_000_000}
     monkeypatch.setattr(
-        "src.factors.bench_runner_strict._load_universe_panel",
+        "src.research.factors.bench_runner_strict._load_universe_panel",
         lambda universe, period: panel,  # noqa: ARG005
     )
 
@@ -240,7 +240,7 @@ def _stub_panel(monkeypatch: pytest.MonkeyPatch, n_rows: int = 80, n_cols: int =
         return c.pct_change().shift(-1)
 
     monkeypatch.setattr(
-        "src.factors.bench_runner_strict._compute_forward_returns",
+        "src.research.factors.bench_runner_strict._compute_forward_returns",
         _fwd,
     )
 
@@ -608,11 +608,11 @@ def test_run_bench_strict_catches_planted_alive_signal(
     strict gate puts it in confirmed_alive."""
     panel = _planted_signal_panel()
     monkeypatch.setattr(
-        "src.factors.bench_runner_strict._load_universe_panel",
+        "src.research.factors.bench_runner_strict._load_universe_panel",
         lambda u, p: panel,  # noqa: ARG005
     )
     monkeypatch.setattr(
-        "src.factors.bench_runner_strict._compute_forward_returns",
+        "src.research.factors.bench_runner_strict._compute_forward_returns",
         lambda p, horizon=1: p["close"].pct_change().shift(-1),
     )
 
@@ -646,11 +646,11 @@ def test_run_bench_strict_catches_planted_reversed_signal(
 ) -> None:
     panel = _planted_signal_panel()
     monkeypatch.setattr(
-        "src.factors.bench_runner_strict._load_universe_panel",
+        "src.research.factors.bench_runner_strict._load_universe_panel",
         lambda u, p: panel,  # noqa: ARG005
     )
     monkeypatch.setattr(
-        "src.factors.bench_runner_strict._compute_forward_returns",
+        "src.research.factors.bench_runner_strict._compute_forward_returns",
         lambda p, horizon=1: p["close"].pct_change().shift(-1),
     )
 

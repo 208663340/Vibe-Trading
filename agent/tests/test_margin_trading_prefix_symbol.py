@@ -4,7 +4,7 @@ Locks out a bug where _extract_code returned None for prefix-style symbols like
 "sh.600519" or "sz.000001" because token.rpartition(".")[0] extracted the prefix part before the dot.
 """
 
-from src.tools.margin_trading_tool import _extract_code
+from src.runtime.tools.margin_trading_tool import _extract_code
 
 
 def test_extract_code_supports_prefix_style_symbols():

@@ -2,15 +2,15 @@
 
 Mirrors the BROKERS.md method-name-regex gate. Two checks:
 
-1. **Name-regex AST scan** over ``src/live/`` (and ``src/tools/``): no function
+1. **Name-regex AST scan** over ``src/markets/live/`` (and ``src/runtime/tools/``): no function
    or method matches the forbidden self-authorization regex. The single
-   legitimate writer (the consent commit path, ``src/live/mandate/commit.py``,
+   legitimate writer (the consent commit path, ``src/markets/live/mandate/commit.py``,
    owned by a different parcel) is named ``commit_mandate`` — deliberately NOT
    matching ``^(_)?(set|write|update|grant|authorize|enable|widen)_...`` — and
    is exempted by name + by not being importable as a tool.
 2. **No agent-reachable write path** opens ``mandate.json`` for write. We AST-
-   scan the modules the agent loop *can* import (``src/live/order_guard.py``,
-   ``src/live/enforcement.py``, ``src/live/extractors/``) for any ``open(...)``
+   scan the modules the agent loop *can* import (``src/markets/live/order_guard.py``,
+   ``src/markets/live/enforcement.py``, ``src/markets/live/extractors/``) for any ``open(...)``
    in a write mode targeting the mandate file, and assert the mandate store
    module exposes no ``save``/``set`` symbol.
 """
@@ -21,11 +21,11 @@ import ast
 import re
 from pathlib import Path
 
-import src.live.mandate.store as store
+import src.markets.live.mandate.store as store
 
 AGENT_DIR = Path(__file__).resolve().parent.parent
-LIVE_DIR = AGENT_DIR / "src" / "live"
-TRADING_DIR = AGENT_DIR / "src" / "trading"
+LIVE_DIR = AGENT_DIR / "src" / "markets" / "live"
+TRADING_DIR = AGENT_DIR / "src" / "markets" / "trading"
 
 _FORBIDDEN_NAME = re.compile(
     r"^(_)?(set|write|update|grant|authorize|enable|widen)_(mandate|limit|live|authorization)([_a-z]*)?$"
@@ -104,7 +104,7 @@ def test_agent_reachable_modules_never_open_mandate_for_write() -> None:
 
 def test_registry_has_no_mandate_write_tool() -> None:
     """The assembled tool registry exposes no tool that can write a mandate."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
     names = list(getattr(registry, "_tools", {}).keys())

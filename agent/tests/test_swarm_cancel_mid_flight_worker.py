@@ -5,7 +5,7 @@ Pre-fix: cancel_event was threaded from cancel_run() into _execute_run and
 _execute_layer, and polled between layers, but was never passed into
 _run_worker_with_retries or run_worker. A worker already running when
 cancel_run() fired ran to completion untouched, exactly the gap AgentLoop's
-should_cancel mechanism (agent/src/agent/loop.py) already closed for the
+should_cancel mechanism (agent/src/runtime/agent/loop.py) already closed for the
 main, non-swarm agent loop.
 
 Post-fix: cancel_event reaches run_worker(), is passed to
@@ -22,9 +22,9 @@ import threading
 import time
 from pathlib import Path
 
-import src.swarm.runtime as rt
-from src.swarm.models import SwarmAgentSpec, SwarmRun, SwarmTask, WorkerResult
-from src.swarm.store import SwarmStore
+import src.runtime.swarm.runtime as rt
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmRun, SwarmTask, WorkerResult
+from src.runtime.swarm.store import SwarmStore
 
 
 def _make_run(tmp_path: Path):
@@ -93,8 +93,8 @@ def test_cancelled_worker_result_persists_as_cancelled_task(tmp_path, monkeypatc
     """A worker that stopped because cancel_run() fired must land as a
     *cancelled* task with a task_cancelled event — the generic "worker did
     not complete" branch would otherwise relabel a user stop as a failure."""
-    from src.swarm.models import RunStatus, TaskStatus
-    from src.swarm.task_store import TaskStore
+    from src.runtime.swarm.models import RunStatus, TaskStatus
+    from src.runtime.swarm.task_store import TaskStore
 
     def cancelling_worker(agent_spec, task, **kwargs):
         kwargs["cancel_event"].set()

@@ -19,10 +19,10 @@ from typing import Tuple
 
 import pytest
 
-from src.tools import read_file_tool
-from src.tools.read_file_tool import ReadFileTool, _skill_relative_matches
+from src.runtime.tools import read_file_tool
+from src.runtime.tools.read_file_tool import ReadFileTool, _skill_relative_matches
 
-_SKILLS_DIR = Path(__file__).resolve().parents[1] / "src" / "skills"
+_SKILLS_DIR = Path(__file__).resolve().parents[1] / "src" / "research" / "skills"
 
 
 def _body(raw: str) -> dict:
@@ -114,7 +114,7 @@ def test_bare_link_cannot_climb_out_of_the_skill(tmp_path: Path, monkeypatch) ->
     already enforces: a path only has to *start* with ``references/``.
     """
     monkeypatch.setattr(read_file_tool, "_bundled_skills_dir", lambda: _SKILLS_DIR)
-    secret = _SKILLS_DIR.parent.parent.parent / "pyproject.toml"
+    secret = _SKILLS_DIR.parents[3] / "pyproject.toml"
     assert secret.is_file(), "fixture assumes pyproject.toml sits above skills/"
 
     for attempt in (

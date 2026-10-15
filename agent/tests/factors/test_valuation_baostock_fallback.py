@@ -25,8 +25,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.loaders import valuation_loader
-from backtest.loaders.valuation_loader import (
+from src.backtest.loaders import valuation_loader
+from src.backtest.loaders.valuation_loader import (
     BAOSTOCK_VALUATION_FIELDS,
     load_valuation_panel,
 )
@@ -80,7 +80,7 @@ def _fake_guard(timeout: float):
 
 
 def _install_fake_baostock(monkeypatch: pytest.MonkeyPatch, fake: Any) -> None:
-    from backtest.loaders import baostock_loader
+    from src.backtest.loaders import baostock_loader
 
     monkeypatch.setitem(sys.modules, "baostock", fake)
     monkeypatch.setattr(valuation_loader, "_baostock_available", lambda: True)

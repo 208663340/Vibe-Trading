@@ -9,9 +9,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.providers import llm as llm_mod
-from src.providers.chat import ProviderStreamError
-from src.providers.openai_codex import (
+from src.runtime.providers import llm as llm_mod
+from src.runtime.providers.chat import ProviderStreamError
+from src.runtime.providers.openai_codex import (
     DEFAULT_CODEX_URL,
     CodexAuthenticationError,
     CodexStreamError,
@@ -44,7 +44,7 @@ def _jwt(payload: dict[str, object]) -> str:
 
 
 def test_provider_default_model_matches_live_codex_account_path() -> None:
-    providers_path = Path(__file__).resolve().parents[1] / "src" / "providers" / "llm_providers.json"
+    providers_path = Path(__file__).resolve().parents[1] / "src" / "runtime" / "providers" / "llm_providers.json"
     providers = json.loads(providers_path.read_text(encoding="utf-8"))
     codex_provider = next(item for item in providers if item["name"] == "openai-codex")
 
@@ -186,7 +186,7 @@ def test_stale_refresh_fallback_invalidates_only_vibe_cache(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import src.providers.openai_codex as codex_mod
+    import src.runtime.providers.openai_codex as codex_mod
     import oauth_cli_kit
 
     monkeypatch.setenv("VIBE_TRADING_HOME", str(tmp_path))
@@ -221,7 +221,7 @@ def test_force_refresh_ignores_clock_fresh_expiry(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import src.providers.openai_codex as codex_mod
+    import src.runtime.providers.openai_codex as codex_mod
 
     storage = _build_codex_token_storage(tmp_path / "openai-codex.json")
     storage.save(
@@ -262,7 +262,7 @@ def test_force_refresh_reuses_token_rotated_by_another_process(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import src.providers.openai_codex as codex_mod
+    import src.runtime.providers.openai_codex as codex_mod
 
     storage = _build_codex_token_storage(tmp_path / "openai-codex.json")
     storage.save(
@@ -292,7 +292,7 @@ def test_transient_forced_refresh_failure_preserves_cache_and_is_retryable(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import src.providers.openai_codex as codex_mod
+    import src.runtime.providers.openai_codex as codex_mod
 
     storage = _build_codex_token_storage(tmp_path / "openai-codex.json")
     storage.save(
@@ -376,7 +376,7 @@ def test_stream_non_401_response_is_not_retried(monkeypatch: pytest.MonkeyPatch)
         def stream(self, *args: object, **kwargs: object) -> _FakeResponse:
             return _FakeResponse()
 
-    import src.providers.openai_codex as codex_mod
+    import src.runtime.providers.openai_codex as codex_mod
 
     monkeypatch.setattr(codex_mod.httpx, "Client", _FakeClient)
     adapter = OpenAICodexLLM(model=DEFAULT_CODEX_MODEL)
@@ -426,7 +426,7 @@ def test_stream_non_200_response_raises_typed_codex_stream_error(
             request_count += 1
             return _FakeResponse()
 
-    import src.providers.openai_codex as codex_mod
+    import src.runtime.providers.openai_codex as codex_mod
 
     monkeypatch.setattr(codex_mod.httpx, "Client", _FakeClient)
     adapter = OpenAICodexLLM(model=DEFAULT_CODEX_MODEL)
@@ -452,7 +452,7 @@ def test_stream_non_200_response_raises_typed_codex_stream_error(
 def test_stream_refreshes_once_after_clock_fresh_token_gets_401(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import src.providers.openai_codex as codex_mod
+    import src.runtime.providers.openai_codex as codex_mod
 
     responses = [401, 200]
     sent_authorizations: list[str] = []
@@ -516,7 +516,7 @@ def test_refresh_lock_uses_windows_byte_range_backend(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import src.providers.openai_codex as codex_mod
+    import src.runtime.providers.openai_codex as codex_mod
 
     calls: list[tuple[int, int]] = []
 

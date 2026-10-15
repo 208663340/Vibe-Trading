@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from src.tools.options_payoff_tool import OptionsPayoffTool
+from src.runtime.tools.options_payoff_tool import OptionsPayoffTool
 
 
 def _spread_legs() -> list[dict[str, object]]:
@@ -71,7 +71,7 @@ def test_unbounded_values_are_json_null_with_explicit_flags() -> None:
 
 def test_tool_is_auto_discovered_by_the_agent_registry() -> None:
     """Creating the module is sufficient to expose the read-only Agent tool."""
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
     tool = registry.get("options_payoff")
@@ -81,7 +81,7 @@ def test_tool_is_auto_discovered_by_the_agent_registry() -> None:
 
 def test_mcp_wrapper_exposes_the_same_research_calculation() -> None:
     """The public MCP wrapper delegates to the Agent tool without mutation."""
-    import mcp_server
+    import src.interfaces.mcp_server as mcp_server
 
     payload = json.loads(
         mcp_server.analyze_options_payoff(

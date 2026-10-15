@@ -15,7 +15,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backtest.engines.options_portfolio import bs_price, run_options_backtest
+from src.backtest.engines.options_portfolio import bs_price, run_options_backtest
 
 _DATES = pd.bdate_range("2025-01-01", periods=4)
 _CLOSES = [100.0, 110.0, 90.0, 120.0]

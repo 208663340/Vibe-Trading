@@ -1,7 +1,7 @@
 """Regression tests for the per-context ``load_skill`` skill allowlist.
 
 ``SwarmAgentSpec.skills`` documents a per-worker skill boundary
-(``src/swarm/models.py``), but before this fix the boundary only filtered the
+(``src/runtime/swarm/models.py``), but before this fix the boundary only filtered the
 skill *descriptions* shown in the worker prompt — the ``load_skill`` tool
 itself would load any skill by name, so the documented boundary was not
 enforced at runtime. ``LoadSkillTool(allowed_skills=...)`` closes that gap;
@@ -15,12 +15,12 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from src.agent.skills import SkillsLoader
-from src.swarm import worker as worker_mod
-from src.swarm.models import SwarmAgentSpec, SwarmTask
-from src.swarm.worker import run_worker
-from src.tools import build_filtered_registry, build_swarm_registry
-from src.tools.load_skill_tool import LoadSkillTool
+from src.runtime.agent.skills import SkillsLoader
+from src.runtime.swarm import worker as worker_mod
+from src.runtime.swarm.models import SwarmAgentSpec, SwarmTask
+from src.runtime.swarm.worker import run_worker
+from src.runtime.tools import build_filtered_registry, build_swarm_registry
+from src.runtime.tools.load_skill_tool import LoadSkillTool
 
 
 def _write_skill(root: Path, name: str) -> None:
@@ -130,7 +130,7 @@ def test_swarm_worker_passes_spec_skills_as_allowlist(tmp_path: Path) -> None:
             pass
 
         def stream_chat(self, messages, tools=None, on_text_chunk=None, timeout=None):
-            from src.providers.llm import LLMResponse
+            from src.runtime.providers.llm import LLMResponse
 
             return LLMResponse(content="done")
 
@@ -185,7 +185,7 @@ def test_swarm_worker_empty_skills_stays_unrestricted(tmp_path: Path) -> None:
             pass
 
         def stream_chat(self, messages, tools=None, on_text_chunk=None, timeout=None):
-            from src.providers.llm import LLMResponse
+            from src.runtime.providers.llm import LLMResponse
 
             return LLMResponse(content="done")
 

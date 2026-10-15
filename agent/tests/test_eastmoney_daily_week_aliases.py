@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders.eastmoney_client import KLT_BY_INTERVAL
+from src.backtest.loaders.eastmoney_client import KLT_BY_INTERVAL
 
 
 def test_lowercase_1d_and_1w_map_like_project_tokens() -> None:

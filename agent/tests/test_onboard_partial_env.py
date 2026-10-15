@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from cli import onboard
+from src.interfaces.cli import onboard
 from tests.module_os_helpers import patch_module_os
 
 pytestmark = pytest.mark.skipif(

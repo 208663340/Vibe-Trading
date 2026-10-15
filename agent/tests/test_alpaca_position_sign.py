@@ -14,8 +14,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.live.enforcement import _position_signed_market_value
-from src.trading.connectors.alpaca.sdk import _position_to_dict
+from src.markets.live.enforcement import _position_signed_market_value
+from src.markets.trading.connectors.alpaca.sdk import _position_to_dict
 
 pytestmark = pytest.mark.unit
 

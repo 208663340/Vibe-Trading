@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.factormodel.
+"""Tests for src.research.quantlib.factormodel.
 
 The recoverability tests build a cross-section from known factor returns and
 check the regression gets them back. The standardisation tests pin the two
@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.quantlib.factormodel import (
+from src.research.quantlib.factormodel import (
     MARKET_FACTOR,
     MIN_CROSS_SECTION,
     STYLE_FACTOR_DEFINITIONS,

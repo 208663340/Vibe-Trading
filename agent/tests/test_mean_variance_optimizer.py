@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from backtest.optimizers.mean_variance import MeanVarianceOptimizer
+from src.backtest.optimizers.mean_variance import MeanVarianceOptimizer
 
 
 class TestMeanVarianceOptimize:

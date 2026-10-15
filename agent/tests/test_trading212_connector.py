@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from src.live import registry
-from src.live.classification import ToolClass, classify_tool
-from src.trading import profiles, service
-from src.trading.connectors.trading212 import sdk as t212
-from src.trading.connectors.trading212.classification import TRADING212_TOOL_CLASS
+from src.markets.live import registry
+from src.markets.live.classification import ToolClass, classify_tool
+from src.markets.trading import profiles, service
+from src.markets.trading.connectors.trading212 import sdk as t212
+from src.markets.trading.connectors.trading212.classification import TRADING212_TOOL_CLASS
 
 pytestmark = pytest.mark.unit
 

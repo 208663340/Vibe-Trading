@@ -27,10 +27,10 @@ from typing import List, Tuple
 
 import pytest
 
-from src.tools.read_file_tool import _SKILL_RELATIVE_PREFIXES, ReadFileTool
+from src.runtime.tools.read_file_tool import _SKILL_RELATIVE_PREFIXES, ReadFileTool
 
 # Bundled skills root (mirrors ReadFileTool's own allowed-root computation).
-_SKILLS_DIR = Path(__file__).resolve().parents[1] / "src" / "skills"
+_SKILLS_DIR = Path(__file__).resolve().parents[1] / "src" / "research" / "skills"
 
 # Markdown link whose target is a references/*.md or scripts/*.py path, e.g.
 # "[label](references/foo/bar.md)" or "[ex](scripts/x.py)". Written wide enough

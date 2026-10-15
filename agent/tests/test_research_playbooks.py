@@ -16,9 +16,9 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytest
 
-from src.scheduled_research.executor import next_due
-from src.scheduled_research.models import JobStatus, validate_schedule
-from src.scheduled_research.playbooks import (
+from src.research.scheduled_research.executor import next_due
+from src.research.scheduled_research.models import JobStatus, validate_schedule
+from src.research.scheduled_research.playbooks import (
     PlaybookError,
     PlaybookNotFoundError,
     ResearchPlaybook,
@@ -28,7 +28,7 @@ from src.scheduled_research.playbooks import (
     load_playbook_file,
     playbook_dirs,
 )
-from src.scheduled_research.store import ScheduledResearchJobStore
+from src.research.scheduled_research.store import ScheduledResearchJobStore
 
 EXPECTED_SLUGS = {
     "a-share-money-flow",
@@ -82,7 +82,7 @@ Look at {{symbol}}.
 class TestBundledCatalogue:
     def test_module_wins_over_same_named_data_directory(self) -> None:
         """``playbooks.py`` and ``playbooks/`` coexist; the module must win."""
-        import src.scheduled_research.playbooks as module
+        import src.research.scheduled_research.playbooks as module
 
         assert module.__file__ is not None
         assert Path(module.__file__).name == "playbooks.py"

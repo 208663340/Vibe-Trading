@@ -16,9 +16,9 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from src.scheduled_research.executor import ScheduledResearchExecutor
-from src.scheduled_research.models import DeliveryStatus, ScheduledResearchJob
-from src.scheduled_research.store import ScheduledResearchJobStore
+from src.research.scheduled_research.executor import ScheduledResearchExecutor
+from src.research.scheduled_research.models import DeliveryStatus, ScheduledResearchJob
+from src.research.scheduled_research.store import ScheduledResearchJobStore
 
 
 def _store(tmp_path: Path) -> ScheduledResearchJobStore:

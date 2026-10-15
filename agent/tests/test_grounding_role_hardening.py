@@ -16,10 +16,10 @@ from typing import Any
 
 import pytest
 
-from src.agent.grounding import GroundingLedger
+from src.runtime.agent.grounding import GroundingLedger
 from tests.grounding_parameter_helpers import declared_parameter
-from src.agent.grounding.evidence import _metric_kind_for_path
-from src.agent.grounding.policies import _note_tokens
+from src.runtime.agent.grounding.evidence import _metric_kind_for_path
+from src.runtime.agent.grounding.policies import _note_tokens
 
 pytestmark = pytest.mark.unit
 
@@ -594,7 +594,7 @@ def test_a_tail_risk_figure_a_tool_returned_is_grounded(tmp_path: Path) -> None:
     assert invented.valid is False
 
 
-#: portfolio_risk_xray's tail-risk block, keys as backtest/risk_xray.py writes them.
+#: portfolio_risk_xray's tail-risk block, keys as src/backtest/risk_xray.py writes them.
 XRAY = (
     "portfolio_risk_xray",
     {"symbols": [A]},
@@ -615,7 +615,7 @@ XRAY = (
 
 def _historical_var(confidence: float, call_id: str) -> tuple[tuple[str, dict[str, Any], str, str], float]:
     """A real quantlib_call historical_var envelope and the VaR it returned."""
-    from src.tools.quantlib_tool import QuantlibCallTool
+    from src.runtime.tools.quantlib_tool import QuantlibCallTool
 
     returns = [round(0.0005 + 0.012 * ((i * 37) % 101 - 50) / 50, 5) for i in range(250)]
     arguments = {"action": "call", "module": "risk", "function": "historical_var", "kwargs": {"returns": returns, "confidence": confidence}}
@@ -861,7 +861,7 @@ def test_another_symbols_field_does_not_make_a_ref_ambiguous(tmp_path: Path) -> 
 
 
 def test_the_ambiguity_correction_names_the_refs_to_use() -> None:
-    from src.agent.grounding.release import _correction_line
+    from src.runtime.agent.grounding.release import _correction_line
 
     line = _correction_line(
         {
@@ -1026,7 +1026,7 @@ def test_a_referenced_table_cell_is_checked_against_its_own_column(tmp_path: Pat
 @pytest.mark.parametrize("function", ["historical_var", "parametric_var", "historical_cvar"])
 def test_a_real_quantlib_tail_risk_result_grounds_its_own_figure(tmp_path: Path, function: str) -> None:
     """#1464: the scalar result of a real ``quantlib_call`` is evidence for the figure it returned."""
-    from src.tools.quantlib_tool import QuantlibCallTool
+    from src.runtime.tools.quantlib_tool import QuantlibCallTool
 
     returns = [0.01, -0.02, 0.003, -0.0157, 0.004, -0.01, 0.02, -0.005, 0.007, -0.012] * 3
     arguments = {

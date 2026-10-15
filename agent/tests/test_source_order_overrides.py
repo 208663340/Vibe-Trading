@@ -16,8 +16,8 @@ import os
 import pytest
 from unittest.mock import patch
 
-import backtest.loaders.registry as registry
-from backtest.loaders.registry import (
+import src.backtest.loaders.registry as registry
+from src.backtest.loaders.registry import (
     FALLBACK_CHAINS,
     parse_source_order,
     refresh_source_order_overrides,

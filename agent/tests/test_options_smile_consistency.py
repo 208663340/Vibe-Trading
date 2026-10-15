@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backtest.engines.options_portfolio import (
+from src.backtest.engines.options_portfolio import (
     bs_price,
     iv_smile_adjustment,
     leg_iv,
@@ -161,7 +161,7 @@ class TestGreeksUseTheLegVol:
         )
         greeks = pd.read_csv(tmp_path / "artifacts" / "greeks.csv")
 
-        from backtest.engines.options_portfolio import bs_greeks
+        from src.backtest.engines.options_portfolio import bs_greeks
 
         smile_vol = leg_iv(100.0, 110.0, _BASE_IV, -0.15, 0.05)
         expiry = pd.Timestamp("2025-02-21")

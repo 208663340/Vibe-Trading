@@ -15,8 +15,8 @@ from typing import Any
 
 import pytest
 
-import src.live.paths as paths
-from src.live.advisory import (
+import src.markets.live.paths as paths
+from src.markets.live.advisory import (
     AdvisoryContext,
     AdvisoryOrchestrator,
     AdvisoryResult,
@@ -25,8 +25,8 @@ from src.live.advisory import (
     clear_advisory_providers,
     register_advisory_provider,
 )
-from src.live.advisory.mock import MockAdvisory
-from src.live.mandate.model import (
+from src.markets.live.advisory.mock import MockAdvisory
+from src.markets.live.mandate.model import (
     MANDATE_SCHEMA_VERSION,
     AssetClass,
     ConsentMeta,
@@ -35,8 +35,8 @@ from src.live.mandate.model import (
     Mandate,
     UniverseConstraint,
 )
-from src.live.order_guard import LiveOrderGuardTool
-from src.tools.mcp import MCPRemoteToolSpec
+from src.markets.live.order_guard import LiveOrderGuardTool
+from src.runtime.tools.mcp import MCPRemoteToolSpec
 from tests import robinhood_mcp_helpers as rh
 
 

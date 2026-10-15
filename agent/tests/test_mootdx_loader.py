@@ -7,8 +7,8 @@ from types import SimpleNamespace
 import pandas as pd
 import pytest
 
-import backtest.loaders.mootdx_loader as ml
-from backtest.loaders.mootdx_loader import DataLoader, _is_a_share, _is_bj
+import src.backtest.loaders.mootdx_loader as ml
+from src.backtest.loaders.mootdx_loader import DataLoader, _is_a_share, _is_bj
 from tests.loader_contract import assert_loader_contract
 
 
@@ -231,7 +231,7 @@ def test_is_available_true_when_mootdx_present(fake_client: _FakeStdQuotes) -> N
 
 
 def test_registry_keeps_mootdx_registered_but_off_default_chain() -> None:
-    from backtest.loaders.registry import FALLBACK_CHAINS, _ensure_registered, LOADER_REGISTRY
+    from src.backtest.loaders.registry import FALLBACK_CHAINS, _ensure_registered, LOADER_REGISTRY
 
     _ensure_registered()
     assert "mootdx" in LOADER_REGISTRY

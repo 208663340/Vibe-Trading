@@ -1,6 +1,6 @@
 """Tests for tickerall_loader: the four review-contract guarantees plus parsing.
 
-All HTTP is mocked at :func:`backtest.loaders._http.throttled_get_json` (imported
+All HTTP is mocked at :func:`src.backtest.loaders._http.throttled_get_json` (imported
 into the loader module), so no test touches a live TickerAll endpoint. The four
 contract points these tests pin down:
 
@@ -17,9 +17,9 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from backtest.loaders import tickerall_loader as tl
+from src.backtest.loaders import tickerall_loader as tl
 from tests.loader_contract import assert_loader_contract
-from backtest.loaders.tickerall_loader import (
+from src.backtest.loaders.tickerall_loader import (
     DataLoader,
     IncompleteHistoryError,
     _parse_candles,
@@ -90,20 +90,20 @@ def _clear_symbol_cache():
 # ---------------------------------------------------------------------------
 class TestRegistrationAndExplicitOnly:
     def test_registered_in_registry(self):
-        from backtest.loaders import registry
+        from src.backtest.loaders import registry
 
         registry._ensure_registered()
         assert registry.LOADER_REGISTRY.get("tickerall") is DataLoader
 
     def test_in_valid_sources(self):
-        from backtest.loaders import registry
+        from src.backtest.loaders import registry
 
         assert "tickerall" in registry.VALID_SOURCES
 
     def test_never_in_any_fallback_chain(self):
         """Contract 1: explicit-only. A user's broker credential is used only on a
         deliberate source="tickerall" request, never silently as a fallback."""
-        from backtest.loaders import registry
+        from src.backtest.loaders import registry
 
         for market, chain in registry.FALLBACK_CHAINS.items():
             assert "tickerall" not in chain, f"tickerall must not be in the {market} chain"

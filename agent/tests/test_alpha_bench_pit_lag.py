@@ -19,8 +19,8 @@ from unittest.mock import Mock
 import numpy as np
 import pandas as pd
 
-from src.factors.factor_analysis_core import compute_ic_series
-from src.tools.alpha_bench_tool import _compute_forward_returns, _prepare_bench_panel
+from src.research.factors.factor_analysis_core import compute_ic_series
+from src.runtime.tools.alpha_bench_tool import _compute_forward_returns, _prepare_bench_panel
 
 _DATES = pd.to_datetime(["2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12"])
 
@@ -92,7 +92,7 @@ def test_pit_panel_shifts_filing_one_bar_later(monkeypatch) -> None:
     frame.iloc[2] = 5.0
     frame = frame.ffill()
     loader = Mock(return_value={"net_income": frame})
-    monkeypatch.setattr("backtest.loaders.fundamentals_loader.load_fundamental_panel", loader)
+    monkeypatch.setattr("src.backtest.loaders.fundamentals_loader.load_fundamental_panel", loader)
 
     result = _prepare_bench_panel(_registry(["close", "fund:net_income"]), ["aid"], {"close": close}, "sp500", "2026-2026")
 
@@ -113,7 +113,7 @@ def test_after_close_filing_does_not_leak_into_the_ic(monkeypatch) -> None:
     """
     close = _close_panel()
     loader = Mock(return_value={"net_income": _leak_frame(close)})
-    monkeypatch.setattr("backtest.loaders.fundamentals_loader.load_fundamental_panel", loader)
+    monkeypatch.setattr("src.backtest.loaders.fundamentals_loader.load_fundamental_panel", loader)
 
     result = _prepare_bench_panel(_registry(["close", "fund:net_income"]), ["aid"], {"close": close}, "sp500", "2026-2026")
 

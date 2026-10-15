@@ -12,8 +12,8 @@ from typing import Any
 
 import pytest
 
-from src.tools import build_registry
-from src.tools.alpha_compare_tool import AlphaCompareTool, _coerce_ids
+from src.runtime.tools import build_registry
+from src.runtime.tools.alpha_compare_tool import AlphaCompareTool, _coerce_ids
 
 
 # ── _coerce_ids ─────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ def test_execute_happy_path(monkeypatch) -> None:
         captured.update(alpha_ids=alpha_ids, universe=universe, period=period, sort=sort)
         return _ok_envelope()
 
-    monkeypatch.setattr("src.tools.alpha_compare_tool.compare_alphas", _fake)
+    monkeypatch.setattr("src.runtime.tools.alpha_compare_tool.compare_alphas", _fake)
     out = AlphaCompareTool().execute(
         alpha_ids=["alpha101_1", "alpha101_2", "alpha101_1"],  # dup collapses
         universe="csi300", period="2020-2025", sort="ir",
@@ -92,7 +92,7 @@ def test_execute_happy_path(monkeypatch) -> None:
 
 def test_execute_accepts_inline_string_ids(monkeypatch) -> None:
     monkeypatch.setattr(
-        "src.tools.alpha_compare_tool.compare_alphas",
+        "src.runtime.tools.alpha_compare_tool.compare_alphas",
         lambda alpha_ids, *a, **k: {"status": "ok", "n_compared": len(alpha_ids),
                                     "winner": alpha_ids[0], "ranking": [], "skipped": []},
     )
@@ -106,7 +106,7 @@ def test_execute_accepts_inline_string_ids(monkeypatch) -> None:
 def test_execute_missing_universe_is_error(monkeypatch) -> None:
     # compare_alphas must not even be called when required args are absent.
     monkeypatch.setattr(
-        "src.tools.alpha_compare_tool.compare_alphas",
+        "src.runtime.tools.alpha_compare_tool.compare_alphas",
         lambda *a, **k: pytest.fail("compare_alphas should not run without universe"),
     )
     env = json.loads(AlphaCompareTool().execute(
@@ -120,7 +120,7 @@ def test_execute_wraps_unexpected_exception(monkeypatch) -> None:
     def _boom(*_a: Any, **_k: Any):
         raise RuntimeError("kaboom")
 
-    monkeypatch.setattr("src.tools.alpha_compare_tool.compare_alphas", _boom)
+    monkeypatch.setattr("src.runtime.tools.alpha_compare_tool.compare_alphas", _boom)
     env = json.loads(AlphaCompareTool().execute(
         alpha_ids=["a", "b"], universe="csi300", period="2020-2025",
     ))

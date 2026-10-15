@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from src.api import qveris_routes
-from src.tools import qveris_tool as qt
+import src.interfaces.api_server as api_server
+from src.interfaces.api import qveris_routes
+from src.runtime.tools import qveris_tool as qt
 
 
 @pytest.fixture

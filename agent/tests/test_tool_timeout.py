@@ -7,8 +7,8 @@ import time
 from types import SimpleNamespace
 from typing import Any
 
-from src.agent import tuning as tuning_mod
-from src.agent.loop import AgentLoop
+from src.runtime.agent import tuning as tuning_mod
+from src.runtime.agent.loop import AgentLoop
 
 
 class _SlowRegistry:

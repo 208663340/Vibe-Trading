@@ -14,8 +14,8 @@ from typing import Any
 
 import pytest
 
-from src.api.live_routes import _CONNECTION_STATES, _ERROR_CODES
-from src.trading.connectors.futu import sdk as futu_sdk
+from src.interfaces.api.live_routes import _CONNECTION_STATES, _ERROR_CODES
+from src.markets.trading.connectors.futu import sdk as futu_sdk
 
 
 @pytest.fixture()

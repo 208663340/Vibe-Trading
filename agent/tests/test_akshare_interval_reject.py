@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from backtest.loaders.akshare_loader import DataLoader, _INTERVAL_MAP_DAILY
+from src.backtest.loaders.akshare_loader import DataLoader, _INTERVAL_MAP_DAILY
 
 
 def test_akshare_a_share_rejects_minute_interval() -> None:

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cli import _legacy
-from src.agent.trace import TraceWriter
+from src.interfaces.cli import _legacy
+from src.runtime.agent.trace import TraceWriter
 
 
 def test_repeated_continue_reads_and_appends_one_canonical_trace(

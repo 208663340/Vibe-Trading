@@ -12,9 +12,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from backtest.metrics import calc_metrics
-from backtest.models import TradeRecord
-from backtest.validation import (
+from src.backtest.metrics import calc_metrics
+from src.backtest.models import TradeRecord
+from src.backtest.validation import (
     _path_metrics,
     bootstrap_sharpe_ci,
     monte_carlo_test,

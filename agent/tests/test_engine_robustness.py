@@ -20,11 +20,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.engines.base import _align
-from backtest.engines import base as base_engine
-from backtest.engines.china_a import ChinaAEngine
-from backtest.loaders.base import validate_date_range
-from backtest.runner import BacktestConfigSchema
+from src.backtest.engines.base import _align
+from src.backtest.engines import base as base_engine
+from src.backtest.engines.china_a import ChinaAEngine
+from src.backtest.loaders.base import validate_date_range
+from src.backtest.runner import BacktestConfigSchema
 
 
 # ---------------------------------------------------------------------------
@@ -226,7 +226,7 @@ class TestSymbolIsolation:
             # benchmark over the evaluated window via BenchmarkResult's own
             # method, so a stub that only carries attributes would not exercise
             # the path under test.
-            from backtest.benchmark import BenchmarkResult
+            from src.backtest.benchmark import BenchmarkResult
 
             return BenchmarkResult(
                 ticker="000300.SH",
@@ -235,7 +235,7 @@ class TestSymbolIsolation:
                 close=pd.Series([100.0, 101.0, 100.495], index=dates),
             )
 
-        monkeypatch.setattr("backtest.benchmark.resolve_benchmark", fake_resolve_benchmark)
+        monkeypatch.setattr("src.backtest.benchmark.resolve_benchmark", fake_resolve_benchmark)
 
         engine = ChinaAEngine({"initial_cash": 1_000_000})
         config = {
@@ -469,7 +469,7 @@ class TestBacktestConfigSchema:
     def test_valid_sources_covers_all_registered_loaders(self) -> None:
         """Every registered loader name must be an accepted config source, so a
         new loader can never be silently rejected by the config schema."""
-        from backtest.loaders.registry import (
+        from src.backtest.loaders.registry import (
             LOADER_REGISTRY,
             VALID_SOURCES,
             _ensure_registered,
@@ -522,7 +522,7 @@ class TestDateRangeValidation:
 
     def test_yfinance_loader_validates_dates(self) -> None:
         """yfinance loader should raise on reversed dates before fetching."""
-        from backtest.loaders.yfinance_loader import DataLoader
+        from src.backtest.loaders.yfinance_loader import DataLoader
 
         loader = DataLoader()
         with pytest.raises(ValueError):
@@ -530,7 +530,7 @@ class TestDateRangeValidation:
 
     def test_okx_loader_validates_dates(self) -> None:
         """OKX loader should raise on reversed dates before fetching."""
-        from backtest.loaders.okx import DataLoader
+        from src.backtest.loaders.okx import DataLoader
 
         loader = DataLoader()
         with pytest.raises(ValueError):
@@ -538,7 +538,7 @@ class TestDateRangeValidation:
 
     def test_ccxt_loader_validates_dates(self) -> None:
         """CCXT loader should raise on reversed dates before fetching."""
-        from backtest.loaders.ccxt_loader import DataLoader
+        from src.backtest.loaders.ccxt_loader import DataLoader
 
         loader = DataLoader()
         with pytest.raises(ValueError):
@@ -546,7 +546,7 @@ class TestDateRangeValidation:
 
     def test_akshare_loader_validates_dates(self) -> None:
         """AKShare loader should raise on reversed dates before fetching."""
-        from backtest.loaders.akshare_loader import DataLoader
+        from src.backtest.loaders.akshare_loader import DataLoader
 
         loader = DataLoader()
         with pytest.raises(ValueError):
@@ -554,7 +554,7 @@ class TestDateRangeValidation:
 
     def test_tushare_loader_validates_dates(self) -> None:
         """Tushare loader should raise on reversed dates before fetching."""
-        from backtest.loaders.tushare import DataLoader
+        from src.backtest.loaders.tushare import DataLoader
 
         # Tushare requires TUSHARE_TOKEN at init; skip if unavailable
         import os
@@ -664,7 +664,7 @@ class TestValidationArtifactDir:
                 "median_sharpe": float("nan"),
             }
         }
-        with patch("backtest.validation.run_validation", return_value=non_finite):
+        with patch("src.backtest.validation.run_validation", return_value=non_finite):
             metrics = engine.run_backtest(
                 {
                     "codes": ["000001.SZ"],

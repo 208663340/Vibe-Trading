@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from src.trading.capability_matrix import README_PATH, render, render_block, sync_readme
-from src.trading.profiles import BUILTIN_PROFILES
+from src.markets.trading.capability_matrix import README_PATH, render, render_block, sync_readme
+from src.markets.trading.profiles import BUILTIN_PROFILES
 
 
 def test_capability_matrix_block_in_readme_is_current() -> None:
     """CI drift guard: the README's marked block equals a fresh render.
 
     Fails red when a connector profile changed without regenerating:
-    python -m src.trading.capability_matrix
+    python -m src.markets.trading.capability_matrix
     """
     text = README_PATH.read_text(encoding="utf-8")
     assert render_block() in text, (
-        "README's broker-capability-matrix block is stale; regenerate with python -m src.trading.capability_matrix"
+        "README's broker-capability-matrix block is stale; regenerate with python -m src.markets.trading.capability_matrix"
     )
 
 
@@ -60,7 +60,7 @@ def test_paper_order_capability_never_becomes_a_live_permission() -> None:
 
 def test_only_builtin_declarations_are_rendered(monkeypatch) -> None:
     from dataclasses import replace
-    from src.trading import capability_matrix
+    from src.markets.trading import capability_matrix
 
     profile = replace(
         BUILTIN_PROFILES[0],

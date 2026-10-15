@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from src.session.models import Attempt, Message, Session
-from src.session.store import SessionStore
+from src.runtime.session.models import Attempt, Message, Session
+from src.runtime.session.store import SessionStore
 
 
 @pytest.mark.parametrize("bad_bytes", [b'\xff', b'{"title":"\xe4\xb8"}'])

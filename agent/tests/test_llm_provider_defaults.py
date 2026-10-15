@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import cli
-from cli.onboard import PROVIDERS as ONBOARD_PROVIDERS
-from src.providers.capabilities import (
+import src.interfaces.cli as cli
+from src.interfaces.cli.onboard import PROVIDERS as ONBOARD_PROVIDERS
+from src.runtime.providers.capabilities import (
     _provider_default_base_urls,
     get_llm_credentials,
 )
@@ -39,7 +39,7 @@ EXPECTED_PROVIDER_DEFAULTS = {
 
 
 def test_llm_provider_registry_uses_current_default_models() -> None:
-    providers_path = Path(__file__).resolve().parents[1] / "src" / "providers" / "llm_providers.json"
+    providers_path = Path(__file__).resolve().parents[1] / "src" / "runtime" / "providers" / "llm_providers.json"
     providers = json.loads(providers_path.read_text(encoding="utf-8"))
     defaults = {item["name"]: item["default_model"] for item in providers}
 
@@ -50,7 +50,7 @@ def test_llm_provider_registry_uses_current_default_models() -> None:
 
 
 def test_minimax_provider_lists_regional_endpoints() -> None:
-    providers_path = Path(__file__).resolve().parents[1] / "src" / "providers" / "llm_providers.json"
+    providers_path = Path(__file__).resolve().parents[1] / "src" / "runtime" / "providers" / "llm_providers.json"
     providers = json.loads(providers_path.read_text(encoding="utf-8"))
     minimax = next(item for item in providers if item["name"] == "minimax")
 
@@ -169,7 +169,7 @@ def test_openai_base_url_env_overrides_catalog_default(monkeypatch) -> None:
 def test_credential_fallback_map_matches_provider_catalog() -> None:
     """The base-URL fallback map must stay in sync with llm_providers.json."""
     providers_path = (
-        Path(__file__).resolve().parents[1] / "src" / "providers" / "llm_providers.json"
+        Path(__file__).resolve().parents[1] / "src" / "runtime" / "providers" / "llm_providers.json"
     )
     # claude-cli drives a local executable and has no HTTP endpoint, so it is
     # the one provider deliberately left out of the fallback map.
@@ -186,7 +186,7 @@ def test_env_example_default_matches_provider_registry():
     assignments = dict(line.split("=", 1) for line in
                        (agent_root / ".env.example").read_text().splitlines()
                        if line.startswith(("LANGCHAIN_PROVIDER=", "LANGCHAIN_MODEL_NAME=")))
-    providers = json.loads((agent_root / "src/providers/llm_providers.json").read_text())
+    providers = json.loads((agent_root / "src/runtime/providers/llm_providers.json").read_text())
     provider = next(p for p in providers if p["name"] == assignments["LANGCHAIN_PROVIDER"])
     assert assignments["LANGCHAIN_MODEL_NAME"] == provider["default_model"]
 
@@ -211,7 +211,7 @@ def test_codex_models_offered_are_ones_the_codex_backend_publishes() -> None:
     from pathlib import Path
 
     catalog = json.loads(
-        (Path(__file__).resolve().parents[1] / "src" / "providers" / "context_windows.json").read_text()
+        (Path(__file__).resolve().parents[1] / "src" / "runtime" / "providers" / "context_windows.json").read_text()
     )
     patterns = [e["pattern"] for e in catalog["models"] if e.get("provider") == "openai-codex"]
     onboard = next(provider for provider in ONBOARD_PROVIDERS if provider.key == "openai-codex")

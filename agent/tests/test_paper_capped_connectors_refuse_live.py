@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pytest
 
-_CONNECTOR_ROOT = Path(__file__).resolve().parents[1] / "src" / "trading" / "connectors"
+_CONNECTOR_ROOT = Path(__file__).resolve().parents[1] / "src" / "markets" / "trading" / "connectors"
 
 # Brokers with no runtime paper/live discriminator. Capped at paper; every
 # order entry point must refuse a non-paper config up front.

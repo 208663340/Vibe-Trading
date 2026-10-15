@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from src.memory.persistent import (
+from src.runtime.memory.persistent import (
     MAX_ENTRY_CHARS,
     MemoryEntry,
     PersistentMemory,
@@ -341,7 +341,7 @@ class TestAdd:
         )
         assert second is not None
 
-        from src.memory.semantic_links import SemanticLinker
+        from src.runtime.memory.semantic_links import SemanticLinker
 
         targets = [
             target for target, _score in SemanticLinker(tmp_path).load_relations(second)
@@ -361,7 +361,7 @@ class TestAdd:
         than the spelling: it asks the two code paths for the same entry and
         requires one file.
         """
-        from src.memory.hierarchy import MemoryHierarchy
+        from src.runtime.memory.hierarchy import MemoryHierarchy
 
         monkeypatch.setenv("VT_MEMORY_HIERARCHY", "1")
         category = tmp_path / "project"
@@ -422,7 +422,7 @@ class TestFindRelevant:
         p2 = pm.add("stock-1", "stock analysis one", "project", description="stock one")
         p3 = pm.add("stock-2", "stock analysis two", "project", description="stock two")
         assert p1 is not None and p2 is not None and p3 is not None
-        from src.memory.semantic_links import SemanticLinker
+        from src.runtime.memory.semantic_links import SemanticLinker
         linker = SemanticLinker(tmp_path)
         linker.save_relations(p1, [(str(p3), 0.95)])
         results = pm.find_relevant("stock analysis", max_results=2)

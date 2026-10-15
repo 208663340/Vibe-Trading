@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from src.session.events import EventBus
-from src.session.models import Attempt, AttemptStatus
-from src.session.service import SessionBusyError, SessionService
-from src.session.store import SessionStore
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import Attempt, AttemptStatus
+from src.runtime.session.service import SessionBusyError, SessionService
+from src.runtime.session.store import SessionStore
 
 
 class _DummyIndex:
@@ -23,7 +23,7 @@ class _DummyIndex:
 
 
 def _service(tmp_path: Path, monkeypatch) -> SessionService:
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: _DummyIndex())
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: _DummyIndex())
     return SessionService(
         store=SessionStore(tmp_path / "sessions"),
         event_bus=EventBus(),

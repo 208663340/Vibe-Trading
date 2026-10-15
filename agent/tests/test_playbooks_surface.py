@@ -28,11 +28,11 @@ from typing import Any, List
 import pytest
 from fastapi.testclient import TestClient
 
-import api_server
-from cli.commands import research_playbook, slash_router
-from src.api import scheduled_routes
-from src.scheduled_research.playbooks import get_playbook, list_playbooks
-from src.scheduled_research.store import ScheduledResearchJobStore
+import src.interfaces.api_server as api_server
+from src.interfaces.cli.commands import research_playbook, slash_router
+from src.interfaces.api import scheduled_routes
+from src.research.scheduled_research.playbooks import get_playbook, list_playbooks
+from src.research.scheduled_research.store import ScheduledResearchJobStore
 
 BUNDLED_SLUGS = {
     "a-share-money-flow",
@@ -67,7 +67,7 @@ def _hermetic_catalogue(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.fixture(autouse=True)
 def _wide_console(monkeypatch: pytest.MonkeyPatch) -> None:
     """Stop Rich from ellipsizing slugs at the default 80-column test width."""
-    from cli.theme import get_console
+    from src.interfaces.cli.theme import get_console
 
     monkeypatch.setattr(get_console(), "width", 200, raising=False)
 
@@ -103,7 +103,7 @@ def client(rest_store: ScheduledResearchJobStore, monkeypatch: pytest.MonkeyPatc
 
 def _run_cli(argv: List[str]) -> int:
     """Drive the real argparse dispatcher, returning its exit code."""
-    from cli import _legacy
+    from src.interfaces.cli import _legacy
 
     return int(_legacy.main(argv))
 
@@ -568,7 +568,7 @@ class TestSlashCommand:
         assert len(names) == len(set(names))
         command = slash_router.find_exact("/playbook")
         assert command is not None
-        assert command.handler_module == "cli.commands.research_playbook"
+        assert command.handler_module == "src.interfaces.cli.commands.research_playbook"
 
     def test_registration_is_idempotent(self) -> None:
         before = slash_router.SLASH_COMMANDS
@@ -773,7 +773,7 @@ def test_catalogue_size_matches_the_loader(client: TestClient) -> None:
 @pytest.fixture
 def configured_destinations(monkeypatch):
     from types import SimpleNamespace
-    from src.channels import targets
+    from src.interfaces.channels import targets
 
     monkeypatch.setattr(targets, "load_agent_config", lambda: SimpleNamespace(channels=SimpleNamespace(delivery_targets={
         "research": SimpleNamespace(enabled=True, label="Research", channel="email", target="report@example.com"),

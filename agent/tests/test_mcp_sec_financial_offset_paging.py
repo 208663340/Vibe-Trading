@@ -14,10 +14,10 @@ import inspect
 import json
 from unittest.mock import patch
 
-import mcp_server
-from src.tools import sec_filings_tool as sft
-from src.tools.financial_statements_tool import FinancialStatementsTool
-from src.tools.sec_filings_tool import SecFilingsTool
+import src.interfaces.mcp_server as mcp_server
+from src.runtime.tools import sec_filings_tool as sft
+from src.runtime.tools.financial_statements_tool import FinancialStatementsTool
+from src.runtime.tools.sec_filings_tool import SecFilingsTool
 
 _sec = getattr(mcp_server.get_sec_filings, "fn", None) or getattr(
     mcp_server.get_sec_filings, "__wrapped__", mcp_server.get_sec_filings

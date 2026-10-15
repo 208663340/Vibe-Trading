@@ -14,9 +14,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from backtest.engines.china_a import ChinaAEngine
-from backtest.engines.composite import CompositeEngine
-from backtest.models import Position
+from src.backtest.engines.china_a import ChinaAEngine
+from src.backtest.engines.composite import CompositeEngine
+from src.backtest.models import Position
 
 CODES = ["600000.SH", "RELIANCE.NS"]
 

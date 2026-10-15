@@ -1,4 +1,4 @@
-"""Tests for path safety helpers in src.tools.path_utils."""
+"""Tests for path safety helpers in src.runtime.tools.path_utils."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from src.tools.path_utils import safe_document_path, safe_path, safe_run_dir, safe_run_id, safe_user_path
+from src.runtime.tools.path_utils import safe_document_path, safe_path, safe_run_dir, safe_run_id, safe_user_path
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ class TestSafeUserPath:
 
 class TestSafeDocumentPath:
     def test_upload_handle_resolves_to_runtime_uploads(self) -> None:
-        from src.config.paths import get_uploads_dir
+        from src.platform.config.paths import get_uploads_dir
 
         result = safe_document_path("uploads/local.csv")
 

@@ -15,7 +15,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.forex import (
+from src.backtest.engines.forex import (
     ForexEngine,
     _lot_units,
     _METAL_SPECS,
@@ -24,8 +24,8 @@ from backtest.engines.forex import (
     _SPREAD_PIPS,
     STANDARD_LOT,
 )
-from backtest.engines._market_hooks import _SWAP_LONG
-from backtest.models import Position
+from src.backtest.engines._market_hooks import _SWAP_LONG
+from src.backtest.models import Position
 
 
 # ---------------------------------------------------------------------------

@@ -6,7 +6,7 @@ import pytest
 
 pytest.importorskip("openbb_ai")
 
-from src.openbb_bridge.event_mapper import SSEEventMapper
+from src.interfaces.openbb_bridge.event_mapper import SSEEventMapper
 
 
 def test_text_delta_maps_to_single_message_chunk():

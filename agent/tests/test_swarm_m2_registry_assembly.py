@@ -18,7 +18,7 @@ The contract this file defends:
     out — defense-in-depth on top of the per-server ``enabled_tools``.
 
 Tests follow the existing fake-wrappers pattern from
-``tests/test_registry_mcp_integration.py`` (patch ``src.tools.mcp.build_mcp_tool_wrappers``)
+``tests/test_registry_mcp_integration.py`` (patch ``src.runtime.tools.mcp.build_mcp_tool_wrappers``)
 so we exercise the real ``build_registry`` merge logic without reaching for a
 network. The MCP wire protocol stays untouched — we only mock the wrapper
 builder, not the adapter or transport.
@@ -30,9 +30,9 @@ import logging
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from src.config.schema import AgentConfig
-from src.tools import build_swarm_registry
-from src.tools.mcp import MCPRemoteTool, resolve_mcp_server_tool_name_segments
+from src.platform.config.schema import AgentConfig
+from src.runtime.tools import build_swarm_registry
+from src.runtime.tools.mcp import MCPRemoteTool, resolve_mcp_server_tool_name_segments
 
 
 def _make_agent_config(servers: dict[str, dict[str, Any]]) -> AgentConfig:
@@ -76,7 +76,7 @@ def test_build_swarm_registry_includes_local_and_remote_tools_when_both_whitelis
     fake_wrappers = _make_fake_wrappers("kb", ["search"])
     cfg = _make_agent_config({"kb": {"command": "uvx", "args": ["kb-server"]}})
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
         registry = build_swarm_registry(
             ["read_file", "mcp_kb_search"],
             agent_config=cfg,
@@ -116,7 +116,7 @@ def test_build_swarm_registry_drops_whitelisted_tool_when_server_excludes_it(
         }
     )
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
         with caplog.at_level(logging.WARNING):
             registry = build_swarm_registry(
                 ["mcp_kb_search"],
@@ -183,7 +183,7 @@ def test_build_swarm_registry_filters_remote_tools_outside_agent_whitelist() -> 
         }
     )
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers", return_value=fake_wrappers):
         registry = build_swarm_registry(
             ["mcp_kb_search"],
             agent_config=cfg,
@@ -206,7 +206,7 @@ def test_build_swarm_registry_discovers_only_servers_named_by_whitelist() -> Non
         return _make_fake_wrappers(server_name, ["search"])
 
     with patch(
-        "src.tools.mcp.build_mcp_tool_wrappers",
+        "src.runtime.tools.mcp.build_mcp_tool_wrappers",
         side_effect=fake_build_mcp_tool_wrappers,
     ) as build_wrappers:
         registry = build_swarm_registry(
@@ -234,7 +234,7 @@ def test_build_swarm_registry_preserves_collision_hash_prefix_after_pruning() ->
         return _make_fake_wrappers(kwargs["local_server_name"], ["ping"])
 
     with patch(
-        "src.tools.mcp.build_mcp_tool_wrappers",
+        "src.runtime.tools.mcp.build_mcp_tool_wrappers",
         side_effect=fake_build_mcp_tool_wrappers,
     ) as build_wrappers:
         registry = build_swarm_registry(
@@ -251,7 +251,7 @@ def test_build_swarm_registry_skips_mcp_discovery_for_local_only_whitelist() -> 
     """A local-only agent whitelist must not discover any configured MCP server."""
     cfg = _make_agent_config({"kb": {"command": "uvx", "args": ["kb-server"]}})
 
-    with patch("src.tools.mcp.build_mcp_tool_wrappers") as build_wrappers:
+    with patch("src.runtime.tools.mcp.build_mcp_tool_wrappers") as build_wrappers:
         registry = build_swarm_registry(
             ["read_file"],
             agent_config=cfg,

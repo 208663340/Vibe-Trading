@@ -11,11 +11,11 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-import api_server  # noqa: F401
-from src.api import settings_routes
-from src.providers import capabilities as caps_mod
-from src.providers import copilot_auth
-from src.providers.capabilities import (
+import src.interfaces.api_server as api_server  # noqa: F401
+from src.interfaces.api import settings_routes
+from src.runtime.providers import capabilities as caps_mod
+from src.runtime.providers import copilot_auth
+from src.runtime.providers.capabilities import (
     get_llm_credentials,
     get_provider_capabilities,
 )
@@ -45,7 +45,7 @@ def no_ambient_credentials(monkeypatch):
 
 def _copilot_entry() -> dict:
     providers_path = (
-        Path(__file__).resolve().parents[1] / "src" / "providers" / "llm_providers.json"
+        Path(__file__).resolve().parents[1] / "src" / "runtime" / "providers" / "llm_providers.json"
     )
     entries = {
         item["name"]: item

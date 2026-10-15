@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.longbridge import sdk as lb
+from src.markets.trading.connectors.longbridge import sdk as lb
 
 
 def test_period_map_accepts_project_hour_tokens() -> None:

@@ -18,14 +18,14 @@ import pytest
 import httpx
 from fastapi.testclient import TestClient
 
-import api_server
-import src.channels.manager as manager_module
-from src.api import channels_config_routes as routes
-from src.channels.base import BaseChannel
-from src.channels.bus.queue import MessageBus
-from src.channels.feishu import FeishuChannel, FeishuConfig
-from src.channels.manager import ChannelManager
-from src.channels.weixin import WeixinChannel
+import src.interfaces.api_server as api_server
+import src.interfaces.channels.manager as manager_module
+from src.interfaces.api import channels_config_routes as routes
+from src.interfaces.channels.base import BaseChannel
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.feishu import FeishuChannel, FeishuConfig
+from src.interfaces.channels.manager import ChannelManager
+from src.interfaces.channels.weixin import WeixinChannel
 
 CLIENT_ID = "ding-client-id-1234567890"
 STORED_SECRET = "stored-secret-abcdefghij"
@@ -309,7 +309,7 @@ def test_full_form_echo_does_not_restart_for_unchanged_connection_fields(
 
 
 def test_signal_refresh_changes_the_real_nested_allowlist() -> None:
-    from src.channels.signal import SignalChannel
+    from src.interfaces.channels.signal import SignalChannel
 
     channel = SignalChannel({"dm": {"allow_from": ["alice"]}}, MessageBus())
     assert "allow_from" not in channel.hot_reload_noop_keys
@@ -320,7 +320,7 @@ def test_signal_refresh_changes_the_real_nested_allowlist() -> None:
 
 
 def test_signal_policy_put_refreshes_without_counting_computed_fields(tmp_path, monkeypatch):
-    from src.channels.signal import SignalChannel
+    from src.interfaces.channels.signal import SignalChannel
 
     section = {"enabled": True, "dm": {"allow_from": ["alice"]}}
     channel = SignalChannel(section, MessageBus())
@@ -346,7 +346,7 @@ def test_signal_policy_put_refreshes_without_counting_computed_fields(tmp_path, 
 
 
 def test_discord_refresh_applies_noop_keys_without_touching_transport() -> None:
-    from src.channels.discord import DiscordChannel
+    from src.interfaces.channels.discord import DiscordChannel
 
     section = {
         "enabled": True,

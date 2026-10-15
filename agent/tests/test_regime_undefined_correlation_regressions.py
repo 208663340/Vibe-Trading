@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from backtest.regime import compute_edge_density, detect_regimes
+from src.backtest.regime import compute_edge_density, detect_regimes
 
 
 def test_constant_asset_does_not_claim_zero_correlation_density():

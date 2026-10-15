@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.quantlib.copula import fit_copula_from_tau, gaussian_copula_cdf
+from src.research.quantlib.copula import fit_copula_from_tau, gaussian_copula_cdf
 
 
 @pytest.mark.parametrize("rho,expected", [(0.9999999999, 0.3), (-0.9999999999, 0.1)])

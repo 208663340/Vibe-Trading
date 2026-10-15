@@ -10,11 +10,11 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from backtest.engines._market_hooks import _detect_market
-from backtest.loaders.registry import FALLBACK_CHAINS
-from backtest.loaders.yahoo_client import map_symbol
-from backtest.loaders.yahoo_loader import DataLoader, _is_supported
-from backtest.loaders.yfinance_loader import _to_yfinance_symbol
+from src.backtest.engines._market_hooks import _detect_market
+from src.backtest.loaders.registry import FALLBACK_CHAINS
+from src.backtest.loaders.yahoo_client import map_symbol
+from src.backtest.loaders.yahoo_loader import DataLoader, _is_supported
+from src.backtest.loaders.yfinance_loader import _to_yfinance_symbol
 
 
 class TestSymbolGating:
@@ -66,7 +66,7 @@ class TestFetch:
 
     def test_fetch_returns_ohlcv_frame(self) -> None:
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=(self._chart_rows(), "VND"),
         ) as chart:
             result = DataLoader().fetch(
@@ -85,7 +85,7 @@ class TestFetch:
     def test_unlisted_symbol_is_omitted_not_raised(self) -> None:
         # HNX/UPCOM are unsupported on Yahoo: no rows, no exception.
         with patch(
-            "backtest.loaders.yahoo_loader.yahoo_client.get_chart",
+            "src.backtest.loaders.yahoo_loader.yahoo_client.get_chart",
             return_value=([], ""),
         ):
             result = DataLoader().fetch(

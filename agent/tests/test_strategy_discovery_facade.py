@@ -25,9 +25,9 @@ from datetime import date
 import pytest
 
 try:
-    from src.strategy_discovery import models as sd_models
-    from src.strategy_discovery.evidence_store import EvidenceStore
-    from src.strategy_discovery.facade import StrategyDiscoveryFacade
+    from src.research.strategy_discovery import models as sd_models
+    from src.research.strategy_discovery.evidence_store import EvidenceStore
+    from src.research.strategy_discovery.facade import StrategyDiscoveryFacade
 
     FACADE_AVAILABLE = True
 except ImportError:
@@ -38,7 +38,7 @@ except ImportError:
 
 requires_facade = pytest.mark.skipif(
     not FACADE_AVAILABLE,
-    reason="waiting on sibling A: src.strategy_discovery facade/models/evidence_store not landed yet (issue #969)",
+    reason="waiting on sibling A: src.research.strategy_discovery facade/models/evidence_store not landed yet (issue #969)",
 )
 
 #: Fixed clock for queries over the default ``_row`` fixtures (window end
@@ -650,7 +650,7 @@ class TestDefaultAlphaRegistryResolution:
             return sentinel
 
         monkeypatch.setattr(
-            "src.factors.registry.get_default_registry", fake_get_default_registry
+            "src.research.factors.registry.get_default_registry", fake_get_default_registry
         )
         facade = StrategyDiscoveryFacade(
             evidence_store=_make_store(tmp_path),
@@ -665,7 +665,7 @@ class TestDefaultAlphaRegistryResolution:
             raise AssertionError("injected registry must not touch the singleton")
 
         monkeypatch.setattr(
-            "src.factors.registry.get_default_registry", fake_get_default_registry
+            "src.research.factors.registry.get_default_registry", fake_get_default_registry
         )
         injected = FakeAlphaRegistry([FakeAlpha("i1")])
         facade = StrategyDiscoveryFacade(

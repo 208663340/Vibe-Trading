@@ -6,7 +6,7 @@ from dataclasses import FrozenInstanceError
 import pandas as pd
 import pytest
 
-from backtest.perpetual_risk import (
+from src.backtest.perpetual_risk import (
     AccountState,
     CrossMarginRiskModel,
     ExecutionFrame,

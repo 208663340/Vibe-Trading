@@ -28,10 +28,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.agent.context import ContextBuilder
-from src.agent.loop import AgentLoop
-from src.agent.tools import BaseTool, ToolRegistry
-from src.agent.trace import TraceWriter
+from src.runtime.agent.context import ContextBuilder
+from src.runtime.agent.loop import AgentLoop
+from src.runtime.agent.tools import BaseTool, ToolRegistry
+from src.runtime.agent.trace import TraceWriter
 
 
 class _PagedTool(BaseTool):

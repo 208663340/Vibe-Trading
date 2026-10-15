@@ -14,8 +14,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.engines.india_equity import IndiaEquityEngine
-from backtest.models import Position
+from src.backtest.engines.india_equity import IndiaEquityEngine
+from src.backtest.models import Position
 
 
 def _engine(**overrides) -> IndiaEquityEngine:
@@ -188,13 +188,13 @@ class TestSlippageAndLeverage:
 
 class TestRouting:
     def test_single_market_india_routes_to_india_engine(self) -> None:
-        from backtest.runner import _create_market_engine
+        from src.backtest.runner import _create_market_engine
 
         engine = _create_market_engine("yahoo", {"initial_cash": 100_000}, ["RELIANCE.NS"])
         assert isinstance(engine, IndiaEquityEngine)
 
     def test_cross_market_with_india_builds_india_subengine(self) -> None:
-        from backtest.engines.composite import _build_rule_engines
+        from src.backtest.engines.composite import _build_rule_engines
 
         engines = _build_rule_engines(
             {"initial_cash": 100_000}, ["RELIANCE.NS", "AAPL.US"]

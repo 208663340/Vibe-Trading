@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.var_backtest.
+"""Tests for src.research.quantlib.var_backtest.
 
 Every guard here is two-sided: a well-calibrated model must NOT be rejected and
 a miscalibrated one MUST be. A one-sided guard can always be satisfied by making
@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 from scipy.stats import chi2
 
-from src.quantlib.var_backtest import (
+from src.research.quantlib.var_backtest import (
     BASEL_SCALING_FACTORS,
     basel_traffic_light,
     christoffersen_conditional_coverage,

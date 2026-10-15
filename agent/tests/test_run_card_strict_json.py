@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from backtest.run_card import write_run_card
+from src.backtest.run_card import write_run_card
 
 
 def test_run_card_replaces_non_finite_metrics_with_null(tmp_path: Path) -> None:

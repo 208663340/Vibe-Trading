@@ -15,7 +15,7 @@ import pytest
 
 discord = pytest.importorskip("discord")
 
-from src.channels.discord import DiscordBotClient  # noqa: E402
+from src.interfaces.channels.discord import DiscordBotClient  # noqa: E402
 
 
 class _FakeChannel:

@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.tools.skill_writer_tool import (
+from src.runtime.tools.skill_writer_tool import (
     SaveSkillTool,
     PatchSkillTool,
     DeleteSkillTool,
@@ -59,7 +59,7 @@ class TestSanitizeSkillName:
 class TestSaveSkillTool:
     @pytest.fixture()
     def tool(self, tmp_path: Path) -> SaveSkillTool:
-        with patch("src.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
+        with patch("src.runtime.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
             yield SaveSkillTool()
 
     @pytest.fixture()
@@ -112,7 +112,7 @@ class TestPatchSkillTool:
     def setup(self, tmp_path: Path):
         user_dir = tmp_path / "user"
         bundled_dir = tmp_path / "bundled"
-        with patch("src.tools.skill_writer_tool.USER_SKILLS_DIR", user_dir):
+        with patch("src.runtime.tools.skill_writer_tool.USER_SKILLS_DIR", user_dir):
             tool = PatchSkillTool()
             yield tool, user_dir, bundled_dir
 
@@ -154,7 +154,7 @@ class TestPatchSkillTool:
 class TestDeleteSkillTool:
     @pytest.fixture()
     def setup(self, tmp_path: Path):
-        with patch("src.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
+        with patch("src.runtime.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
             tool = DeleteSkillTool()
             yield tool, tmp_path
 
@@ -187,7 +187,7 @@ class TestDeleteSkillTool:
 class TestSkillFileTool:
     @pytest.fixture()
     def setup(self, tmp_path: Path):
-        with patch("src.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
+        with patch("src.runtime.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
             tool = SkillFileTool()
             # Pre-create a skill directory
             skill_dir = tmp_path / "file-test"
@@ -279,7 +279,7 @@ class TestSkillFileTool:
 
 class TestSkillCRUDLifecycle:
     def test_create_patch_file_delete(self, tmp_path: Path) -> None:
-        with patch("src.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
+        with patch("src.runtime.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
             save = SaveSkillTool()
             patch_tool = PatchSkillTool()
             file_tool = SkillFileTool()
@@ -318,7 +318,7 @@ def test_auxiliary_operations_refuse_parent_traversal(tmp_path, action):
     skill = tmp_path / "demo"
     (skill / "assets").mkdir(parents=True)
     (skill / "LICENSE").write_text("MIT")
-    with patch("src.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
+    with patch("src.runtime.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
         result = json.loads(SkillFileTool().execute(action=action, skill_name="demo", path="assets/../LICENSE", content="poison"))
     assert result["status"] == "error"
     assert (skill / "LICENSE").read_text() == "MIT"
@@ -330,7 +330,7 @@ def test_auxiliary_operations_refuse_symlink_into_forbidden_sibling(tmp_path, ac
     (skill / "private").mkdir(parents=True)
     (skill / "private/data").write_text("original")
     (skill / "assets").symlink_to(skill / "private", target_is_directory=True)
-    with patch("src.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
+    with patch("src.runtime.tools.skill_writer_tool.USER_SKILLS_DIR", tmp_path):
         result = json.loads(SkillFileTool().execute(action=action, skill_name="demo", path="assets/data", content="poison"))
     assert result["status"] == "error"
     assert (skill / "private/data").read_text() == "original"

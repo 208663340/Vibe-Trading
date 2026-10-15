@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.tools.image_vision_tool import AnalyzeImageTool
+from src.runtime.tools.image_vision_tool import AnalyzeImageTool
 
 # 1x1 transparent PNG
 _PNG_BYTES = bytes.fromhex(
@@ -52,7 +52,7 @@ def test_happy_path_sends_data_url_and_returns_answer(tool, png_in_allowed_root)
     response = MagicMock()
     response.content = "A tiny transparent pixel."
 
-    with patch("src.providers.chat.ChatLLM") as chat_cls:
+    with patch("src.runtime.providers.chat.ChatLLM") as chat_cls:
         chat_cls.return_value.chat.return_value = response
         result = json.loads(
             tool.execute(path=str(png_in_allowed_root), question="What is this?")
@@ -70,7 +70,7 @@ def test_happy_path_sends_data_url_and_returns_answer(tool, png_in_allowed_root)
 def test_empty_model_answer_is_an_error(tool, png_in_allowed_root):
     response = MagicMock()
     response.content = ""
-    with patch("src.providers.chat.ChatLLM") as chat_cls:
+    with patch("src.runtime.providers.chat.ChatLLM") as chat_cls:
         chat_cls.return_value.chat.return_value = response
         result = json.loads(tool.execute(path=str(png_in_allowed_root)))
     assert result["ok"] is False
@@ -78,7 +78,7 @@ def test_empty_model_answer_is_an_error(tool, png_in_allowed_root):
 
 
 def test_provider_failure_closes_chat_client(tool, png_in_allowed_root):
-    with patch("src.providers.chat.ChatLLM") as chat_cls:
+    with patch("src.runtime.providers.chat.ChatLLM") as chat_cls:
         chat_cls.return_value.chat.side_effect = RuntimeError("provider unavailable")
         result = json.loads(tool.execute(path=str(png_in_allowed_root)))
 

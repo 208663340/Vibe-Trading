@@ -13,7 +13,7 @@ allow-list before the MCP session is reached. These tests cover:
 
 from __future__ import annotations
 
-import mcp_server
+import src.interfaces.mcp_server as mcp_server
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
 from starlette.routing import Route

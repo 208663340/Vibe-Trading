@@ -5,7 +5,7 @@ import json
 import pandas as pd
 import pytest
 
-from src.tools.technical_indicator_tool import (
+from src.runtime.tools.technical_indicator_tool import (
     TechnicalIndicatorTool,
     _compute_bollinger,
     _compute_ema,
@@ -243,7 +243,7 @@ class TestTechnicalIndicatorToolIntegration:
             return {"AAPL": sample_df}
 
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             _mock_fetch,
         )
         tool = TechnicalIndicatorTool()
@@ -270,7 +270,7 @@ class TestTechnicalIndicatorToolIntegration:
         """Loader returns 'adj_close' instead of 'close'."""
         df = pd.DataFrame({"adj_close": sample_close})
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"AAPL": df},
         )
         tool = TechnicalIndicatorTool()
@@ -281,7 +281,7 @@ class TestTechnicalIndicatorToolIntegration:
     def test_execute_fetch_failure(self, monkeypatch):
         """Loader raises → error envelope."""
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: (_ for _ in ()).throw(RuntimeError("network down")),
         )
         tool = TechnicalIndicatorTool()
@@ -292,7 +292,7 @@ class TestTechnicalIndicatorToolIntegration:
     def test_execute_empty_data(self, monkeypatch):
         """Loader returns empty → error."""
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"AAPL": pd.DataFrame()},
         )
         tool = TechnicalIndicatorTool()
@@ -303,7 +303,7 @@ class TestTechnicalIndicatorToolIntegration:
     def test_execute_no_close_column(self, monkeypatch):
         """DataFrame without close column → error."""
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"AAPL": pd.DataFrame({"high": [1.0], "low": [0.5]})},
         )
         tool = TechnicalIndicatorTool()
@@ -318,7 +318,7 @@ class TestTechnicalIndicatorToolIntegration:
             index=pd.date_range("2026-06-01", periods=10, freq="B"),
         )
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"AAPL": pd.DataFrame({"close": short_close})},
         )
         tool = TechnicalIndicatorTool()
@@ -349,7 +349,7 @@ class TestTechnicalIndicatorToolIntegration:
             return {"AAPL": sample_df, "_provenance": provenance}
 
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             _mock_fetch,
         )
         result = json.loads(
@@ -378,7 +378,7 @@ class TestTechnicalIndicatorToolIntegration:
             return {"AAPL": payload.copy(), "_provenance": provenance}
 
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             _mock_fetch,
         )
         tool = TechnicalIndicatorTool()
@@ -414,7 +414,7 @@ class TestTechnicalIndicatorToolIntegration:
             return {}
 
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             _mock_fetch,
         )
         result = json.loads(
@@ -452,7 +452,7 @@ class TestLoaderPayloadShapes:
         """Real fetch_market_data payload (list[dict]) must not crash (#1002)."""
         payload = {"MSFT": self._records()}
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: payload,
         )
         tool = TechnicalIndicatorTool()
@@ -474,7 +474,7 @@ class TestLoaderPayloadShapes:
             del record["trade_date"]
         records[-1]["volume"] = None
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"MSFT": pd.DataFrame(records)},
         )
         result = json.loads(TechnicalIndicatorTool().execute(symbol="MSFT"))
@@ -492,7 +492,7 @@ class TestLoaderPayloadShapes:
             seen.update(kwargs)
             return {"600519.SH": self._records(), "_provenance": provenance}
 
-        monkeypatch.setattr("src.tools.technical_indicator_tool.fetch_market_data", fetch)
+        monkeypatch.setattr("src.runtime.tools.technical_indicator_tool.fetch_market_data", fetch)
         result = json.loads(TechnicalIndicatorTool().execute(symbol="600519.SH"))
 
         assert seen["include_provenance"] is True
@@ -511,7 +511,7 @@ class TestLoaderPayloadShapes:
             }
         }
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: payload,
         )
         tool = TechnicalIndicatorTool()
@@ -532,7 +532,7 @@ class TestLoaderPayloadShapes:
             return {"MSFT": list(reversed(records))}
 
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             _mock_fetch,
         )
         tool = TechnicalIndicatorTool()
@@ -550,7 +550,7 @@ class TestLoaderPayloadShapes:
         for r in records[1:]:
             r["Close"] = r.pop("close")
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"MSFT": records},
         )
         tool = TechnicalIndicatorTool()
@@ -562,7 +562,7 @@ class TestLoaderPayloadShapes:
     def test_empty_list(self, monkeypatch):
         """Empty list payload → clean error, not AttributeError."""
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"MSFT": []},
         )
         tool = TechnicalIndicatorTool()
@@ -575,7 +575,7 @@ class TestLoaderPayloadShapes:
         for r in records:
             r.pop("close")
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"MSFT": records},
         )
         tool = TechnicalIndicatorTool()
@@ -586,7 +586,7 @@ class TestLoaderPayloadShapes:
     def test_dict_payload_success(self, monkeypatch):
         """dict-like payload with 'close' key still works."""
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"MSFT": {"close": [float(100 + i) for i in range(30)]}},
         )
         tool = TechnicalIndicatorTool()
@@ -602,7 +602,7 @@ class TestLoaderPayloadShapes:
             index=pd.date_range("2026-01-01", periods=30, freq="D"),
         )
         monkeypatch.setattr(
-            "src.tools.technical_indicator_tool.fetch_market_data",
+            "src.runtime.tools.technical_indicator_tool.fetch_market_data",
             lambda **kw: {"MSFT": pd.DataFrame({"close": close})},
         )
         tool = TechnicalIndicatorTool()

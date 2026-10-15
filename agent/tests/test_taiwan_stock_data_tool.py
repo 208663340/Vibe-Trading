@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from src.config.limits import TOOL_RESULT_LIMIT
-from src.tools.taiwan_stock_data_tool import (
+from src.platform.config.limits import TOOL_RESULT_LIMIT
+from src.runtime.tools.taiwan_stock_data_tool import (
     MAX_QUERY_STOCKS,
     MAX_RESULT_ROWS,
     RESPONSE_CHAR_BUDGET,

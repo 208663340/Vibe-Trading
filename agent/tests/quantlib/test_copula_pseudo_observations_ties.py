@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.quantlib.copula import pseudo_observations
+from src.research.quantlib.copula import pseudo_observations
 
 
 def test_pseudo_observations_give_ties_equal_rank():

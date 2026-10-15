@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backtest.loaders.yfinance_loader import _to_yfinance_interval
+from src.backtest.loaders.yfinance_loader import _to_yfinance_interval
 
 
 def test_lowercase_4h_maps_like_4H() -> None:

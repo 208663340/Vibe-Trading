@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.runner import _load_module_from_file
-from src.shadow_account.codegen import render_signal_engine, validate_generated
-from src.shadow_account.models import ShadowProfile, ShadowRule
+from src.backtest.runner import _load_module_from_file
+from src.markets.shadow_account.codegen import render_signal_engine, validate_generated
+from src.markets.shadow_account.models import ShadowProfile, ShadowRule
 
 
 def _malicious_profile() -> ShadowProfile:

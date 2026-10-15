@@ -5,15 +5,15 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from src.scheduled_research.executor import ScheduledResearchExecutor
-from src.scheduled_research.models import (
+from src.research.scheduled_research.executor import ScheduledResearchExecutor
+from src.research.scheduled_research.models import (
     DeliveryRecord,
     DeliveryStatus,
     JobStatus,
     ScheduledResearchJob,
 )
-from src.scheduled_research.store import ScheduledResearchJobStore
-from src.scheduled_research.verdict import (
+from src.research.scheduled_research.store import ScheduledResearchJobStore
+from src.research.scheduled_research.verdict import (
     PARSE_CONTRACT_VIOLATION,
     PARSE_NO_SECTION,
     PARSE_OK,

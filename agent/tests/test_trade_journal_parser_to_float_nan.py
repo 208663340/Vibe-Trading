@@ -5,7 +5,7 @@ when parsing "nan" or "NaN" cell strings instead of returning the specified defa
 """
 
 import math
-from src.tools.trade_journal_parsers import _to_float
+from src.runtime.tools.trade_journal_parsers import _to_float
 
 
 def test_to_float_nan_string_returns_default():

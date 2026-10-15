@@ -6,8 +6,8 @@ import json
 
 import pandas as pd
 
-import backtest.engines.base as base_mod
-from backtest.metrics import calc_metrics
+import src.backtest.engines.base as base_mod
+from src.backtest.metrics import calc_metrics
 
 
 def test_engine_scalar_metrics_stdout_is_strict_json() -> None:

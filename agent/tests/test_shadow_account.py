@@ -1,4 +1,4 @@
-"""Tests for src.shadow_account (Phase 4c — M1).
+"""Tests for src.markets.shadow_account (Phase 4c — M1).
 
 Fixtures are synthesized in-test via tmp_path; no binary fixtures on disk.
 """
@@ -13,7 +13,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.shadow_account import (
+from src.markets.shadow_account import (
     AttributionBreakdown,
     ShadowBacktestResult,
     ShadowProfile,
@@ -30,7 +30,7 @@ from src.shadow_account import (
     validate_generated,
     write_run_dir,
 )
-from src.shadow_account.extractor import MIN_PROFITABLE_ROUNDTRIPS
+from src.markets.shadow_account.extractor import MIN_PROFITABLE_ROUNDTRIPS
 
 pytestmark = pytest.mark.filterwarnings(
     "ignore:Number of distinct clusters.*:UserWarning",
@@ -50,7 +50,7 @@ def _offline_prices(monkeypatch: pytest.MonkeyPatch) -> None:
     extraction degrades to NaN price features exactly as in production offline.
     Tests that exercise the price path override this with a fixture loader.
     """
-    from backtest.loaders.base import NoAvailableSourceError
+    from src.backtest.loaders.base import NoAvailableSourceError
 
     def _no_source(market: str):
         raise NoAvailableSourceError(f"offline test: no source for {market}")
@@ -58,7 +58,7 @@ def _offline_prices(monkeypatch: pytest.MonkeyPatch) -> None:
     # Patch at the source module: `_fetch_price_history` imports `resolve_loader`
     # locally at call time, so the binding to override lives in the registry.
     monkeypatch.setattr(
-        "backtest.loaders.registry.resolve_loader", _no_source,
+        "src.backtest.loaders.registry.resolve_loader", _no_source,
     )
 
 
@@ -149,7 +149,7 @@ def test_extract_profile_happy_path(profitable_journal: Path) -> None:
 
 @pytest.mark.unit
 def test_extract_profile_yields_rules(profitable_journal: Path) -> None:
-    from src.shadow_account.extractor import RULE_TEXT_MAX
+    from src.markets.shadow_account.extractor import RULE_TEXT_MAX
 
     profile = extract_shadow_profile(profitable_journal, min_support=2, max_rules=5)
     assert 1 <= len(profile.rules) <= 5
@@ -352,7 +352,7 @@ def test_run_shadow_backtest_with_mocked_runner(
         artifacts_dir = run_path / "artifacts"
         artifacts_dir.mkdir(parents=True, exist_ok=True)
         metrics_path = artifacts_dir / "metrics.json"
-        # Same key set the real runner emits (agent/src/core/runner.py
+        # Same key set the real runner emits (agent/src/platform/core/runner.py
         # metrics_csv): final_value/total_return, no explicit PnL field.
         metrics_path.write_text(json.dumps({
             "final_value": 1_012_345.0,
@@ -421,7 +421,7 @@ def test_run_shadow_backtest_handles_runner_failure(
     assert result.delta_pnl is None
     assert result.equity_curves == {}
 
-    from src.shadow_account.backtester import load_cached_result
+    from src.markets.shadow_account.backtester import load_cached_result
 
     cached = load_cached_result(profile, window_start="2026-01-01", window_end="2026-06-30")
     assert cached is not None
@@ -431,7 +431,7 @@ def test_run_shadow_backtest_handles_runner_failure(
 
 @pytest.mark.unit
 def test_shadow_pnl_derivation_from_runner_metrics() -> None:
-    from src.shadow_account.backtester import _shadow_pnl_from_metrics
+    from src.markets.shadow_account.backtester import _shadow_pnl_from_metrics
 
     # The exact metrics from the reported bad case: a completed A-share run
     # whose only PnL signal is final_value/total_return.
@@ -486,7 +486,7 @@ def test_run_shadow_backtest_derives_pnl_from_final_value(
     assert result.shadow_total_pnl == pytest.approx(-165_858.20, abs=0.01)
     assert result.delta_pnl == round(result.shadow_total_pnl - result.real_total_pnl, 2)
 
-    from src.shadow_account.backtester import load_cached_result
+    from src.markets.shadow_account.backtester import load_cached_result
 
     cached = load_cached_result(profile, window_start="2026-01-01", window_end="2026-06-30")
     assert cached is not None
@@ -496,12 +496,12 @@ def test_run_shadow_backtest_derives_pnl_from_final_value(
 
 # ---------------- M3b: per-currency multi-market runs ----------------
 
-from backtest.engines._market_hooks import code_currency  # noqa: E402
-from src.shadow_account.backtester import (  # noqa: E402
+from src.backtest.engines._market_hooks import code_currency  # noqa: E402
+from src.markets.shadow_account.backtester import (  # noqa: E402
     _group_selection_by_currency,
     _LIQUID_BASKETS,
 )
-from src.shadow_account.storage import runs_dir  # noqa: E402
+from src.markets.shadow_account.storage import runs_dir  # noqa: E402
 
 
 def _recording_stub(
@@ -621,7 +621,7 @@ def test_run_shadow_backtest_runs_once_per_currency(
     for call in calls:
         currencies = {code_currency(c) for c in call["codes"]}  # type: ignore[union-attr]
         assert len(currencies) == 1
-    from src.shadow_account.backtester import _cache_key
+    from src.markets.shadow_account.backtester import _cache_key
     digest = _cache_key(profile, "2026-01-01", "2026-06-30")
     assert (runs_dir(profile.shadow_id) / f"shadow_result_{digest}.json").exists()
     assert set(result.per_market.keys()) == {"china_a", "hk", "us", "crypto"}
@@ -966,7 +966,7 @@ def test_weasyprint_import_is_probed_once_per_process(
     re-runs libgobject's constructor and faults (GNOME bug 705535). Three
     report renders in one process were enough to hit it.
     """
-    from src.shadow_account import reporter
+    from src.markets.shadow_account import reporter
 
     monkeypatch.setattr(reporter, "_WEASYPRINT_HTML", None)
     attempts: list[str] = []
@@ -991,7 +991,7 @@ def test_weasyprint_probe_is_cached_when_available(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A successful probe is reused, and still renders on every call."""
-    from src.shadow_account import reporter
+    from src.markets.shadow_account import reporter
 
     monkeypatch.setattr(reporter, "_WEASYPRINT_HTML", None)
     attempts: list[str] = []
@@ -1028,7 +1028,7 @@ def test_reportlab_fallback_renders_pdf_when_weasyprint_missing(
     profitable_journal: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Hosts without weasyprint's system libs still get a PDF via reportlab."""
-    from src.shadow_account import reporter
+    from src.markets.shadow_account import reporter
 
     monkeypatch.setattr(reporter, "_WEASYPRINT_HTML", False)  # probe already failed
     profile = extract_shadow_profile(profitable_journal)
@@ -1048,7 +1048,7 @@ def test_reportlab_fallback_escapes_cjk_and_markup_chars(
     profitable_journal: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """CJK text and XML-special chars in run data must not break platypus."""
-    from src.shadow_account import reporter
+    from src.markets.shadow_account import reporter
 
     monkeypatch.setattr(reporter, "_WEASYPRINT_HTML", False)
     profile = extract_shadow_profile(profitable_journal)
@@ -1075,7 +1075,7 @@ def test_pdf_degrades_to_html_only_when_both_engines_fail(
     profitable_journal: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """HTML remains the last resort, and no partial PDF is left behind."""
-    from src.shadow_account import reporter
+    from src.markets.shadow_account import reporter
 
     monkeypatch.setattr(reporter, "_WEASYPRINT_HTML", False)
 
@@ -1102,7 +1102,7 @@ def test_reportlab_fallback_embeds_bundled_font_when_no_system_font(
     Both reports must use the registered embedded family; a successful parse
     alone cannot prove that an unembedded CID font renders in a PDF reader.
     """
-    from src.shadow_account import pdf_fallback, reporter
+    from src.markets.shadow_account import pdf_fallback, reporter
 
     monkeypatch.setattr(reporter, "_WEASYPRINT_HTML", False)
     monkeypatch.setattr(pdf_fallback, "system_cjk_candidates", lambda: [])
@@ -1123,7 +1123,7 @@ def test_reportlab_fallback_embeds_bundled_font_when_no_system_font(
 
 @pytest.mark.unit
 def test_shadow_tools_are_auto_discovered() -> None:
-    from src.tools import build_registry
+    from src.runtime.tools import build_registry
 
     registry = build_registry()
     for expected in (
@@ -1139,7 +1139,7 @@ def test_shadow_tools_are_auto_discovered() -> None:
 def test_extract_shadow_strategy_tool(
     profitable_journal: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.tools.shadow_account_tool import ExtractShadowStrategyTool
+    from src.runtime.tools.shadow_account_tool import ExtractShadowStrategyTool
 
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
@@ -1149,7 +1149,7 @@ def test_extract_shadow_strategy_tool(
     assert out["status"] == "ok"
     assert out["shadow_id"].startswith("shadow_")
     assert len(out["rules"]) >= 1
-    from src.shadow_account.extractor import RULE_TEXT_MAX
+    from src.markets.shadow_account.extractor import RULE_TEXT_MAX
     assert 1 <= len(out["rules"][0]["human_text"]) <= RULE_TEXT_MAX
 
     # Persistence happened — we can load it back.
@@ -1159,7 +1159,7 @@ def test_extract_shadow_strategy_tool(
 
 @pytest.mark.unit
 def test_extract_shadow_strategy_tool_reports_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from src.tools.shadow_account_tool import ExtractShadowStrategyTool
+    from src.runtime.tools.shadow_account_tool import ExtractShadowStrategyTool
 
     monkeypatch.setenv("VIBE_TRADING_ALLOWED_FILE_ROOTS", str(tmp_path))
     tool = ExtractShadowStrategyTool()
@@ -1172,7 +1172,7 @@ def test_extract_shadow_strategy_tool_reports_errors(tmp_path: Path, monkeypatch
 def test_scan_shadow_signals_tool(
     profitable_journal: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.tools.shadow_account_tool import ScanShadowSignalsTool
+    from src.runtime.tools.shadow_account_tool import ScanShadowSignalsTool
 
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
@@ -1187,7 +1187,7 @@ def test_scan_shadow_signals_tool(
 
 @pytest.mark.unit
 def test_run_shadow_backtest_tool_handles_missing_id() -> None:
-    from src.tools.shadow_account_tool import RunShadowBacktestTool
+    from src.runtime.tools.shadow_account_tool import RunShadowBacktestTool
 
     out = json.loads(RunShadowBacktestTool().execute(shadow_id="shadow_unknown"))
     assert out["status"] == "error"
@@ -1195,7 +1195,7 @@ def test_run_shadow_backtest_tool_handles_missing_id() -> None:
 
 @pytest.mark.unit
 def test_shadow_account_skill_shipped() -> None:
-    skill = Path(__file__).resolve().parents[1] / "src" / "skills" / "shadow-account" / "SKILL.md"
+    skill = Path(__file__).resolve().parents[1] / "src" / "research" / "skills" / "shadow-account" / "SKILL.md"
     assert skill.exists()
     body = skill.read_text(encoding="utf-8")
     for needle in ("shadow-account", "extract_shadow_strategy", "run_shadow_backtest", "render_shadow_report", "scan_shadow_signals"):
@@ -1204,7 +1204,7 @@ def test_shadow_account_skill_shipped() -> None:
 
 @pytest.mark.unit
 def test_context_prompt_references_shadow_account() -> None:
-    from src.agent.context import _SYSTEM_PROMPT  # noqa: SLF001 — intentional peek
+    from src.runtime.agent.context import _SYSTEM_PROMPT  # noqa: SLF001 — intentional peek
 
     assert "Shadow Account" in _SYSTEM_PROMPT
     assert "extract_shadow_strategy" in _SYSTEM_PROMPT
@@ -1245,7 +1245,7 @@ def test_attribution_is_zero_without_journal(
 
 # ---------------- Price-context features (as-of buy_dt) ----------------
 
-from src.shadow_account.extractor import (  # noqa: E402
+from src.markets.shadow_account.extractor import (  # noqa: E402
     _MARKET_KEY_MAP,
     _attach_price_features,
     _compute_rsi,
@@ -1289,7 +1289,7 @@ def with_price_loader(monkeypatch: pytest.MonkeyPatch):
     def _install(frame: pd.DataFrame) -> None:
         loader = _FixtureLoader(frame)
         monkeypatch.setattr(
-            "backtest.loaders.registry.resolve_loader", lambda market: loader,
+            "src.backtest.loaders.registry.resolve_loader", lambda market: loader,
         )
 
     return _install
@@ -1447,7 +1447,7 @@ def test_extract_with_price_features_promotes_into_clustering(
 
     # Capture what `_compute_features` produced and which numeric features the
     # clusterer was actually handed — a rule count alone can't prove promotion.
-    import src.shadow_account.extractor as extractor
+    import src.markets.shadow_account.extractor as extractor
 
     captured: dict[str, object] = {}
     orig_features = extractor._compute_features
@@ -1487,7 +1487,7 @@ def test_sparse_price_features_fall_back_to_journal_only(
     profitable_journal: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """With prices offline (autouse), promotion is skipped and rules still form."""
-    import src.shadow_account.extractor as extractor
+    import src.markets.shadow_account.extractor as extractor
 
     captured: dict[str, object] = {}
     orig_cluster = extractor._auto_cluster
@@ -1532,7 +1532,7 @@ def test_single_cluster_fallback_carries_price_bounds() -> None:
     journals (len < min_support) silently produced behavior-only rules even
     when price data was present.
     """
-    from src.shadow_account.extractor import _extract_rules
+    from src.markets.shadow_account.extractor import _extract_rules
 
     df = pd.DataFrame({
         "market": ["us", "us", "us"],
@@ -1561,8 +1561,8 @@ def test_codegen_and_extractor_share_price_feature_names() -> None:
     Both now source ``PRICE_FEATURES`` from ``models`` instead of repeating a
     literal tuple, so a single edit cannot leave one side stale.
     """
-    from src.shadow_account import codegen, extractor
-    from src.shadow_account.models import PRICE_FEATURES
+    from src.markets.shadow_account import codegen, extractor
+    from src.markets.shadow_account.models import PRICE_FEATURES
 
     assert extractor._PRICE_FEATURES is PRICE_FEATURES
     # codegen flattens exactly these features' bounds — guard against drift.
@@ -1593,7 +1593,7 @@ def test_price_bounds_keep_four_decimal_precision() -> None:
     bounds (e.g. 0.0123 → 0.01); the extractor now rounds price-feature bounds
     to 4 decimals.
     """
-    from src.shadow_account.extractor import _extract_rules
+    from src.markets.shadow_account.extractor import _extract_rules
 
     df = pd.DataFrame({
         "market": ["us"] * 4,
@@ -1616,7 +1616,7 @@ def test_price_bounds_keep_four_decimal_precision() -> None:
 
 # ---- Degradation branches in the price-fetch / attach path ----
 
-from src.shadow_account.extractor import (  # noqa: E402
+from src.markets.shadow_account.extractor import (  # noqa: E402
     _auto_cluster,
     _fetch_price_history,
 )
@@ -1631,7 +1631,7 @@ def test_fetch_price_history_symbol_absent_from_map(monkeypatch: pytest.MonkeyPa
             return {}  # symbol not present
 
     monkeypatch.setattr(
-        "backtest.loaders.registry.resolve_loader", lambda market: _EmptyMapLoader(),
+        "src.backtest.loaders.registry.resolve_loader", lambda market: _EmptyMapLoader(),
     )
     out = _fetch_price_history(
         "600519", "china_a",
@@ -1650,7 +1650,7 @@ def test_fetch_price_history_empty_frame(monkeypatch: pytest.MonkeyPatch) -> Non
                     for c in codes}
 
     monkeypatch.setattr(
-        "backtest.loaders.registry.resolve_loader", lambda market: _EmptyFrameLoader(),
+        "src.backtest.loaders.registry.resolve_loader", lambda market: _EmptyFrameLoader(),
     )
     out = _fetch_price_history(
         "600519", "china_a",
@@ -1668,7 +1668,7 @@ def test_fetch_price_history_loader_raises(monkeypatch: pytest.MonkeyPatch) -> N
             raise RuntimeError("network down")
 
     monkeypatch.setattr(
-        "backtest.loaders.registry.resolve_loader", lambda market: _BoomLoader(),
+        "src.backtest.loaders.registry.resolve_loader", lambda market: _BoomLoader(),
     )
     out = _fetch_price_history(
         "600519", "china_a",
@@ -1694,7 +1694,7 @@ def test_attach_price_features_batches_one_fetch_per_symbol(
             return {c: frame.loc[lo:hi].copy() for c in codes}
 
     monkeypatch.setattr(
-        "backtest.loaders.registry.resolve_loader", lambda market: _CountingLoader(),
+        "src.backtest.loaders.registry.resolve_loader", lambda market: _CountingLoader(),
     )
     rows = [
         {"symbol": "600519", "market": "china_a", "buy_dt": pd.Timestamp("2026-02-10")},
@@ -1788,7 +1788,7 @@ def test_extracted_rules_no_price_conditions_when_sparse(
 @pytest.mark.unit
 def test_price_condition_bounds_are_p10_p90() -> None:
     """The p10/p90 values are the actual quantiles of the cluster."""
-    from src.shadow_account.extractor import _cluster_to_rule
+    from src.markets.shadow_account.extractor import _cluster_to_rule
 
     cluster_df = pd.DataFrame({
         "symbol": ["A"] * 4,
@@ -1821,7 +1821,7 @@ def test_price_condition_bounds_are_p10_p90() -> None:
 @pytest.mark.unit
 def test_price_condition_nan_rows_excluded_from_bounds() -> None:
     """NaN rows in the cluster do not shift p10/p90 quantiles."""
-    from src.shadow_account.extractor import _cluster_to_rule
+    from src.markets.shadow_account.extractor import _cluster_to_rule
 
     cluster_df = pd.DataFrame({
         "symbol": ["A"] * 4,
@@ -1850,7 +1850,7 @@ def test_price_condition_nan_rows_excluded_from_bounds() -> None:
 # ---- M5: Codegen with price conditions ----
 
 
-from src.shadow_account.codegen import _rule_to_context  # noqa: E402
+from src.markets.shadow_account.codegen import _rule_to_context  # noqa: E402
 
 
 @pytest.mark.unit
@@ -2408,7 +2408,7 @@ def test_conditional_entry_only_prior_return_condition() -> None:
 @pytest.mark.unit
 def test_cluster_to_rule_skips_all_nan_price_feature() -> None:
     """When a promoted price feature is all-NaN in the cluster, it is skipped."""
-    from src.shadow_account.extractor import _cluster_to_rule
+    from src.markets.shadow_account.extractor import _cluster_to_rule
 
     cluster_df = pd.DataFrame({
         "symbol": ["A"] * 4,

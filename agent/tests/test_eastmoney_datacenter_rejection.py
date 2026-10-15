@@ -14,11 +14,11 @@ from unittest.mock import patch
 
 import pytest
 
-from backtest.loaders import eastmoney_client
-from backtest.loaders.eastmoney_client import datacenter_rejection
-from src.tools import block_trades_tool
-from src.tools.financial_statements_tool import FinancialStatementsTool
-from src.tools.margin_trading_tool import MarginTradingTool
+from src.backtest.loaders import eastmoney_client
+from src.backtest.loaders.eastmoney_client import datacenter_rejection
+from src.runtime.tools import block_trades_tool
+from src.runtime.tools.financial_statements_tool import FinancialStatementsTool
+from src.runtime.tools.margin_trading_tool import MarginTradingTool
 
 REJECTED = {"success": False, "code": 9501, "message": "RPT_OLD报表配置不存在", "result": None}
 EMPTY = {"success": False, "code": 9201, "message": "返回数据为空", "result": None}
@@ -70,7 +70,7 @@ def test_block_trades_still_reads_an_empty_window_as_zero_deals():
 def test_margin_trading_names_the_rejection_when_it_falls_back():
     fallback = {"code": "600519", "ts_code": "600519.SH", "rows": [{"trade_date": "2024-01-03"}]}
     with patch.object(eastmoney_client, "get_json", return_value=REJECTED), patch(
-        "src.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading", return_value=fallback
+        "src.runtime.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading", return_value=fallback
     ):
         out = json.loads(MarginTradingTool().execute(code="600519.SH", days=5))
     assert out["source"] == "tushare"
@@ -80,7 +80,7 @@ def test_margin_trading_names_the_rejection_when_it_falls_back():
 
 def test_margin_trading_error_names_the_rejection_when_the_fallback_fails():
     with patch.object(eastmoney_client, "get_json", return_value=REJECTED), patch(
-        "src.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading",
+        "src.runtime.tools.margin_trading_tool.tushare_fallbacks.fetch_margin_trading",
         side_effect=RuntimeError("no tushare token"),
     ):
         out = json.loads(MarginTradingTool().execute(code="600519.SH", days=5))
@@ -89,8 +89,8 @@ def test_margin_trading_error_names_the_rejection_when_the_fallback_fails():
 
 
 def test_financial_statements_report_a_rejection_instead_of_no_periods():
-    with patch("src.tools.financial_statements_tool.resolve_secid", return_value="1.600519"), patch(
-        "src.tools.financial_statements_tool.get_json", return_value=REJECTED
+    with patch("src.runtime.tools.financial_statements_tool.resolve_secid", return_value="1.600519"), patch(
+        "src.runtime.tools.financial_statements_tool.get_json", return_value=REJECTED
     ):
         out = json.loads(
             FinancialStatementsTool().execute(code="600519.SH", statement="balance", period="annual")

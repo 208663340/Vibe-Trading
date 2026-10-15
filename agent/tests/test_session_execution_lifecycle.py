@@ -7,17 +7,17 @@ import threading
 
 import pytest
 
-from src.session.events import EventBus
-from src.session.models import Attempt, AttemptStatus, Message
-from src.session.search import SessionSearchIndex
-from src.session.service import SessionBusyError, SessionService, SessionServiceClosingError
-from src.session.store import SessionStore
+from src.runtime.session.events import EventBus
+from src.runtime.session.models import Attempt, AttemptStatus, Message
+from src.runtime.session.search import SessionSearchIndex
+from src.runtime.session.service import SessionBusyError, SessionService, SessionServiceClosingError
+from src.runtime.session.store import SessionStore
 
 
 @pytest.fixture
 def service(tmp_path, monkeypatch):
     index = SessionSearchIndex(tmp_path / "search.db")
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: index)
     svc = SessionService(SessionStore(tmp_path / "sessions"), EventBus(), tmp_path / "runs")
     yield svc
     index.close()
@@ -156,7 +156,7 @@ def test_terminal_storage_failure_keeps_recoverable_evidence(service, monkeypatc
         else:
             assert service.store.get_message_for_attempt(session.session_id, sent["attempt_id"]).metadata["status"] == "completed"
         monkeypatch.undo()
-        monkeypatch.setattr("src.session.service.get_shared_index", lambda: service._search_index)
+        monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: service._search_index)
         recovered = SessionService(service.store, EventBus(), service.runs_dir)
         again = SessionService(service.store, EventBus(), service.runs_dir)
         replies = [m for m in again.get_messages(session.session_id) if m.linked_attempt_id == sent["attempt_id"]]
@@ -203,11 +203,11 @@ def install_thread_agent(monkeypatch, started, release, *, registry=False):
             started.set()
             assert release.wait(3)
             return {"status": "success", "content": "thread answer"}
-    monkeypatch.setattr("src.tools.build_registry", build)
-    monkeypatch.setattr("src.providers.chat.ChatLLM", lambda: object())
-    monkeypatch.setattr("src.memory.persistent.PersistentMemory", lambda: object())
-    monkeypatch.setattr("src.agent.loop.AgentLoop", Agent)
-    monkeypatch.setattr("src.config.loader.load_runtime_agent_config", lambda overrides=None: object())
+    monkeypatch.setattr("src.runtime.tools.build_registry", build)
+    monkeypatch.setattr("src.runtime.providers.chat.ChatLLM", lambda: object())
+    monkeypatch.setattr("src.runtime.memory.persistent.PersistentMemory", lambda: object())
+    monkeypatch.setattr("src.runtime.agent.loop.AgentLoop", Agent)
+    monkeypatch.setattr("src.platform.config.loader.load_runtime_agent_config", lambda overrides=None: object())
 
 
 @pytest.mark.parametrize("registry", [False, True])
@@ -285,7 +285,7 @@ def test_search_delete_updates_fts_transactionally(tmp_path):
 
 def test_bounded_admission_refuses_before_persisting(tmp_path, monkeypatch):
     index = SessionSearchIndex(tmp_path / "bounded.db")
-    monkeypatch.setattr("src.session.service.get_shared_index", lambda: index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: index)
     async def scenario():
         service = SessionService(SessionStore(tmp_path / "sessions"), EventBus(), tmp_path / "runs", max_inflight=1)
         first, second = service.create_session(), service.create_session()
@@ -308,7 +308,7 @@ def test_bounded_admission_refuses_before_persisting(tmp_path, monkeypatch):
 
 def test_rest_active_delete_conditional_cancel_and_closed_admission(service, monkeypatch):
     import httpx
-    import api_server
+    import src.interfaces.api_server as api_server
     monkeypatch.setattr(api_server, "_get_session_service", lambda: service)
     monkeypatch.delenv("API_AUTH_KEY", raising=False)
     monkeypatch.setattr(api_server, "_API_KEY", "")
@@ -335,7 +335,7 @@ def test_rest_active_delete_conditional_cancel_and_closed_admission(service, mon
 
 def test_attempt_snapshot_prefers_committed_reply_and_hides_execution_details(service, monkeypatch):
     import httpx
-    import api_server
+    import src.interfaces.api_server as api_server
     monkeypatch.setattr(api_server, "_get_session_service", lambda: service)
     monkeypatch.delenv("API_AUTH_KEY", raising=False)
     monkeypatch.setattr(api_server, "_API_KEY", "")
@@ -406,11 +406,11 @@ def test_old_callbacks_cannot_write_or_release_next_attempt(service, monkeypatch
             captured.append(kwargs["event_callback"])
         def run(self, **kwargs):
             return {"status": "success", "content": "first answer"}
-    monkeypatch.setattr("src.tools.build_registry", lambda **kwargs: object())
-    monkeypatch.setattr("src.providers.chat.ChatLLM", lambda: object())
-    monkeypatch.setattr("src.memory.persistent.PersistentMemory", lambda: object())
-    monkeypatch.setattr("src.agent.loop.AgentLoop", Agent)
-    monkeypatch.setattr("src.config.loader.load_runtime_agent_config", lambda overrides=None: object())
+    monkeypatch.setattr("src.runtime.tools.build_registry", lambda **kwargs: object())
+    monkeypatch.setattr("src.runtime.providers.chat.ChatLLM", lambda: object())
+    monkeypatch.setattr("src.runtime.memory.persistent.PersistentMemory", lambda: object())
+    monkeypatch.setattr("src.runtime.agent.loop.AgentLoop", Agent)
+    monkeypatch.setattr("src.platform.config.loader.load_runtime_agent_config", lambda overrides=None: object())
     async def scenario():
         session = service.create_session()
         first = await service.send_message(session.session_id, "first")
@@ -687,7 +687,7 @@ def test_initialization_resource_failure_releases_owner_after_actual_exit(servic
         entered.set()
         assert release.wait(2)
         raise OSError("index initialization fault")
-    monkeypatch.setattr("src.session.service.get_shared_index", blocked_index)
+    monkeypatch.setattr("src.runtime.session.service.get_shared_index", blocked_index)
     def construct():
         try:
             SessionService(SessionStore(service.store.base_dir), EventBus(), service.runs_dir)
@@ -703,7 +703,7 @@ def test_initialization_resource_failure_releases_owner_after_actual_exit(servic
     finally:
         release.set()
         constructor.join(2)
-        monkeypatch.setattr("src.session.service.get_shared_index", lambda: service._search_index)
+        monkeypatch.setattr("src.runtime.session.service.get_shared_index", lambda: service._search_index)
     assert not constructor.is_alive()
     assert len(failures) == 1 and isinstance(failures[0], OSError)
     replacement = SessionService(SessionStore(service.store.base_dir), EventBus(), service.runs_dir)

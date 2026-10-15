@@ -6,10 +6,10 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backtest.engines.china_a import ChinaAEngine
-from backtest.models import TradeRecord
-from backtest.validation import _load_trades, monte_carlo_test
-from src.strategy_discovery.run_artifacts import read_trade_activity
+from src.backtest.engines.china_a import ChinaAEngine
+from src.backtest.models import TradeRecord
+from src.backtest.validation import _load_trades, monte_carlo_test
+from src.research.strategy_discovery.run_artifacts import read_trade_activity
 
 
 @pytest.mark.parametrize("direction", [1, -1])

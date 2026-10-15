@@ -9,7 +9,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-import backtest.loaders.yfinance_loader as yfl
+import src.backtest.loaders.yfinance_loader as yfl
 
 
 def _download_frame() -> pd.DataFrame:

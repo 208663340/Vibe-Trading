@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.optimizers.turnover_aware import TurnoverAwareOptimizer, optimize
+from src.backtest.optimizers.turnover_aware import TurnoverAwareOptimizer, optimize
 
 
 def _sample_data(n_days: int = 200, n_assets: int = 4, seed: int = 0):

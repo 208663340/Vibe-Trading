@@ -17,7 +17,7 @@ from pathlib import Path
 
 _spec = importlib.util.spec_from_file_location(
     "grounding_test_mod",
-    Path(__file__).resolve().parent.parent / "src" / "swarm" / "grounding.py",
+    Path(__file__).resolve().parent.parent / "src" / "runtime" / "swarm" / "grounding.py",
 )
 _mod = importlib.util.module_from_spec(_spec)
 sys.modules["grounding_test_mod"] = _mod

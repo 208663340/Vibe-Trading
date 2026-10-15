@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.trading.connectors.tiger import sdk as tg
+from src.markets.trading.connectors.tiger import sdk as tg
 
 
 class _FakeTigerQuote:

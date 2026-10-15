@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backtest.optimizers.turnover_aware import TurnoverAwareOptimizer
+from src.backtest.optimizers.turnover_aware import TurnoverAwareOptimizer
 
 
 @pytest.mark.parametrize("weight", [np.nan, np.inf, -np.inf])

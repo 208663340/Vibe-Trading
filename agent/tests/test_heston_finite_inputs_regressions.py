@@ -1,5 +1,5 @@
 import pytest
-from src.quantlib.volatility import heston_price, heston_feller_condition
+from src.research.quantlib.volatility import heston_price, heston_feller_condition
 
 
 @pytest.mark.parametrize(
@@ -56,7 +56,7 @@ def test_feller_rejects_nonfinite_inputs(field):
 
 def test_quantlib_tool_rejects_zero_integration_domain():
     import json
-    from src.tools.quantlib_tool import QuantlibCallTool
+    from src.runtime.tools.quantlib_tool import QuantlibCallTool
 
     result = json.loads(
         QuantlibCallTool().execute(

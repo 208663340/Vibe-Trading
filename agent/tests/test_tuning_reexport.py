@@ -2,8 +2,8 @@
 
 import pytest
 
-import src.agent.loop as loop_module
-import src.agent.tuning as tuning_module
+import src.runtime.agent.loop as loop_module
+import src.runtime.agent.tuning as tuning_module
 
 MOVED_NAMES = (
     "TOKEN_THRESHOLD",

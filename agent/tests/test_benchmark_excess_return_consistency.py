@@ -13,9 +13,9 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from backtest.benchmark import BenchmarkResult
-from backtest.engines.china_a import ChinaAEngine
-from backtest.metrics import bar_returns, buy_and_hold_return
+from src.backtest.benchmark import BenchmarkResult
+from src.backtest.engines.china_a import ChinaAEngine
+from src.backtest.metrics import bar_returns, buy_and_hold_return
 
 
 class _FakeLoader:
@@ -72,7 +72,7 @@ def test_excess_return_matches_corrected_benchmark_return(monkeypatch, tmp_path)
     assert fake_result.total_ret == pytest.approx(-0.5)
 
     monkeypatch.setattr(
-        "backtest.benchmark.resolve_benchmark", lambda **kwargs: fake_result
+        "src.backtest.benchmark.resolve_benchmark", lambda **kwargs: fake_result
     )
 
     engine = ChinaAEngine({"initial_cash": 1_000_000.0})

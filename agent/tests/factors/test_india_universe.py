@@ -14,8 +14,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factors.base import vwap
-from src.factors.registry import Registry
+from src.research.factors.base import vwap
+from src.research.factors.registry import Registry
 
 
 @pytest.fixture(scope="module")

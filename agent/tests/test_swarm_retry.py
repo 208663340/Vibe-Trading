@@ -10,11 +10,11 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
-import mcp_server
-import src.swarm.runtime as rt
-from src.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask, TaskStatus
-from src.swarm.store import SwarmStore
-from src.swarm.task_store import TaskStore
+import src.interfaces.mcp_server as mcp_server
+import src.runtime.swarm.runtime as rt
+from src.runtime.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask, TaskStatus
+from src.runtime.swarm.store import SwarmStore
+from src.runtime.swarm.task_store import TaskStore
 
 
 def _make_run(run_id: str, status: RunStatus) -> SwarmRun:
@@ -171,10 +171,10 @@ def test_retry_run_resume_rejects_completed_run(tmp_path, monkeypatch):
 
 def test_http_retry_route_resume_rejects_completed_run(tmp_path, monkeypatch):
     """POST /swarm/runs/{id}/retry?resume=true on a completed run -> 409."""
-    import api_server
+    import src.interfaces.api_server as api_server
     from fastapi.testclient import TestClient
 
-    from src.api import swarm_routes
+    from src.interfaces.api import swarm_routes
 
     monkeypatch.delenv("API_AUTH_KEY", raising=False)
     monkeypatch.setattr(api_server, "_API_KEY", "")
@@ -197,10 +197,10 @@ def test_http_retry_route_resume_rejects_completed_run(tmp_path, monkeypatch):
 def test_http_retry_route_resume_query_plumbs_resume_from(tmp_path, monkeypatch):
     """POST /swarm/runs/{id}/retry?resume=true hands the reconciled run to
     start_run as resume_from; without the query it stays a full re-run."""
-    import api_server
+    import src.interfaces.api_server as api_server
     from fastapi.testclient import TestClient
 
-    from src.api import swarm_routes
+    from src.interfaces.api import swarm_routes
 
     monkeypatch.delenv("API_AUTH_KEY", raising=False)
     monkeypatch.setattr(api_server, "_API_KEY", "")

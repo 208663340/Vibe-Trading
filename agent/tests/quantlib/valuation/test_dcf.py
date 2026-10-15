@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.valuation.dcf.
+"""Tests for src.research.quantlib.valuation.dcf.
 
 Two rules the assertions here follow, matching the rest of ``tests/quantlib``.
 
@@ -24,8 +24,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.quantlib.valuation.contracts import Assumption, MissingInputError, ValuationError
-from src.quantlib.valuation.dcf import (
+from src.research.quantlib.valuation.contracts import Assumption, MissingInputError, ValuationError
+from src.research.quantlib.valuation.dcf import (
     DCF_BASE_REQUIRED_FIELDS,
     DCF_CURRENT_STRUCTURE_FIELDS,
     DCF_TARGET_STRUCTURE_FIELDS,

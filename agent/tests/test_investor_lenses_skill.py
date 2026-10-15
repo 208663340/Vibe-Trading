@@ -27,14 +27,14 @@ from typing import List
 
 import pytest
 
-from src.agent.frontmatter import parse_frontmatter
-from src.agent.skills import SkillsLoader
-from src.tools.read_file_tool import ReadFileTool
+from src.runtime.agent.frontmatter import parse_frontmatter
+from src.runtime.agent.skills import SkillsLoader
+from src.runtime.tools.read_file_tool import ReadFileTool
 
 import json
 
 _SKILL_NAME = "investor-lenses"
-_SKILLS_ROOT = Path(__file__).resolve().parents[1] / "src" / "skills"
+_SKILLS_ROOT = Path(__file__).resolve().parents[1] / "src" / "research" / "skills"
 _SKILL_DIR = _SKILLS_ROOT / _SKILL_NAME
 _REFS_DIR = _SKILL_DIR / "references"
 
@@ -57,7 +57,7 @@ _REQUIRED_SECTIONS = (
 
 _DISCLAIMER = "**Framework, not investment advice.**"
 
-# Categories SkillsLoader knows how to group (src/agent/skills.py:_CATEGORY_ORDER).
+# Categories SkillsLoader knows how to group (src/runtime/agent/skills.py:_CATEGORY_ORDER).
 _KNOWN_CATEGORIES = {
     "data-source", "strategy", "analysis", "asset-class",
     "crypto", "flow", "tool", "other",
@@ -251,7 +251,7 @@ def _registered_multiword_tool_names() -> List[str]:
     Returns:
         Sorted list of multi-word tool names.
     """
-    from src.tools import _discover_subclasses
+    from src.runtime.tools import _discover_subclasses
 
     return sorted({c.name for c in _discover_subclasses() if c.name and "_" in c.name})
 

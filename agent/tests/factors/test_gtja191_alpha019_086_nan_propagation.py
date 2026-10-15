@@ -13,7 +13,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.factors.registry import Registry
+from src.research.factors.registry import Registry
 
 N_ROWS = 55
 GAP_ROW = 30

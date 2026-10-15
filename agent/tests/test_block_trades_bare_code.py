@@ -5,7 +5,7 @@ Locks out a bug where _resolve_code returned None for bare 6-digit A-share codes
 when symbol contained no dot.
 """
 
-from src.tools.block_trades_tool import _resolve_code
+from src.runtime.tools.block_trades_tool import _resolve_code
 
 
 def test_resolve_code_accepts_bare_a_share_code():

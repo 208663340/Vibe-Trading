@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from src.config.writer import ConfigNotWritableError, update_channel_section
+from src.platform.config.writer import ConfigNotWritableError, update_channel_section
 
 
 def _read(path: Path) -> dict:
@@ -141,7 +141,7 @@ def test_concurrent_writes_to_different_channels_both_survive(
     config_path = tmp_path / "agent.json"
     config_path.write_text(json.dumps({"channels": {}}), encoding="utf-8")
 
-    import src.config.writer as writer
+    import src.platform.config.writer as writer
 
     real_read = writer._read_config_file
     barrier = threading.Barrier(2, timeout=1.0)

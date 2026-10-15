@@ -6,11 +6,11 @@ from types import ModuleType
 import pandas as pd
 import pytest
 
-from backtest.loaders import fundamentals_loader
+from src.backtest.loaders import fundamentals_loader
 
 
 def _install_schema_stub(monkeypatch: pytest.MonkeyPatch) -> None:
-    schema = ModuleType("backtest.loaders._fundamental_schema")
+    schema = ModuleType("src.backtest.loaders._fundamental_schema")
     schema.SEC_CONCEPT_MAP = {
         "revenue": [
             "RevenueFromContractWithCustomerExcludingAssessedTax",
@@ -20,7 +20,7 @@ def _install_schema_stub(monkeypatch: pytest.MonkeyPatch) -> None:
     }
     schema.DERIVED_FIELDS = {}
     schema.resolve_field = lambda field: field.removeprefix("fund:")
-    monkeypatch.setitem(sys.modules, "backtest.loaders._fundamental_schema", schema)
+    monkeypatch.setitem(sys.modules, "src.backtest.loaders._fundamental_schema", schema)
 
 
 def _facts(concept_rows: dict[str, list[dict[str, object]]]) -> dict[str, object]:

@@ -15,16 +15,16 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-import src.live.paths as live_paths
-from src.config.accessor import reset_env_config
-from src.live import audit as live_audit
-from src.live import halt as live_halt
-from src.live import pending_action as pending_state
-from src.live import sdk_order_gate as gate
-from src.live.daily_count import read_daily_count
-from src.live.enforcement import OrderIntent
-from src.live.pending_action import load_pending_action, pending_action_path
-from src.live.mandate.model import (
+import src.markets.live.paths as live_paths
+from src.platform.config.accessor import reset_env_config
+from src.markets.live import audit as live_audit
+from src.markets.live import halt as live_halt
+from src.markets.live import pending_action as pending_state
+from src.markets.live import sdk_order_gate as gate
+from src.markets.live.daily_count import read_daily_count
+from src.markets.live.enforcement import OrderIntent
+from src.markets.live.pending_action import load_pending_action, pending_action_path
+from src.markets.live.mandate.model import (
     AssetClass,
     ConsentMeta,
     HardCaps,
@@ -32,9 +32,9 @@ from src.live.mandate.model import (
     Mandate,
     UniverseConstraint,
 )
-from src.trading import service
-from src.trading.connectors.alpaca import sdk as alpaca_sdk
-from src.trading.connectors.longbridge import credentials as lb_credentials
+from src.markets.trading import service
+from src.markets.trading.connectors.alpaca import sdk as alpaca_sdk
+from src.markets.trading.connectors.longbridge import credentials as lb_credentials
 from tests.module_os_helpers import patch_module_os
 
 pytestmark = pytest.mark.unit
@@ -801,8 +801,8 @@ def test_service_place_order_live_routes_through_gate(monkeypatch) -> None:
     conn = _FakeConnector()
     conn.build_config = lambda profile_config, overrides: object()
     monkeypatch.setattr(service, "_sdk_module", lambda c: conn)
-    monkeypatch.setattr("src.live.sdk_order_gate.load_mandate", lambda broker: None)
-    monkeypatch.setattr("src.live.sdk_order_gate.write_live_action", lambda *a, **k: {"audited": True})
+    monkeypatch.setattr("src.markets.live.sdk_order_gate.load_mandate", lambda broker: None)
+    monkeypatch.setattr("src.markets.live.sdk_order_gate.write_live_action", lambda *a, **k: {"audited": True})
     out = service.place_order("AAPL", "alpaca-live-trade", side="buy", notional=500.0)
     assert out["status"] == "blocked"
     assert conn.placed == []
@@ -810,7 +810,7 @@ def test_service_place_order_live_routes_through_gate(monkeypatch) -> None:
 
 
 def test_no_longbridge_live_trade_profile() -> None:
-    from src.trading import profiles
+    from src.markets.trading import profiles
 
     ids = {p.id for p in profiles.list_profiles()}
     assert "longbridge-paper-trade" in ids
@@ -818,7 +818,7 @@ def test_no_longbridge_live_trade_profile() -> None:
 
 
 def test_trade_profiles_have_place_capability() -> None:
-    from src.trading import profiles
+    from src.markets.trading import profiles
 
     for pid in ("alpaca-live-trade", "okx-live-trade", "binance-live-trade", "futu-live-trade", "tiger-live-trade"):
         prof = profiles.profile_by_id(pid)
@@ -954,7 +954,7 @@ def test_gate_quantity_unpriceable_denies(monkeypatch) -> None:
             return {"status": "error", "error": "no quote"}
 
     # Force the loader fallback to also fail so pricing is impossible.
-    monkeypatch.setattr("src.live.sdk_order_gate.last_price_usd", lambda *a, **k: None)
+    monkeypatch.setattr("src.markets.live.sdk_order_gate.last_price_usd", lambda *a, **k: None)
     out = gate.execute_live_order(
         broker="alpaca", connector_module=_NoQuoteConn(), config=object(),
         intent=_intent(notional=None, qty=5.0),
@@ -969,7 +969,7 @@ def test_gate_quantity_unpriceable_denies(monkeypatch) -> None:
 
 
 def test_longbridge_place_order_paper_only_guard() -> None:
-    from src.trading.connectors.longbridge import sdk as lb
+    from src.markets.trading.connectors.longbridge import sdk as lb
 
     cfg = lb.LongbridgeConfig(app_key="k", app_secret="s", access_token="t", profile="live-readonly")
     out = lb.place_order(cfg, symbol="700.HK", side="buy", quantity=100)
@@ -982,7 +982,7 @@ def test_longbridge_place_order_paper_only_guard() -> None:
 def test_connector_place_order_rejects_bad_side(connector) -> None:
     import importlib
 
-    mod = importlib.import_module(f"src.trading.connectors.{connector}.sdk")
+    mod = importlib.import_module(f"src.markets.trading.connectors.{connector}.sdk")
     cfg = mod.build_config({"profile": "paper"}, None)
     out = mod.place_order(cfg, symbol="AAPL", side="hold", quantity=1)
     assert out["status"] == "error"
@@ -992,14 +992,14 @@ def test_connector_place_order_rejects_bad_side(connector) -> None:
 def test_connector_place_order_rejects_both_qty_and_notional(connector) -> None:
     import importlib
 
-    mod = importlib.import_module(f"src.trading.connectors.{connector}.sdk")
+    mod = importlib.import_module(f"src.markets.trading.connectors.{connector}.sdk")
     cfg = mod.build_config({"profile": "paper"}, None)
     out = mod.place_order(cfg, symbol="AAPL", side="buy", quantity=1, notional=100)
     assert out["status"] == "error"
 
 
 def test_okx_order_result_rejects_failed_scode() -> None:
-    from src.trading.connectors.okx import sdk as ox
+    from src.markets.trading.connectors.okx import sdk as ox
 
     cfg = ox.OKXConfig(api_key="k", api_secret="s", passphrase="p")
     # A 200 envelope (code 0) whose per-order sCode != 0 is a FAILED order.

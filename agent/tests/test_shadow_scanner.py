@@ -7,8 +7,8 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from src.shadow_account.models import ShadowProfile, ShadowRule
-from src.shadow_account.scanner import scan_today_signals
+from src.markets.shadow_account.models import ShadowProfile, ShadowRule
+from src.markets.shadow_account.scanner import scan_today_signals
 
 
 def _profile(entry_condition: dict[str, object] | None = None) -> ShadowProfile:

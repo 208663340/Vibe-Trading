@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from src.tools.sector_tool import SectorInfoTool
+from src.runtime.tools.sector_tool import SectorInfoTool
 
 _MEMBERSHIP_PAYLOAD = {
     "data": {
@@ -52,9 +52,9 @@ class TestMembershipEnvelope:
 
     def test_membership_parses_boards(self):
         with patch(
-            "src.tools.sector_tool.resolve_secid", return_value="1.600519"
+            "src.runtime.tools.sector_tool.resolve_secid", return_value="1.600519"
         ), patch(
-            "src.tools.sector_tool.get_json", return_value=_MEMBERSHIP_PAYLOAD
+            "src.runtime.tools.sector_tool.get_json", return_value=_MEMBERSHIP_PAYLOAD
         ) as mock_get:
             text = SectorInfoTool().execute(code="600519.SH")
 
@@ -83,8 +83,8 @@ class TestMembershipEnvelope:
 
     def test_membership_default_mode_when_only_code(self):
         with patch(
-            "src.tools.sector_tool.resolve_secid", return_value="0.000001"
-        ), patch("src.tools.sector_tool.get_json", return_value={"data": {"diff": []}}):
+            "src.runtime.tools.sector_tool.resolve_secid", return_value="0.000001"
+        ), patch("src.runtime.tools.sector_tool.get_json", return_value={"data": {"diff": []}}):
             payload = json.loads(SectorInfoTool().execute(code="000001.SZ"))
 
         assert payload["mode"] == "membership"
@@ -96,7 +96,7 @@ class TestRankingEnvelope:
 
     def test_ranking_parses_boards(self):
         with patch(
-            "src.tools.sector_tool.get_json", return_value=_RANKING_PAYLOAD
+            "src.runtime.tools.sector_tool.get_json", return_value=_RANKING_PAYLOAD
         ) as mock_get:
             text = SectorInfoTool().execute(mode="ranking", limit=20)
 
@@ -116,8 +116,8 @@ class TestRankingEnvelope:
         assert boards[1]["leader"] is None
 
     def test_ranking_ignores_code_and_skips_resolve(self):
-        with patch("src.tools.sector_tool.resolve_secid") as resolve, patch(
-            "src.tools.sector_tool.get_json", return_value=_RANKING_PAYLOAD
+        with patch("src.runtime.tools.sector_tool.resolve_secid") as resolve, patch(
+            "src.runtime.tools.sector_tool.get_json", return_value=_RANKING_PAYLOAD
         ):
             payload = json.loads(
                 SectorInfoTool().execute(mode="ranking", code="600519.SH")
@@ -128,7 +128,7 @@ class TestRankingEnvelope:
 
     def test_ranking_caps_limit(self):
         with patch(
-            "src.tools.sector_tool.get_json", return_value=_RANKING_PAYLOAD
+            "src.runtime.tools.sector_tool.get_json", return_value=_RANKING_PAYLOAD
         ) as mock_get:
             SectorInfoTool().execute(mode="ranking", limit=10_000)
 
@@ -137,7 +137,7 @@ class TestRankingEnvelope:
 
     def test_diff_as_dict_is_handled(self):
         dict_payload = {"data": {"diff": {"0": _RANKING_PAYLOAD["data"]["diff"][0]}}}
-        with patch("src.tools.sector_tool.get_json", return_value=dict_payload):
+        with patch("src.runtime.tools.sector_tool.get_json", return_value=dict_payload):
             payload = json.loads(SectorInfoTool().execute(mode="ranking"))
 
         assert len(payload["data"]["boards"]) == 1
@@ -170,16 +170,16 @@ class TestErrorEnvelope:
         assert payload["ok"] is False
 
     def test_unresolvable_symbol_error_envelope(self):
-        with patch("src.tools.sector_tool.resolve_secid", return_value=None):
+        with patch("src.runtime.tools.sector_tool.resolve_secid", return_value=None):
             payload = json.loads(SectorInfoTool().execute(code="WAT.XYZ"))
         assert payload["ok"] is False
         assert "unresolvable" in payload["error"]
 
     def test_http_failure_membership_error_envelope(self):
         with patch(
-            "src.tools.sector_tool.resolve_secid", return_value="1.600519"
+            "src.runtime.tools.sector_tool.resolve_secid", return_value="1.600519"
         ), patch(
-            "src.tools.sector_tool.get_json", side_effect=RuntimeError("HTTP 429")
+            "src.runtime.tools.sector_tool.get_json", side_effect=RuntimeError("HTTP 429")
         ):
             payload = json.loads(SectorInfoTool().execute(code="600519.SH"))
         assert payload["ok"] is False
@@ -187,7 +187,7 @@ class TestErrorEnvelope:
 
     def test_http_failure_ranking_error_envelope(self):
         with patch(
-            "src.tools.sector_tool.get_json", side_effect=RuntimeError("HTTP 503")
+            "src.runtime.tools.sector_tool.get_json", side_effect=RuntimeError("HTTP 503")
         ):
             payload = json.loads(SectorInfoTool().execute(mode="ranking"))
         assert payload["ok"] is False

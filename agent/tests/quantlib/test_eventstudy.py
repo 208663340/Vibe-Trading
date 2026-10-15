@@ -1,4 +1,4 @@
-"""Tests for src.quantlib.eventstudy.
+"""Tests for src.research.quantlib.eventstudy.
 
 Two-sided throughout: a sample with no event effect must NOT be called
 significant, and a sample with an injected effect must be.
@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.quantlib.eventstudy import (
+from src.research.quantlib.eventstudy import (
     DEFAULT_ESTIMATION_GAP,
     MIN_ESTIMATION_OBSERVATIONS,
     estimate_market_model,
@@ -296,7 +296,7 @@ def test_patell_variance_uses_each_models_own_degrees_of_freedom():
     # both smaller than (n-2)/(n-4), so using the "market" k=2 for every model
     # (the bug) over-stated the variance correction and left |patell_z|
     # slightly too small: the corrected |z| lands strictly above it.
-    from src.quantlib.eventstudy import NORMAL_RETURN_MODELS, _MODEL_PARAMETER_COUNT
+    from src.research.quantlib.eventstudy import NORMAL_RETURN_MODELS, _MODEL_PARAMETER_COUNT
 
     assert set(_MODEL_PARAMETER_COUNT) == set(NORMAL_RETURN_MODELS)
     returns, market = _panel(seed=42)

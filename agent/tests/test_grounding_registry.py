@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.grounding.ledger import GroundingLedger
-from src.agent.grounding.registry import GROUNDING_CHECKS, GroundingCheck, GroundingRegistry
+from src.runtime.agent.grounding.ledger import GroundingLedger
+from src.runtime.agent.grounding.registry import GROUNDING_CHECKS, GroundingCheck, GroundingRegistry
 
 
 def test_registry_rejects_duplicate_names() -> None:
