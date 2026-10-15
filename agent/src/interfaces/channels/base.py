@@ -1,0 +1,312 @@
+"""Base channel interface for chat platforms."""
+
+from __future__ import annotations
+
+import logging
+from abc import ABC, abstractmethod
+from typing import Any, ClassVar
+
+from src.interfaces.channels.bus.events import DeliveryReceipt, InboundMessage, OutboundMessage
+from src.interfaces.channels.bus.queue import MessageBus
+from src.interfaces.channels.pairing import (
+    PAIRING_CODE_META_KEY,
+    format_pairing_reply,
+    generate_code,
+    is_approved,
+)
+
+logger = logging.getLogger(__name__)
+
+
+class BaseChannel(ABC):
+    """Abstract base class for chat channel implementations.
+
+    Each channel (Telegram, Discord, etc.) should implement this interface
+    to integrate with the Vibe-Trading message bus.
+    """
+
+    name: str = "base"
+    display_name: str = "Base"
+    send_progress: bool = True
+    send_tool_hints: bool = False
+    show_reasoning: bool = True
+
+    supports_connection_test: ClassVar[bool] = False
+
+    # Config keys a running adapter absorbs in place (no stop+start): those read
+    # live per message (``self.config.X``) rather than captured into the SDK
+    # client at ``start()``. Empty default keeps undeclared channels on the full
+    # reload path; ``enabled``/connection keys are never declared (#1625).
+    hot_reload_noop_keys: ClassVar[frozenset[str]] = frozenset()
+
+    # Scheduled delivery is channel-agnostic at the scheduler layer. Adapters
+    # describe the address they accept so generic UIs never need to hard-code
+    # channel names or ask users to guess provider-specific target formats.
+    delivery_target_label: ClassVar[str] = "Destination"
+    delivery_target_kind: ClassVar[str] = "destination"
+    delivery_target_placeholder: ClassVar[str] = "Chat, group, user, address, or channel ID"
+    delivery_target_input_type: ClassVar[str] = "text"
+
+    def delivery_target_suggestions(self) -> list[dict[str, str]]:
+        """Return safe destination suggestions for scheduled delivery."""
+        return []
+
+    def __init__(self, config: Any, bus: MessageBus) -> None:
+        """Initialize the channel.
+
+        Args:
+            config: Channel-specific configuration.
+            bus: The message bus for communication.
+        """
+        self.config = config
+        self.bus = bus
+        self._running = False
+        self.logger = logging.getLogger(f"{__name__}.{self.name}")
+
+    async def login(self, force: bool = False) -> bool:
+        """Perform channel-specific interactive login (e.g. QR code scan).
+
+        Args:
+            force: If True, ignore existing credentials and force re-authentication.
+
+        Returns True if already authenticated or login succeeds.
+        Override in subclasses that support interactive login.
+        """
+        return True
+
+    async def test_connection(self) -> dict[str, Any]:
+        """Probe this channel's credentials without starting it.
+
+        Default implementation reports ``unsupported``; adapters that can
+        validate credentials against a standalone endpoint override this and set
+        :attr:`supports_connection_test` to True.
+
+        Returns:
+            A JSON-serializable envelope with a boolean ``ok`` and a string
+            ``code`` of ``ok`` / ``invalid_credentials`` / ``network`` /
+            ``unsupported``.
+        """
+        return {"ok": False, "code": "unsupported"}
+
+    def refresh_config(self, section: dict[str, Any]) -> bool:
+        """Refresh declared live fields; preserve runtime connection state.
+
+        Validate the stored section, then copy only ``hot_reload_noop_keys``
+        into the current config. Login may have resolved connection fields
+        that are absent from storage, such as Weixin's authenticated base URL.
+        On validation failure keep the old config and request a full reload.
+        """
+        try:
+            model_cls = type(self.config)
+            if hasattr(model_cls, "model_validate"):
+                computed = set(model_cls.model_computed_fields)
+                fresh = model_cls.model_validate(section).model_dump(by_alias=True, exclude=computed)
+                current = self.config.model_dump(by_alias=True, exclude=computed)
+                current.update({key: fresh[key] for key in self.hot_reload_noop_keys if key in fresh})
+                self.config = model_cls.model_validate(current)
+            else:
+                fresh = {**self.default_config(), **section}
+                current = dict(self.config)
+                for key in self.hot_reload_noop_keys:
+                    if key in fresh:
+                        current[key] = fresh[key]
+                    else:
+                        current.pop(key, None)
+                self.config = current
+        except Exception:  # noqa: BLE001 - a rejected section must not strand the adapter
+            logger.debug("refresh_config rejected section for %s", self.name, exc_info=True)
+            return False
+        return True
+
+    @abstractmethod
+    async def start(self) -> None:
+        """Start the channel and begin listening for messages.
+
+        This should be a long-running async task that:
+        1. Connects to the chat platform
+        2. Listens for incoming messages
+        3. Forwards messages to the bus via _handle_message()
+        """
+
+    @abstractmethod
+    async def stop(self) -> None:
+        """Stop the channel and clean up resources."""
+
+    @abstractmethod
+    async def send(self, msg: OutboundMessage) -> None:
+        """Send a message through this channel.
+
+        Args:
+            msg: The message to send.
+
+        Implementations should raise on delivery failure so the channel manager
+        can apply any retry policy in one place.
+        """
+
+    async def send_with_receipt(self, msg: OutboundMessage) -> DeliveryReceipt:
+        """Send and return the strongest generic acknowledgement available.
+
+        Existing adapters remain compatible through ``accepted``. Adapters
+        that expose provider message ids should override this method and return
+        ``sent`` only after receiving that id.
+        """
+        import time
+
+        await self.send(msg)
+        return DeliveryReceipt(status="accepted", sent_at=int(time.time() * 1000))
+
+    # --- Streaming hooks (override in subclasses) ---
+
+    async def send_delta(
+        self, chat_id: str, delta: str, metadata: dict[str, Any] | None = None
+    ) -> None:
+        """Deliver a streaming text chunk.
+
+        Override in subclasses to enable streaming. Implementations should
+        raise on delivery failure so the channel manager can retry.
+
+        Streaming contract: ``_stream_delta`` is a chunk, ``_stream_end`` ends
+        the current segment, and stateful implementations must key buffers by
+        ``_stream_id`` rather than only by ``chat_id``.
+        """
+
+    async def send_reasoning_delta(
+        self, chat_id: str, delta: str, metadata: dict[str, Any] | None = None
+    ) -> None:
+        """Stream a chunk of model reasoning/thinking content.
+
+        Default implementation emits no extra event. Channels with a native low-emphasis primitive
+        (Slack context block, Telegram expandable blockquote, Discord
+        subtext, WebUI italic bubble, ...) override to render reasoning
+        as a subordinate trace that updates in place as the model thinks.
+
+        Streaming contract mirrors :meth:`send_delta`: ``_reasoning_delta``
+        is a chunk, ``_reasoning_end`` ends the current reasoning segment,
+        and stateful implementations should key buffers by ``_stream_id``
+        rather than only by ``chat_id``.
+        """
+
+    async def send_reasoning_end(
+        self, chat_id: str, metadata: dict[str, Any] | None = None
+    ) -> None:
+        """Mark the end of a reasoning stream segment.
+
+        Default implementation emits no extra event. Channels that buffer ``send_reasoning_delta``
+        chunks for in-place updates use this signal to flush and freeze
+        the rendered group; one-shot channels can ignore it entirely.
+        """
+
+    async def send_file_edit_events(
+        self,
+        chat_id: str,
+        edits: list[dict[str, Any]],
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Deliver structured live file-edit events.
+
+        Default implementation emits no extra event. Channels with a rich activity surface can override
+        this to render editing progress without receiving empty text messages.
+        """
+
+    async def send_reasoning(self, msg: OutboundMessage) -> None:
+        """Deliver a complete reasoning block.
+
+        Default implementation reuses the streaming pair so plugins only
+        need to override the delta/end methods.
+        """
+        if not msg.content:
+            return
+        meta = dict(msg.metadata or {})
+        meta.setdefault("_reasoning_delta", True)
+        await self.send_reasoning_delta(msg.chat_id, msg.content, meta)
+        end_meta = dict(meta)
+        end_meta.pop("_reasoning_delta", None)
+        end_meta["_reasoning_end"] = True
+        await self.send_reasoning_end(msg.chat_id, end_meta)
+
+    # --- Permission helpers ---
+
+    @property
+    def supports_streaming(self) -> bool:
+        """True when config enables streaming AND this subclass implements send_delta."""
+        cfg = self.config
+        streaming = (
+            cfg.get("streaming", False)
+            if isinstance(cfg, dict)
+            else getattr(cfg, "streaming", False)
+        )
+        return bool(streaming) and type(self).send_delta is not BaseChannel.send_delta
+
+    def is_allowed(self, sender_id: str) -> bool:
+        """Check sender permission: star > allowlist > pairing store > deny."""
+        if isinstance(self.config, dict):
+            allow_list = self.config.get("allow_from") or self.config.get("allowFrom") or []
+        else:
+            allow_list = getattr(self.config, "allow_from", None) or []
+        if "*" in allow_list:
+            return True
+        if str(sender_id) in allow_list:
+            return True
+        if is_approved(self.name, str(sender_id)):
+            return True
+        return False
+
+    async def _handle_message(
+        self,
+        sender_id: str,
+        chat_id: str,
+        content: str,
+        media: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+        session_key: str | None = None,
+        is_dm: bool = False,
+    ) -> None:
+        """Handle an incoming message: check permissions, issue pairing codes in DMs, or forward to bus."""
+        if not self.is_allowed(sender_id):
+            if is_dm:
+                code = generate_code(self.name, str(sender_id))
+                await self.send(
+                    OutboundMessage(
+                        channel=self.name,
+                        chat_id=str(chat_id),
+                        content=format_pairing_reply(code),
+                        metadata={PAIRING_CODE_META_KEY: code},
+                    )
+                )
+                logger.info(
+                    "Sent pairing code %s to sender %s in chat %s",
+                    code, sender_id, chat_id,
+                )
+            else:
+                logger.warning(
+                    "Access denied for sender %s. "
+                    "Add them to allow_from list in config to grant access.",
+                    sender_id,
+                )
+            return
+
+        meta = metadata or {}
+        if self.supports_streaming:
+            meta = {**meta, "_wants_stream": True}
+
+        msg = InboundMessage(
+            channel=self.name,
+            sender_id=str(sender_id),
+            chat_id=str(chat_id),
+            content=content,
+            media=media or [],
+            metadata=meta,
+            session_key_override=session_key,
+        )
+
+        await self.bus.publish_inbound(msg)
+
+    @classmethod
+    def default_config(cls) -> dict[str, Any]:
+        """Return default config for onboard. Override in plugins to auto-populate config."""
+        return {"enabled": False}
+
+    @property
+    def is_running(self) -> bool:
+        """Check if the channel is running."""
+        return self._running
