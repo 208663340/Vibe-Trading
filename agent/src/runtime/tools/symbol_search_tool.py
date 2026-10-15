@@ -1,0 +1,954 @@
+"""Read-only symbol-search tool: resolve a name/ticker to symbols + market.
+
+Backed by the selected Binance connector for exact crypto pairs plus three
+frozen, IP-throttled public-API clients so the agent never hits a provider
+un-throttled and never re-implements transport plumbing:
+
+* The active Binance profile resolves exact spot-pair spellings against its
+  exchange market catalog. It does not guess asset names from prose.
+
+* :mod:`src.backtest.loaders.eastmoney_client` — Eastmoney's free suggest endpoint
+  matches Chinese/English names and tickers across A-shares (.SH/.SZ/.BJ),
+  Hong Kong (.HK) and U.S. (.US) listings, each carrying a fully-qualified
+  ``secid`` already in ``<market>.<code>`` form.
+* :mod:`src.backtest.loaders.yahoo_client` — Yahoo's v1 search endpoint matches
+  global tickers/company names (US, HK, Canada, crypto, indices, FX, ...).
+* :mod:`src.backtest.loaders.sec_edgar_client` — the SEC company-tickers table
+  enriches a resolved U.S. equity ticker with its zero-padded CIK.
+
+The tool fans out across these sources, normalizes every hit into one compact
+candidate row in the project's symbol convention, de-duplicates by symbol, and
+caps the payload. A single failing source never aborts the others; its error is
+recorded under ``sources`` and the surviving candidates still return.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import re
+from typing import Any, Dict, List, Optional
+
+from src.backtest.loaders import eastmoney_client, sec_edgar_client, yahoo_client
+from src.runtime.agent.tools import BaseTool
+from src.markets.market_data import FIAT_CODES, canonical_fx_pair
+
+# Back-compat alias: the search tool's historical name for the shared
+# fiat-pair canonicalizer (search, fetch and grounding share one definition).
+_canonical_fx_pair = canonical_fx_pair
+
+logger = logging.getLogger(__name__)
+
+# Eastmoney's free, no-auth suggest endpoint (the same one the quote site calls)
+# returns multi-market candidates under ``QuotationCodeTable.Data`` with a
+# ready-made ``QuoteID`` secid. Requests route through the frozen, throttled
+# Eastmoney client; this is just the documented endpoint URL + query shape.
+_EASTMONEY_SUGGEST_URL = "https://searchapi.eastmoney.com/api/suggest/get"
+
+# Canadian equity suffixes (TSX ``.TO`` / TSX Venture ``.V``). Eastmoney has NO
+# Canada coverage: querying it with a Canadian ticker returns a non-JSON body
+# (``Expecting value: line 1 column 1 (char 0)``) instead of a clean empty
+# result. We fail fast — skip the endpoint entirely — for these queries, and
+# drop US OTC aliases (e.g. ``BYAGF.US`` for ``BYN.V``) so the grounding
+# ledger never sees one company under two venues (identity_conflict).
+#
+# The pattern matches a LEADING Canadian ticker, optionally followed by free
+# text — the model commonly searches "BTO.TO B2Gold" or "SGML.V Sigma Lithium
+# Vancouver", not just a bare "BTO.TO". ``.TO``/``.V`` are exclusively
+# Canadian suffixes, so a leading one is unambiguous and Eastmoney can never
+# serve it. Bare names with no suffix (e.g. "BTO", "B2Gold BTO") carry no
+# venue signal and may be legit non-Canadian lookups (A-share/HK/US), so they
+# are deliberately left to the normal fan-out.
+_CANADIAN_SYMBOL_RE = re.compile(r"^[A-Z0-9&.\-]+\.(?:TO|V)\b", re.IGNORECASE)
+
+# Explicit exchange-pair spellings are not equity/name searches. Restrict the
+# quote leg to assets used by the built-in crypto connectors so an equity such
+# as ``BRK-B`` is never misclassified as a pair. The full set is split into
+# two tiers:
+#
+#   * Stablecoin quotes (FDUSD / USDT / USDC / BUSD / TUSD) are unambiguous -
+#     a ``BTC-USDT`` or ``XAUT-USDC`` cannot be confused with anything outside
+#     crypto. These are accepted on any alphanumeric base.
+#   * ``USD`` is ambiguous: a ``BTC-USD`` is a real Coinbase crypto pair, but
+#     ``XAU-USD`` is spot gold, ``EUR-USD`` is forex, and ``GBP-USD`` is
+#     currency. Restrict ``USD`` to a whitelist of well-known crypto bases
+#     (anything that's actually tradable on Binance/OKX spot, plus the
+#     stablecoin-gold tokens XAUT/PAXG that ARE crypto). Without this guard a
+#     bare ``XAUUSD`` query would lock onto a tokenized-gold row from
+#     Binance instead of the spot gold the user actually asked for.
+_STABLECOIN_QUOTES = ("FDUSD", "USDT", "USDC", "BUSD", "TUSD")
+_CRYPTO_QUOTE_ASSETS = _STABLECOIN_QUOTES + ("BTC", "ETH", "BNB", "USD")
+# Bases that may pair with ``USD`` and still count as a crypto pair. Every
+# entry here is listed on Binance spot or OKX spot; ``XAU``, ``EUR``, etc.
+# are deliberately excluded.
+_CRYPTO_USD_BASES = frozenset(
+    {
+        "BTC", "ETH", "BNB", "SOL", "ADA", "XRP", "DOGE", "TRX", "DOT",
+        "MATIC", "AVAX", "LINK", "LTC", "BCH", "ETC", "XLM", "ATOM",
+        "FIL", "APT", "NEAR", "ALGO", "SAND", "MANA", "AXS", "XAUT",
+        "PAXG",
+    }
+)
+#: Spot precious metals. Their pairs are shaped exactly like FX (three-letter
+#: base, fiat quote) but the base is not a fiat code, so ``canonical_fx_pair``
+#: rejects them and the crypto resolver must too (``XAU-USD`` is spot gold,
+#: ``XAUT-USDT`` is the token).
+_METAL_CODES = frozenset({"XAU", "XAG", "XPT", "XPD"})
+
+
+def _metal_or_fx_legs(value: str) -> tuple[str, str] | None:
+    """Return the ``(base, quote)`` legs of a spot metal / FX pair query.
+
+    Recognizes every spelling the tool has to reconcile — ``XAUUSD``,
+    ``XAU/USD``, ``XAU-USD``, ``XAUUSD=X`` — so a candidate written in one
+    spelling can be compared with a query written in another.
+
+    Args:
+        value: A query string or a candidate symbol.
+
+    Returns:
+        The uppercased legs when the base is a metal or fiat code and the
+        quote is a fiat code, else ``None``.
+    """
+    clean = str(value or "").strip().upper()
+    if clean.endswith("=X"):
+        clean = clean[:-2]
+    if clean.endswith(".FX"):
+        clean = clean[:-3]
+    if "-" in clean or "/" in clean:
+        base, _, quote = (
+            clean.partition("-") if "-" in clean else clean.partition("/")
+        )
+    elif len(clean) == 6 and clean.isalpha():
+        base, quote = clean[:3], clean[3:]
+    else:
+        return None
+    if base in (_METAL_CODES | FIAT_CODES) and quote in FIAT_CODES:
+        return base, quote
+    return None
+
+
+_CRYPTO_PAIR_RE = re.compile(
+    rf"^([A-Z0-9]{{2,15}})[-/]({'|'.join(_CRYPTO_QUOTE_ASSETS)})$",
+    re.IGNORECASE,
+)
+
+# Eastmoney market-number -> our symbol suffix. Anything else is left unmapped
+# (those candidates are skipped rather than emitted with a wrong suffix).
+_EASTMONEY_SUFFIX_BY_MARKET: Dict[str, str] = {
+    "1": "SH",   # Shanghai
+    "0": "SZ",   # Shenzhen / Beijing share the 0 prefix on Eastmoney
+    "116": "HK",
+    "105": "US",  # NASDAQ
+    "106": "US",  # NYSE
+    "107": "US",  # AMEX
+}
+
+# Coarse market label for the candidate row, keyed by symbol suffix. Every
+# market the data layer routes has a row, so none is labelled "global";
+# test_market_identity_parity derives that list from the backtest's table.
+_MARKET_BY_SUFFIX: Dict[str, str] = {
+    "SH": "cn",
+    "SZ": "cn",
+    "BJ": "cn",
+    "HK": "hk",
+    "US": "us",
+    "NS": "in",
+    "BO": "in",
+    "KS": "kr",
+    "KQ": "kr",
+    "TO": "ca",
+    "V": "ca",
+    "BA": "ar",
+    "SA": "br",
+    "L": "uk",
+    "VN": "vn",
+}
+
+# Hard caps so a broad query cannot bloat the envelope.
+_MAX_LIMIT = 25
+_DEFAULT_LIMIT = 10
+# Per-source fan-out ceiling before de-dup/merge keeps each provider bounded.
+_PER_SOURCE_CAP = 25
+
+# Sentinel for "no U.S. candidate, SEC was not consulted" so the caller can omit
+# the ``sec_edgar`` source entry entirely.
+_NO_US = "__no_us__"
+
+# A source that cannot serve a given query shape reports this prefix instead of
+# an error string. The distinction is load-bearing, not cosmetic: the grounding
+# ledger concludes "this entity does not exist" only when every source that
+# could answer did answer, so a source recorded as failed turns a legitimate
+# "not listed" into a blocking ``invalidated`` identity. Both skip reasons below
+# share this one prefix — two spellings for one concept is exactly how that
+# cross-module contract breaks silently.
+_SKIPPED = "skipped: "
+
+
+class SymbolSearchTool(BaseTool):
+    """Resolve a company name or ticker fragment to candidate symbols."""
+
+    name = "search_symbol"
+    description = (
+        "Resolve a company name or ticker fragment to candidate trading symbols "
+        "with their market, in the project's symbol convention (A-shares "
+        "600519.SH, Hong Kong 00700.HK, U.S. AAPL.US, Canada TD.TO/PNG.V, plus "
+        "crypto/index/FX from "
+        "Yahoo). Exact crypto pairs are checked against the active Binance "
+        "profile; other queries search Eastmoney (China/HK/US names and tickers) and Yahoo "
+        "(global) and, for U.S. equities, attaches the SEC CIK. Use this to turn "
+        "an ambiguous name into a concrete symbol before calling get_market_data "
+        'or get_sec_filings. Example: search_symbol(query="apple", limit=5).'
+    )
+    parameters = {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": (
+                    "Free-text company name or ticker fragment to resolve, e.g. "
+                    "'apple', '贵州茅台', '茅台', 'AAPL', '00700'. Chinese and "
+                    "English both accepted."
+                ),
+            },
+            "limit": {
+                "type": "integer",
+                "description": (
+                    f"Maximum number of merged candidates to return "
+                    f"(1-{_MAX_LIMIT}). Defaults to {_DEFAULT_LIMIT}."
+                ),
+                "default": _DEFAULT_LIMIT,
+            },
+        },
+        "required": ["query"],
+    }
+    repeatable = True
+
+    def execute(self, **kwargs: Any) -> str:
+        """Fan out across providers and return a merged candidate envelope.
+
+        Args:
+            **kwargs: ``query`` (str, required free-text name/ticker) and
+                ``limit`` (int, optional; clamped to ``1.._MAX_LIMIT``).
+
+        Returns:
+            A JSON envelope string. On success:
+            ``{"ok": true, "market": "multi", "source": "symbol_search",
+            "data": {"query": str, "count": int, "candidates": [...],
+            "sources": {<name>: "ok"|<error>}}}``. On failure (only when the
+            query itself is invalid):
+            ``{"ok": false, "error": str}``.
+        """
+        query = str(kwargs.get("query") or "").strip()
+        if not query:
+            return _error("'query' is required and must be a non-empty string")
+
+        limit = _clamp_limit(kwargs.get("limit", _DEFAULT_LIMIT))
+
+        candidates: List[Dict[str, Any]] = []
+        sources: Dict[str, str] = {}
+
+        crypto_pair = _canonical_crypto_pair(query)
+        connector_hits, connector_source, connector_status = (
+            _search_selected_connector(query, limit)
+        )
+        if connector_source is not None and connector_status is not None:
+            sources[connector_source] = connector_status
+            candidates.extend(connector_hits)
+        if connector_source == "mt5":
+            # Broker-native identities must never be substituted by web search.
+            return json.dumps({
+                "ok": True, "market": "multi", "source": "symbol_search",
+                "data": {"query": query, "count": len(connector_hits[:limit]),
+                         "candidates": connector_hits[:limit], "sources": sources},
+            }, ensure_ascii=False)
+        if crypto_pair is not None and not connector_hits:
+            # Resolving a pair must not require a broker account. The venue
+            # catalogs are public, unauthenticated REST — the same connectivity
+            # `orderbook_depth` already uses to serve these very pairs — so a
+            # user with no Binance connection still gets an identity instead of
+            # nothing (or, before #1234, a near-string Yahoo asset).
+            public_hits, public_source, public_status = _search_public_exchanges(
+                crypto_pair
+            )
+            if public_source is not None:
+                sources[public_source] = public_status or "ok"
+                candidates.extend(public_hits)
+
+        em_hits, sources["eastmoney"] = _search_eastmoney(query)
+        candidates.extend(em_hits)
+
+        # An explicit FX pair searches Yahoo by its canonical ``XXXYYY=X``
+        # spelling — exact-symbol search is far more reliable than free text —
+        # and always yields a deterministic candidate, so a throttled/outage
+        # Yahoo (the earlier "GBP/USD -> 0 candidates" failure) never turns a
+        # canonical pair into nothing.
+        fx_pair = _canonical_fx_pair(query)
+        yh_hits, sources["yahoo"] = _search_yahoo(fx_pair or query)
+        candidates.extend(yh_hits)
+        if fx_pair is not None:
+            pair_no_x = fx_pair[:-2]
+            candidates.append(
+                {
+                    "symbol": fx_pair,
+                    "name": f"{pair_no_x[:3]}/{pair_no_x[3:]}",
+                    "market": "fx",
+                    "type": "currency",
+                    "exchange": "CCY",
+                    "source": "fx_normalizer",
+                }
+            )
+            sources["fx_normalizer"] = "ok"
+
+        if crypto_pair is not None:
+            # A pair query is an exact instrument assertion. Near-string Yahoo
+            # hits such as AETHUSDT-USD are different assets and must not enter
+            # the identity ledger as rival candidates (#1234).
+            candidates = [
+                candidate
+                for candidate in candidates
+                if _canonical_crypto_pair(str(candidate.get("symbol") or ""))
+                == crypto_pair
+            ]
+        elif _metal_or_fx_legs(query) is not None:
+            # A spot metal / FX pair query (``XAUUSD``, ``XAU/USD``,
+            # ``XAUUSD=X``) is an exact instrument assertion, exactly like the
+            # crypto-pair branch above. Yahoo answers such a query by
+            # free-text similarity, and its top hit for spot gold is a Swedish
+            # Bitcoin ETP (``VALOUR-BTC-0-SEK.ST``) or an Aave token
+            # (``AETHUSDT-USD``) — a wrong instrument that then locks the run's
+            # identity. Keep only candidates naming the same two legs; an
+            # empty candidate list leaves the identity unresolved, which is
+            # the safe failure.
+            query_legs = _metal_or_fx_legs(query)
+            candidates = [
+                candidate
+                for candidate in candidates
+                if _metal_or_fx_legs(str(candidate.get("symbol") or "")) == query_legs
+            ]
+        elif query.strip().upper().endswith("=F"):
+            # Yahoo's continuous-front-month futures notation is likewise an
+            # exact assertion: ``GC=F`` is gold futures, and a near-string hit
+            # is a different contract.
+            candidates = [
+                candidate
+                for candidate in candidates
+                if str(candidate.get("symbol") or "").strip().upper()
+                == query.strip().upper()
+            ]
+
+        # Canada fail-fast: a Canadian ticker must resolve to the Canadian venue
+        # only. Yahoo also returns the US OTC alias of the same company (e.g.
+        # ``BYN.V`` -> ``BYAGF.US``), which would make the grounding ledger see
+        # two venues for one entity and reject every downstream call with
+        # ``identity_conflict``. Keep only ``.TO``/``.V`` candidates here.
+        if _is_canadian_symbol(query):
+            candidates = [
+                c
+                for c in candidates
+                if _is_canadian_symbol(str(c.get("symbol") or ""))
+            ]
+
+        merged = _merge_candidates(candidates)
+        merged, sources["sec_edgar"] = _enrich_us_cik(merged)
+        if sources["sec_edgar"] == _NO_US:
+            del sources["sec_edgar"]
+        merged = merged[:limit]
+
+        return json.dumps(
+            {
+                "ok": True,
+                "market": "multi",
+                "source": "symbol_search",
+                "data": {
+                    "query": query,
+                    "count": len(merged),
+                    "candidates": merged,
+                    "sources": sources,
+                },
+            },
+            ensure_ascii=False,
+        )
+
+
+def _clamp_limit(value: Any) -> int:
+    """Coerce a requested count into the supported ``1.._MAX_LIMIT`` range."""
+    try:
+        n = int(value)
+    except (TypeError, ValueError, OverflowError):
+        return _DEFAULT_LIMIT
+    return max(1, min(n, _MAX_LIMIT))
+
+
+def _is_canadian_symbol(text: str) -> bool:
+    """Whether *text* is a Canadian ticker (TSX ``.TO`` / TSXV ``.V``).
+
+    Used for fail-fast routing: Canadian symbols are served by Yahoo only, so
+    Eastmoney is skipped and US OTC aliases are filtered from the result set.
+
+    Args:
+        text: A symbol or free-text query to test.
+
+    Returns:
+        ``True`` when the text starts with a Canadian-suffixed ticker
+        (``BTO.TO``, ``BTO.TO B2Gold``, ``SGML.V Sigma Lithium``, ...).
+    """
+    return bool(_CANADIAN_SYMBOL_RE.match((text or "").strip()))
+
+
+def _canonical_crypto_pair(value: str) -> str | None:
+    """Return an explicit crypto pair in canonical ``BASE-QUOTE`` form.
+
+    A pair is only accepted as a crypto pair when its base is in the
+    appropriate whitelist. Stablecoin quotes (``USDT``/``USDC``/``BUSD``/
+    ``TUSD``/``FDUSD``) accept any alphanumeric base — a 6-letter base
+    cannot be confused with a stablecoin because no real-world asset
+    except crypto ones trades quoted in stablecoins. The ``USD`` quote
+    is gated on :data:`_CRYPTO_USD_BASES` so a bare ``XAUUSD`` /
+    ``EURUSD`` / ``GBPUSD`` query does NOT auto-lock onto tokenized gold
+    or a forex pair that the public venue catalogs do not list.
+
+    Returns ``"BASE-QUOTE"`` for an accepted pair, ``None`` otherwise.
+    """
+    clean = str(value or "").strip().upper()
+    matched = _CRYPTO_PAIR_RE.fullmatch(clean)
+    if matched:
+        base, quote = matched.group(1), matched.group(2)
+        # Two independent rejections, both required. The fiat/fiat rule (from
+        # main) covers pairs whose quote leg is not USD; the USD whitelist
+        # (this PR) covers a USD quote whose base is not a known crypto —
+        # XAU is not a fiat code, so fiat/fiat alone lets XAU-USD through and
+        # the venue catalog locks tokenized gold as "spot gold".
+        if base in FIAT_CODES and quote in FIAT_CODES:
+            return None  # fiat/fiat is an FX pair, not crypto
+        if quote == "USD" and base not in _CRYPTO_USD_BASES:
+            return None
+        return f"{base}-{quote}"
+    if clean.isalnum():
+        for quote in _CRYPTO_QUOTE_ASSETS:
+            if clean.endswith(quote) and len(clean) > len(quote) + 1:
+                base = clean[: -len(quote)]
+                # Same two rejections. They differ deliberately in kind:
+                # fiat/fiat has no crypto reading at all, so it gives up;
+                # a non-whitelisted USD base only rules out THIS quote asset,
+                # so it must `continue` and let a longer quote (USDT/USDC)
+                # still match — returning here would strand e.g. XAUT-USDT.
+                if base in FIAT_CODES and quote in FIAT_CODES:
+                    return None  # fiat/fiat is an FX pair, not crypto
+                if quote == "USD" and base not in _CRYPTO_USD_BASES:
+                    continue
+                return f"{base}-{quote}"
+    return None
+
+
+#: Public, no-auth venue catalogs consulted for an explicit pair, in order.
+#: Same venues and same ccxt connectivity as ``orderbook_depth``.
+_PUBLIC_CRYPTO_EXCHANGES = ("binance", "okx")
+
+
+def _load_public_markets(exchange_id: str) -> Dict[str, Any]:
+    """Return one venue's public market catalog via ccxt (no credentials).
+
+    Isolated as its own function so tests monkeypatch exactly this name and
+    never open a socket, the same pattern as
+    ``orderbook_depth_tool._fetch_raw_book``.
+
+    Args:
+        exchange_id: A ccxt exchange id, ``"binance"`` or ``"okx"``.
+
+    Returns:
+        ccxt's unified markets mapping, keyed by ``BASE/QUOTE``.
+
+    Raises:
+        Exception: Whatever ccxt raises for a network or venue error.
+    """
+    import ccxt
+
+    exchange = getattr(ccxt, exchange_id)({"enableRateLimit": True, "timeout": 10_000})
+    return exchange.load_markets()
+
+
+def _search_public_exchanges(
+    crypto_pair: str,
+) -> tuple[List[Dict[str, Any]], str | None, str | None]:
+    """Resolve an exact pair against the public venue catalogs.
+
+    Args:
+        crypto_pair: Canonical ``BASE-QUOTE`` spelling.
+
+    Returns:
+        ``(candidates, source, status)``; ``source`` is ``None`` only when
+        ccxt itself is unavailable.
+    """
+    base, quote = crypto_pair.split("-", 1)
+    ccxt_symbol = f"{base}/{quote}"
+    failures: List[str] = []
+    for exchange_id in _PUBLIC_CRYPTO_EXCHANGES:
+        try:
+            markets = _load_public_markets(exchange_id)
+        except ImportError:
+            return [], None, None
+        except Exception as exc:  # noqa: BLE001 — one venue is non-fatal
+            logger.debug("public %s catalog failed for %r: %s", exchange_id, crypto_pair, exc)
+            failures.append(f"{exchange_id}: {exc}")
+            continue
+        market = markets.get(ccxt_symbol) if isinstance(markets, dict) else None
+        if not isinstance(market, dict) or market.get("active") is False:
+            continue
+        if market.get("spot") is False:
+            continue
+        return (
+            [
+                {
+                    "symbol": crypto_pair,
+                    "name": None,
+                    "market": "crypto",
+                    "type": "cryptocurrency",
+                    "exchange": exchange_id.upper(),
+                    "source": "public_exchange",
+                }
+            ],
+            "public_exchange",
+            "ok",
+        )
+    if failures:
+        return [], "public_exchange", "; ".join(failures)
+    return [], "public_exchange", f"{_SKIPPED}no public venue lists {crypto_pair}"
+
+
+def _search_selected_connector(
+    query: str,
+    limit: int,
+) -> tuple[List[Dict[str, Any]], str | None, str | None]:
+    """Resolve an explicit pair against the active crypto connector, if supported."""
+    crypto_pair = _canonical_crypto_pair(query)
+    mt5_pair = _metal_or_fx_legs(query)
+    # Lazy imports keep the generic symbol tool usable when optional connector
+    # dependencies are absent and avoid loading broker configuration at import.
+    from src.markets.trading import profiles as trading_profiles
+    from src.markets.trading import service as trading_service
+
+    try:
+        profile_id = trading_profiles.load_selected_profile_id()
+        profile = trading_profiles.profile_by_id(profile_id)
+    except (OSError, ValueError) as exc:
+        logger.debug("selected connector lookup failed for %r: %s", query, exc)
+        return [], None, None
+
+    if profile.connector == "binance" and crypto_pair is None:
+        return [], None, None
+    if profile.connector not in {"binance", "mt5"}:
+        return [], None, None
+
+    source = profile.connector
+    try:
+        payload = trading_service.search_instruments(
+            query,
+            profile.id,
+            limit=limit,
+        )
+    except Exception as exc:  # noqa: BLE001 - one search source is non-fatal
+        logger.debug("%s instrument search failed (%s)", source, type(exc).__name__)
+        message = "connector search failed" if source == "mt5" else f"connector search failed: {exc}"
+        return [], source, message
+
+    if not isinstance(payload, dict) or str(payload.get("status")).casefold() != "ok":
+        message = (
+            str(payload.get("error") or payload.get("message") or "unknown error")
+            if isinstance(payload, dict)
+            else "invalid response"
+        )
+        return [], source, f"connector search failed: {message}"
+
+    rows = payload.get("instruments")
+    rows = rows if isinstance(rows, list) else []
+    candidates: List[Dict[str, Any]] = []
+    if profile.connector == "mt5":
+        requested_base = "".join(mt5_pair) if mt5_pair else query.strip().upper()
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            native_symbol = str(
+                row.get("native_symbol") or row.get("symbol") or ""
+            ).strip()
+            resolved_base = native_symbol.upper()
+            if resolved_base.endswith(".FX"):
+                resolved_base = resolved_base[:-3]
+            if not (resolved_base.startswith(requested_base) if mt5_pair else resolved_base == requested_base):
+                continue
+            candidates.append(
+                {
+                    "symbol": query.strip().upper() if mt5_pair else native_symbol,
+                    "name": str(row.get("name") or native_symbol).strip() or None,
+                    "market": str(row.get("market") or "mt5"),
+                    "type": str(row.get("type") or "cfd"),
+                    "exchange": str(row.get("exchange") or row.get("venue") or "MT5"),
+                    "venue": str(row.get("venue") or row.get("exchange") or "MT5"),
+                    "source": source,
+                    "profile_id": profile.id,
+                    "native_symbol": native_symbol,
+                }
+            )
+        if len({candidate["native_symbol"] for candidate in candidates}) > 1:
+            return [], source, "ambiguous broker symbol; specify an exact native symbol"
+        return candidates, source, "ok"
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        symbol = _canonical_crypto_pair(str(row.get("symbol") or ""))
+        if symbol is None:
+            continue
+        candidates.append(
+            {
+                "symbol": symbol,
+                "name": str(row.get("name") or row.get("native_symbol") or "").strip()
+                or None,
+                "market": "crypto",
+                "type": str(row.get("type") or "cryptocurrency"),
+                "exchange": str(row.get("exchange") or source).upper(),
+                "source": source,
+                "profile_id": profile.id,
+            }
+        )
+    return candidates, source, "ok"
+
+
+def _is_ticker_name_query(query: str) -> bool:
+    """Whether *query* is a bare all-caps ticker followed by a name hint.
+
+    Yahoo's search endpoint answers this shape ("XOM ExxonMobil") with zero
+    quotes, so the Yahoo path skips it rather than letting a caller deciding
+    whether an entity exists read the empty result as "not listed". Unlike the
+    Canadian fail-fast, Eastmoney is NOT skipped for this shape — it can serve
+    multi-token queries — so this helper is only consulted on the Yahoo path.
+
+    The first token must be bare all-caps (``[A-Z0-9&]{1,6}``); the absence of
+    a dot/hyphen excludes suffixed tickers (``BTO.TO``, ``BRK.B``) and
+    mixed-case name tokens.
+
+    Args:
+        query: Free-text name or ticker fragment.
+
+    Returns:
+        ``True`` when the query has at least two tokens and starts with a
+        bare all-caps ticker-like token.
+    """
+    tokens = (query or "").strip().split()
+    return len(tokens) >= 2 and bool(re.fullmatch(r"[A-Z0-9&]{1,6}", tokens[0]))
+
+
+def _search_eastmoney(query: str) -> tuple[List[Dict[str, Any]], str]:
+    """Query Eastmoney's suggest endpoint and normalize the candidates.
+
+    Fails fast for Canadian (``.TO``/``.V``) queries: Eastmoney has no Canada
+    coverage and its suggest endpoint returns a non-JSON body for those,
+    so the endpoint is skipped instead of raising a parse error.
+
+    Args:
+        query: Free-text name or ticker fragment.
+
+    Returns:
+        ``(candidates, status)`` where ``status`` is ``"ok"`` on success or a
+        short error string when the source failed (candidates is then empty).
+    """
+    if _canonical_crypto_pair(query) is not None:
+        return [], f"{_SKIPPED}eastmoney has no crypto exchange-pair coverage"
+    if _is_canadian_symbol(query):
+        logger.info(
+            "eastmoney skipped for Canadian symbol %r (no Canada coverage)",
+            query,
+        )
+        return [], f"{_SKIPPED}eastmoney has no Canada coverage"
+    try:
+        payload = eastmoney_client.get_json(
+            _EASTMONEY_SUGGEST_URL,
+            params={"input": query, "type": "14", "count": str(_PER_SOURCE_CAP)},
+        )
+    except Exception as exc:  # noqa: BLE001 - one source failing is non-fatal
+        # Deliberately debug-level, not warning: Eastmoney has no coverage for
+        # many queries the fan-out legitimately tries (Canadian names, crypto,
+        # futures) and returns a non-JSON body for them. That is expected and
+        # benign — the status string below still flows to the tool result so
+        # nothing is hidden, it just no longer spams the terminal. Failures on
+        # queries Eastmoney SHOULD cover (A-share/HK) are still visible by
+        # checking the tool result's sources map or with debug logging on.
+        logger.debug("eastmoney suggest failed for %r: %s", query, exc)
+        return [], f"eastmoney search failed: {exc}"
+
+    rows = _eastmoney_data_rows(payload)
+    candidates = [c for c in (_eastmoney_candidate(r) for r in rows) if c is not None]
+    return candidates, "ok"
+
+
+def _eastmoney_data_rows(payload: Any) -> List[Dict[str, Any]]:
+    """Extract the ``QuotationCodeTable.Data`` rows from a suggest payload."""
+    if not isinstance(payload, dict):
+        return []
+    table = payload.get("QuotationCodeTable")
+    if not isinstance(table, dict):
+        return []
+    data = table.get("Data")
+    if not isinstance(data, list):
+        return []
+    return [row for row in data if isinstance(row, dict)]
+
+
+def _eastmoney_candidate(row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Map one Eastmoney suggest row to a normalized candidate, or ``None``.
+
+    Eastmoney rows carry ``QuoteID`` (``<market>.<code>``), ``Code``, ``Name``,
+    ``MktNum`` and ``SecurityTypeName``. A row whose market we cannot map to a
+    project suffix is dropped rather than emitted with a wrong symbol.
+
+    Args:
+        row: One ``QuotationCodeTable.Data`` element.
+
+    Returns:
+        A candidate dict, or ``None`` when the row is unusable.
+    """
+    quote_id = row.get("QuoteID")
+    market = ""
+    code = str(row.get("Code") or "").strip()
+    if isinstance(quote_id, str) and "." in quote_id:
+        market, _, qid_code = quote_id.partition(".")
+        code = code or qid_code.strip()
+    else:
+        market = str(row.get("MktNum") or "").strip()
+    suffix = _EASTMONEY_SUFFIX_BY_MARKET.get(market)
+    if not suffix or not code:
+        return None
+
+    symbol = _format_symbol(code, suffix)
+    if symbol is None:
+        return None
+    name = str(row.get("Name") or "").strip() or None
+    sec_type = str(row.get("SecurityTypeName") or "").strip() or None
+    return {
+        "symbol": symbol,
+        "name": name,
+        "market": _MARKET_BY_SUFFIX.get(suffix, suffix.lower()),
+        "type": sec_type,
+        "source": "eastmoney",
+    }
+
+
+def _format_symbol(code: str, suffix: str) -> Optional[str]:
+    """Render a bare code + suffix into the project symbol convention.
+
+    HK codes are zero-padded to five digits to match the loader/secid scheme.
+
+    Args:
+        code: Bare instrument code (e.g. ``"600519"``, ``"700"``, ``"AAPL"``).
+        suffix: One of ``SH``/``SZ``/``BJ``/``HK``/``US``.
+
+    Returns:
+        The formatted symbol (``"600519.SH"``, ``"00700.HK"``, ``"AAPL.US"``),
+        or ``None`` when the code is empty.
+    """
+    code = code.strip().upper()
+    if not code:
+        return None
+    if suffix == "HK":
+        return f"{code.zfill(5)}.HK"
+    return f"{code}.{suffix}"
+
+
+def _search_yahoo(query: str) -> tuple[List[Dict[str, Any]], str]:
+    """Query Yahoo's search endpoint and normalize the quote candidates.
+
+    Args:
+        query: Free-text name or ticker fragment.
+
+    Returns:
+        ``(candidates, status)`` where ``status`` is ``"ok"`` on success, a
+        ``"skipped: ..."`` marker when the source cannot serve this query shape,
+        or a short error string when the source failed (candidates is then
+        empty).
+    """
+    if not query.isascii():
+        # Yahoo's search endpoint answers any non-ASCII query with HTTP 400
+        # (verified against both query1 and query2 hosts), so calling it spends
+        # a request to manufacture a source failure. That failure is not
+        # cosmetic: a caller deciding whether an entity exists counts clean
+        # sources, and an unsupported query shape must not read as an outage.
+        return [], f"{_SKIPPED}non-ASCII query is not supported by this source"
+    try:
+        quotes = yahoo_client.search(query)
+    except Exception as exc:  # noqa: BLE001 - one source failing is non-fatal
+        logger.warning("yahoo search failed for %r: %s", query, exc)
+        return [], f"yahoo search failed: {exc}"
+
+    if not quotes and _is_ticker_name_query(query):
+        # Mirror the non-ASCII guard above: Yahoo answers a multi-token
+        # ticker+name query ("XOM ExxonMobil") with zero quotes, which a
+        # caller deciding whether an entity exists would otherwise read as
+        # "not listed". An unsupported query shape must not read as an outage.
+        return [], f"{_SKIPPED}ticker+name query is not supported by this source"
+
+    candidates: List[Dict[str, Any]] = []
+    for quote in quotes[:_PER_SOURCE_CAP]:
+        candidate = _yahoo_candidate(quote)
+        if candidate is not None:
+            candidates.append(candidate)
+    return candidates, "ok"
+
+
+def _yahoo_candidate(quote: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Map one Yahoo search quote to a normalized candidate, or ``None``.
+
+    Yahoo carries US tickers bare, HK tickers as ``0700.HK``, and Canadian
+    listings with ``.TO`` / ``.V`` suffixes. We translate those into the project
+    convention (``AAPL.US`` / ``00700.HK`` / ``TD.TO`` / ``PNG.V``) and leave
+    other instruments (crypto, indices, FX) on their native Yahoo symbol.
+
+    Args:
+        quote: One element of Yahoo search's ``quotes`` list.
+
+    Returns:
+        A candidate dict, or ``None`` when the quote has no symbol.
+    """
+    raw_symbol = str(quote.get("symbol") or "").strip()
+    if not raw_symbol:
+        return None
+    symbol, market = _from_yahoo_symbol(raw_symbol, quote)
+    name = (
+        str(quote.get("shortname") or quote.get("longname") or "").strip() or None
+    )
+    return {
+        "symbol": symbol,
+        "name": name,
+        "market": market,
+        "type": str(quote.get("quoteType") or "").strip().lower() or None,
+        "exchange": str(quote.get("exchange") or "").strip() or None,
+        "source": "yahoo",
+    }
+
+
+def _from_yahoo_symbol(raw_symbol: str, quote: Dict[str, Any]) -> tuple[str, str]:
+    """Translate a Yahoo symbol into the project convention + market label.
+
+    Args:
+        raw_symbol: The Yahoo-side symbol (e.g. ``AAPL``, ``0700.HK``,
+            ``TD.TO``, ``PNG.V``, or ``BTC-USD``).
+        quote: The full Yahoo quote, used to distinguish a bare US equity from a
+            crypto/index instrument via ``quoteType``.
+
+    Returns:
+        ``(symbol, market)`` in the project convention.
+    """
+    upper = raw_symbol.upper()
+    if upper.endswith(".HK"):
+        base = raw_symbol[: -len(".HK")].lstrip("0") or "0"
+        return f"{base.zfill(5)}.HK", "hk"
+    # Yahoo quotes Shanghai as ``.SS`` where this project (and Eastmoney) use
+    # ``.SH``. Emitting both spellings published one listing as two rival
+    # candidates, which the identity gate could not choose between, so every
+    # Shanghai query dead-ended as ambiguous. Folding here also lets the two
+    # sources merge and corroborate each other via ``also_from``.
+    if upper.endswith(".SS"):
+        return f"{upper[: -len('.SS')]}.SH", "cn"
+    suffix = upper.rsplit(".", 1)[-1] if "." in upper else ""
+    if suffix in _MARKET_BY_SUFFIX:
+        return upper, _MARKET_BY_SUFFIX[suffix]
+    quote_type = str(quote.get("quoteType") or "").strip().upper()
+    if quote_type == "CURRENCY":
+        # FX pairs canonicalize to the ``XXXYYY=X`` form the fetch layer
+        # serves directly (``GBP/USD`` -> ``GBPUSD=X``); non-fiat currency
+        # quotes (metals like XAU/USD) keep their native symbol.
+        canon = _canonical_fx_pair(raw_symbol)
+        if canon is not None:
+            return canon, "fx"
+        return raw_symbol, "global"
+    if raw_symbol.startswith("^"):
+        return raw_symbol, "index"
+    if quote_type == "EQUITY" and "." not in raw_symbol and "-" not in raw_symbol:
+        return f"{upper}.US", "us"
+    # Crypto, indices, FX, ETFs on non-HK exchanges: keep Yahoo's native symbol.
+    return raw_symbol, "global"
+
+
+def _merge_candidates(candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """De-duplicate candidates by symbol, preserving first-seen order.
+
+    When two sources resolve the same symbol the first hit wins and the second
+    source name is appended to a ``also_from`` list so provenance is not lost.
+
+    Args:
+        candidates: Raw candidates from every source, in fan-out order.
+
+    Returns:
+        A de-duplicated candidate list (immutable inputs are copied, not mutated).
+    """
+    by_symbol: Dict[str, Dict[str, Any]] = {}
+    order: List[str] = []
+    for candidate in candidates:
+        symbol = candidate.get("symbol")
+        if not symbol:
+            continue
+        if symbol not in by_symbol:
+            by_symbol[symbol] = dict(candidate)
+            order.append(symbol)
+            continue
+        existing = by_symbol[symbol]
+        other = candidate.get("source")
+        if other and other != existing.get("source"):
+            also = list(existing.get("also_from") or [])
+            if other not in also:
+                also.append(other)
+            merged = dict(existing)
+            merged["also_from"] = also
+            # Backfill a missing name from the duplicate hit.
+            if not merged.get("name") and candidate.get("name"):
+                merged["name"] = candidate["name"]
+            by_symbol[symbol] = merged
+    return [by_symbol[sym] for sym in order]
+
+
+def _enrich_us_cik(
+    candidates: List[Dict[str, Any]],
+) -> tuple[List[Dict[str, Any]], str]:
+    """Return new candidates with a SEC CIK attached to U.S.-equity rows.
+
+    Only ``.US`` equity symbols are looked up; the SEC table maps bare tickers
+    to a zero-padded 10-digit CIK. A lookup failure stops further lookups and is
+    reported via the status; resolved CIKs found before it still apply.
+
+    Args:
+        candidates: Merged candidate rows (left unmodified).
+
+    Returns:
+        ``(new_candidates, status)`` where ``status`` is :data:`_NO_US` when no
+        U.S. equity was present, ``"ok"`` on a clean pass, or a short error
+        string when a SEC lookup failed.
+    """
+    has_us = any(
+        isinstance(c.get("symbol"), str) and c["symbol"].upper().endswith(".US")
+        for c in candidates
+    )
+    if not has_us:
+        return candidates, _NO_US
+
+    status = "ok"
+    out: List[Dict[str, Any]] = []
+    for candidate in candidates:
+        symbol = candidate.get("symbol")
+        if status == "ok" and isinstance(symbol, str) and symbol.upper().endswith(".US"):
+            ticker = symbol[: -len(".US")]
+            try:
+                cik = sec_edgar_client.cik_for(ticker)
+            except Exception as exc:  # noqa: BLE001 - enrichment failure is non-fatal
+                logger.warning("sec cik_for failed for %s: %s", ticker, exc)
+                status = f"sec lookup failed: {exc}"
+                out.append(candidate)
+                continue
+            if cik:
+                out.append({**candidate, "cik": cik})
+                continue
+        out.append(candidate)
+    return out, status
+
+
+def _error(message: str) -> str:
+    """Render a failure envelope as a JSON string."""
+    return json.dumps({"ok": False, "error": message}, ensure_ascii=False)
