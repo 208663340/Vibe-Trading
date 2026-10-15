@@ -18,7 +18,7 @@
 
 ## K1：stream 的 deadline/cancel 检查位于阻塞读取之后
 
-**位置**：`agent/src/providers/chat.py:515-528`，空流回退 `:548-568`；调用方 `agent/src/agent/loop.py:678-690`。
+**位置**：`agent/src/runtime/providers/chat.py:515-528`，空流回退 `:548-568`；调用方 `agent/src/runtime/agent/loop.py:678-690`。
 
 `for chunk in llm.stream(...)` 只有当迭代器的 `next()` 返回后才能运行 idle 和 cancel 检查。提供方若连接建立后不产出下一分片，`idle_timeout_s` 永远不能自行触发，Stop 也不会生效。`config={"timeout": ...}` 只是传给 provider 的配置，不能替代本层等待边界；同仓库 compaction 实现 `loop.py:2645-2650` 已明确说明这类配置不构成可靠硬 deadline。空流回退的 `llm.invoke()` 同样没有外层可取消等待边界。
 
@@ -32,7 +32,7 @@
 
 ## K2：完成观察与按序提交绑在同一整批屏障上
 
-**位置**：`agent/src/agent/loop.py:1915-1933`；取消只在批次边界 `:1867-1875`；实际工具完成的 activity 更新在 `:2440-2441`；只读等待 `:2115-2139`。
+**位置**：`agent/src/runtime/agent/loop.py:1915-1933`；取消只在批次边界 `:1867-1875`；实际工具完成的 activity 更新在 `:2440-2441`；只读等待 `:2115-2139`。
 
 全部任务一次性 submit，线程池最多 8 个 worker。收集结果按输入顺序 `f.result()`，且直到整个 executor context 退出后才 finalize。第二个工具已返回也无法更新 `_last_activity_wall` 或发 `tool_result`。较大 batch 中只要某个调用慢，就会掩盖其余持续完成的真实进展，watchdog 可误判 stalled。排队任务没有执行前取消检查；cancel 后 executor 会继续取队列任务。只读 `_invoke_tool` 的阻塞 `queue.get(timeout=timeout)` 也不轮询取消，timeout 禁用时会无限等待。
 
@@ -46,12 +46,12 @@
 
 ## K3：重放决定早于写操作，且 error 写操作不失效旧观察
 
-**位置**：整批 preprocessing `agent/src/agent/loop.py:1525-1721`，立即提交 replay `:1611-1659`，之后才 dispatch `:1729-1768`；失效逻辑位于 `if success` 内 `:2489-2510`。
+**位置**：整批 preprocessing `agent/src/runtime/agent/loop.py:1525-1721`，立即提交 replay `:1611-1659`，之后才 dispatch `:1729-1768`；失效逻辑位于 `if success` 内 `:2489-2510`。
 
 有两个独立触发路径：
 
 1. 已有 compact 后 replay-ready 的读取结果 A，模型在同一 response 提出 `[write(B), read(A)]`。preprocessing 在执行任何 write 前就从缓存把 A 追加到 messages。随后 write 成功并清空缓存也无法撤回已提交 A。离线执行真实 `_process_tool_calls` 得到消息顺序 `read: old content`、`write: new content written`，因此所谓 write-serial barrier 并没有保护 replay。
-2. 写工具先产生局部副作用再返回 error，`_finalize_tool_result` 因 `success=False` 跳过失效。下次 compact/replay 仍可恢复写前的旧结果。生产示例是 `bash` 非零退出/超时不保证没有先修改文件（`agent/src/tools/bash_tool.py:147-170`）；本审查没有执行该工具。离线真实 finalize 方法验证 error write 后缓存依然存在。
+2. 写工具先产生局部副作用再返回 error，`_finalize_tool_result` 因 `success=False` 跳过失效。下次 compact/replay 仍可恢复写前的旧结果。生产示例是 `bash` 非零退出/超时不保证没有先修改文件（`agent/src/runtime/tools/bash_tool.py:147-170`）；本审查没有执行该工具。离线真实 finalize 方法验证 error write 后缓存依然存在。
 
 **影响**：模型拿到与当前文件/配置不一致的旧证据；由于 replay 具有正常 call_id/status，用户和下游易认为它代表最新一次调用结果。第二条不能以“写失败等于没有变更”作为假设。
 
@@ -61,7 +61,7 @@
 
 ## K4：终态与资源清理由多个执行路径竞争
 
-**位置**：watchdog 写 end/state/cancel `agent/src/agent/loop.py:1462-1480`；主线程计算和写终态 `:1362-1410`；异常出口 `:1336-1357`。`agent/src/core/state.py:80-86` 直接 truncate/write state 文件，无原子替换或同 run transition guard。
+**位置**：watchdog 写 end/state/cancel `agent/src/runtime/agent/loop.py:1462-1480`；主线程计算和写终态 `:1362-1410`；异常出口 `:1336-1357`。`agent/src/platform/core/state.py:80-86` 直接 truncate/write state 文件，无原子替换或同 run transition guard。
 
 watchdog 已写 `end` 后，主循环仍无条件在 `loop.py:1395` 再写一个 `end`。`resolve_final_status` 的 stall-first 只处理读取时 stall 已发生的情况；若主线程先 resolve success、随后 watchdog 写 failed，再主线程写 success，内存、state 和 trace 会冲突。`_run_done.set()` 在成功/异常路径最后，state/trace 写失败可能跳过它；初始化又在主 try 之前，退出清理没有总 finally。未收到 worker 最终结果时写失败状态，也不能证明底层写操作已停止。
 
@@ -71,7 +71,7 @@ watchdog 已写 `end` 后，主循环仍无条件在 `loop.py:1395` 再写一个
 
 ## K5：context accounting 没有标记实际请求形态
 
-**位置**：`agent/src/agent/context_budget.py:178-202`；`agent/src/agent/loop.py:663-667,772-775`。锚点只记录 input_tokens 与 messages 估值，锚定后 `tokens(messages, tool_schema_tokens)` 忽略工具 schema 参数。强制 text-only/grounding correction 请求可不发 tools，同样消息长度却有不同真实输入开销；若后续恢复工具，锚点会低估；反向也可高估。
+**位置**：`agent/src/runtime/agent/context_budget.py:178-202`；`agent/src/runtime/agent/loop.py:663-667,772-775`。锚点只记录 input_tokens 与 messages 估值，锚定后 `tokens(messages, tool_schema_tokens)` 忽略工具 schema 参数。强制 text-only/grounding correction 请求可不发 tools，同样消息长度却有不同真实输入开销；若后续恢复工具，锚点会低估；反向也可高估。
 
 `CompactionBudget.conversation` 的 8K floor 在 static prompt 已占满小 window 时会让 compact threshold 大于 total (`context_budget.py:145-162`)。这不是 compaction 能压缩解决的问题，应明确检测静态部分不可容纳而 fail with actionable reason。
 

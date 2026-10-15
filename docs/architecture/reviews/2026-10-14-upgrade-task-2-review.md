@@ -7,16 +7,16 @@
 
 ## Spec Compliance
 
-- ❌ Issues found: synchronous lazy construction does not establish the actual execution loop before close (`agent/src/api/runtime.py:51`, `:85`, `:98`); cross-loop callback ingress remains unbounded (`agent/src/session/events.py:153`). Both violate explicit Task 2 requirements. Reviewed BASE `1c864c9972fac0d21ec6871e10df557017e9bcf2` → HEAD `56da74615866cbf91533c9a0fba665ea8f20ac94`.
-- ⚠️ Cannot verify from this diff: Task 4/5 process-scoped abandoned-reader/producer aggregation. Current RuntimeServices passes through Task 1's zero counts; root must complete that planned handoff before integration acceptance. This is not a Task 2 defect by itself (`agent/src/api/runtime.py:98`).
-- ⚠️ Cannot verify from this diff: Task 3 consumes exact no-id `session.resync` payload `{reason: queue_overflow|cursor_expired, latest_event_id: string|null}`, hydrates authoritative state and replaces the damaged connection without resending mutations. Backend payload/fencing implementation is present (`agent/src/session/events.py:73`, `:212`).
+- ❌ Issues found: synchronous lazy construction does not establish the actual execution loop before close (`agent/src/interfaces/api/runtime.py:51`, `:85`, `:98`); cross-loop callback ingress remains unbounded (`agent/src/runtime/session/events.py:153`). Both violate explicit Task 2 requirements. Reviewed BASE `1c864c9972fac0d21ec6871e10df557017e9bcf2` → HEAD `56da74615866cbf91533c9a0fba665ea8f20ac94`.
+- ⚠️ Cannot verify from this diff: Task 4/5 process-scoped abandoned-reader/producer aggregation. Current RuntimeServices passes through Task 1's zero counts; root must complete that planned handoff before integration acceptance. This is not a Task 2 defect by itself (`agent/src/interfaces/api/runtime.py:98`).
+- ⚠️ Cannot verify from this diff: Task 3 consumes exact no-id `session.resync` payload `{reason: queue_overflow|cursor_expired, latest_event_id: string|null}`, hydrates authoritative state and replaces the damaged connection without resending mutations. Backend payload/fencing implementation is present (`agent/src/runtime/session/events.py:73`, `:212`).
 - ⚠️ Cannot verify independently: complete integration gate and raw command transcripts. Implementer reports 15 core PASS; earlier relevant run 410 PASS/1 skip/9 existing NumPy warnings; wider run 9 failures, with 3 socket failures rerun PASS and exact remaining 6 IDs failing identically on BASE. Controller reports prior complete baseline 17,890 PASS/85 skip/2,097 existing warnings. These scoped/environment limitations remain recorded; none establishes that the two newly reproduced cases pass. No broad suite was rerun.
 
 ## Strengths
 
 - Actual worker and finalizer resource retention is exercised using real executor futures and controlled thread Events, rather than relying only on a mocked complete flag (`agent/tests/test_api_runtime_lifecycle.py:74`). Idle completion releases bus/executor resources once and a later lifespan creates new service instances (`agent/tests/test_api_runtime_lifecycle.py:226`).
-- App lifecycle cleanup is in nested finally blocks, so preflight or inbound-shutdown failure still reaches session close (`agent/api_server.py:151`). Focused inspection of unchanged `agent/src/api/scheduled_routes.py:184` confirmed live drivers → channels → scheduled executor shutdown is itself nested with finally blocks.
-- Subscriber state captures its actual running loop; replay snapshot and registration share the publish lock. Resync has no SSE id and fences ordinary events; close/resync/terminal slots do not depend on the 200-slot data queue (`agent/src/session/events.py:60`, `:73`, `:212`). Exact 200/201 pressure and transport EOF versus session-clear behavior have focused tests (`agent/tests/test_event_bus_backpressure.py:21`, `:42`; `agent/src/session/events.py:265`).
+- App lifecycle cleanup is in nested finally blocks, so preflight or inbound-shutdown failure still reaches session close (`agent/src/interfaces/api_server.py:151`). Focused inspection of unchanged `agent/src/interfaces/api/scheduled_routes.py:184` confirmed live drivers → channels → scheduled executor shutdown is itself nested with finally blocks.
+- Subscriber state captures its actual running loop; replay snapshot and registration share the publish lock. Resync has no SSE id and fences ordinary events; close/resync/terminal slots do not depend on the 200-slot data queue (`agent/src/runtime/session/events.py:60`, `:73`, `:212`). Exact 200/201 pressure and transport EOF versus session-clear behavior have focused tests (`agent/tests/test_event_bus_backpressure.py:21`, `:42`; `agent/src/runtime/session/events.py:265`).
 - Changes stay within API composition, session transport and focused tests, preserving domain/API separation and adding no production dependency. Public SSE event names/terminal payloads remain intact; the additional control is explicitly reported for Task 3.
 
 ## Critical (Must Fix)
@@ -25,9 +25,9 @@
 
 ## Important (Should Fix)
 
-1. **Bind ownership to the loop that executes session work, not the first close caller.** `agent/src/api/runtime.py:51` leaves `_owner_loop` unset after supported synchronous lazy construction. At `:85`, the first `aclose()` arbitrarily assigns its caller's loop, so `:98` invokes `SessionService.aclose()` even when real session tasks belong to another running loop. The unchanged service cancels `handle.task` at `agent/src/session/service.py:331`. A focused check created RuntimeServices/SessionService synchronously, started a real supervised worker on a debug owner loop in another thread, then called `asyncio.run(runtime.aclose(0))`: it raised `RuntimeError: Non-thread-safe operation invoked on an event loop other than the current one`. After the real worker was released, owner-loop cleanup still reported incomplete and the wrapper remained pending, showing this can strand the execution owner. The existing cross-loop regression constructs the service inside its owner loop, so it misses this supported path (`agent/tests/test_api_runtime_lifecycle.py:144`). Establish/check execution ownership before calling async close, or conservatively use only thread-safe supervisor snapshots whenever task ownership is unproven; never cancel foreign-loop tasks. Add a regression for synchronous lazy creation followed by owner-loop execution and foreign-loop close, requiring eventual true finalization and rebuild.
+1. **Bind ownership to the loop that executes session work, not the first close caller.** `agent/src/interfaces/api/runtime.py:51` leaves `_owner_loop` unset after supported synchronous lazy construction. At `:85`, the first `aclose()` arbitrarily assigns its caller's loop, so `:98` invokes `SessionService.aclose()` even when real session tasks belong to another running loop. The unchanged service cancels `handle.task` at `agent/src/runtime/session/service.py:331`. A focused check created RuntimeServices/SessionService synchronously, started a real supervised worker on a debug owner loop in another thread, then called `asyncio.run(runtime.aclose(0))`: it raised `RuntimeError: Non-thread-safe operation invoked on an event loop other than the current one`. After the real worker was released, owner-loop cleanup still reported incomplete and the wrapper remained pending, showing this can strand the execution owner. The existing cross-loop regression constructs the service inside its owner loop, so it misses this supported path (`agent/tests/test_api_runtime_lifecycle.py:144`). Establish/check execution ownership before calling async close, or conservatively use only thread-safe supervisor snapshots whenever task ownership is unproven; never cancel foreign-loop tasks. Add a regression for synchronous lazy creation followed by owner-loop execution and foreign-loop close, requiring eventual true finalization and rebuild.
 
-2. **Bound the publisher-to-loop mailbox as well as the asyncio data queue.** `agent/src/session/events.py:153` schedules a separate `call_soon_threadsafe(sub.deliver, event, cursor)` for every published event. Queue overflow is detected only when these callbacks eventually execute. A stalled/slower subscriber loop therefore retains arbitrarily many callback handles, events and payloads before the 200-item queue, including after the subscriber has already become gapped. A focused 2,000-event burst without yielding produced **2,000 pending delivery callbacks while the bounded data queue contained 0 events**; after yielding it emitted resync, too late to bound ingress memory. This violates the specified finite-memory backpressure guarantee and can also delay terminal/close callbacks behind the entire backlog. Use a bounded, locked ingress mailbox with independent control state and at most one scheduled drain per subscriber (or equivalent bounded handoff), while keeping actual asyncio queue mutation on its owner loop. Add a blocked-loop burst regression asserting bounded scheduled callbacks/pending ingress and eventual resync/terminal/close delivery.
+2. **Bound the publisher-to-loop mailbox as well as the asyncio data queue.** `agent/src/runtime/session/events.py:153` schedules a separate `call_soon_threadsafe(sub.deliver, event, cursor)` for every published event. Queue overflow is detected only when these callbacks eventually execute. A stalled/slower subscriber loop therefore retains arbitrarily many callback handles, events and payloads before the 200-item queue, including after the subscriber has already become gapped. A focused 2,000-event burst without yielding produced **2,000 pending delivery callbacks while the bounded data queue contained 0 events**; after yielding it emitted resync, too late to bound ingress memory. This violates the specified finite-memory backpressure guarantee and can also delay terminal/close callbacks behind the entire backlog. Use a bounded, locked ingress mailbox with independent control state and at most one scheduled drain per subscriber (or equivalent bounded handoff), while keeping actual asyncio queue mutation on its owner loop. Add a blocked-loop burst regression asserting bounded scheduled callbacks/pending ingress and eventual resync/terminal/close delivery.
 
 ## Minor (Nice to Have)
 
@@ -54,7 +54,7 @@ Command 1 (run once; output: 2,000 publications → 2,000 pending `deliver` call
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=agent .venv/bin/python - <<'PY'
 import asyncio
-from src.session.events import EventBus
+from src.runtime.session.events import EventBus
 async def main():
     bus = EventBus()
     seed = bus.emit('s', 'text_delta', {})
@@ -83,12 +83,12 @@ import tempfile
 import threading
 from pathlib import Path
 from unittest.mock import patch
-from src.api.runtime import RuntimeServices
-from src.session.search import SessionSearchIndex
+from src.interfaces.api.runtime import RuntimeServices
+from src.runtime.session.search import SessionSearchIndex
 with tempfile.TemporaryDirectory() as tmp:
     root = Path(tmp)
     index = SessionSearchIndex(root / 'index.db')
-    with patch('src.session.service.get_shared_index', lambda: index):
+    with patch('src.runtime.session.service.get_shared_index', lambda: index):
         runtime = RuntimeServices(root / 'sessions', root / 'runs')
         service = runtime.get_session_service()
         loop = asyncio.new_event_loop()

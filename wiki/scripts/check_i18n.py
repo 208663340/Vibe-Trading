@@ -54,7 +54,7 @@ def generated_pages() -> list[str]:
     for zoo_id in alpha._ZOO_DISPLAY:
         sample = {
             "id": f"{zoo_id}_001",
-            "module_path": f"src.factors.zoo.{zoo_id}.alpha_001",
+            "module_path": f"src.research.factors.zoo.{zoo_id}.alpha_001",
             "meta": {"theme": ["momentum"], "universe": ["equity_cn"], "frequency": ["1d"],
                      "formula_latex": "rank(x)", "notes": "note", "decay_horizon": 1,
                      "min_warmup_bars": 1, "requires_sector": False, "columns_required": ["close"]},

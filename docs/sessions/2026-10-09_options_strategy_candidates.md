@@ -1,10 +1,10 @@
 # Options strategies worth automating: candidate backtests
 
 Goal: backtest a small set of options strategies with the existing engine
-(`agent/backtest/engines/options_portfolio.py`, unchanged) and decide which, if
+(`agent/src/backtest/engines/options_portfolio.py`, unchanged) and decide which, if
 any, to carry forward to paper trading.
 
-Code: `agent/src/skills/options-strategy/example_signal_engine.py` (engines),
+Code: `agent/src/research/skills/options-strategy/example_signal_engine.py` (engines),
 `agent/scripts/options_candidates_backtest.py` (this study; reruns end to end
 with `PYTHONPATH=agent python agent/scripts/options_candidates_backtest.py`),
 `agent/tests/test_options_strategy_engines.py`.

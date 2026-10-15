@@ -12,7 +12,7 @@ Signed local commit: **0d70544cad2cca7249456feba312c41a791eff58**
 
 ## Implementation and interfaces
 
-New `agent/src/providers/call_runner.py` owns provider producer admission, finite
+New `agent/src/runtime/providers/call_runner.py` owns provider producer admission, finite
 payload queues, independent terminal signaling, copied context and cancellable
 caller waits. Production defaults share one process-owned `ProviderCallBudget(8)`;
 creating a new runner, ChatLLM or API runtime does not recreate that budget.
@@ -91,10 +91,10 @@ as disappearance of those retained producer threads.
 
 ## Files committed
 
-- agent/src/providers/call_runner.py (new, 304 lines)
-- agent/src/providers/chat.py
-- agent/src/agent/loop.py (provider scopes + compaction only)
-- agent/src/api/runtime.py (counter snapshot only)
+- agent/src/runtime/providers/call_runner.py (new, 304 lines)
+- agent/src/runtime/providers/chat.py
+- agent/src/runtime/agent/loop.py (provider scopes + compaction only)
+- agent/src/interfaces/api/runtime.py (counter snapshot only)
 - agent/tests/test_provider_call_runner.py (new, 20 controlled behavior cases)
 - agent/tests/test_chat_llm_streaming.py
 - agent/tests/test_anthropic_prompt_cache.py
@@ -117,7 +117,7 @@ Command:
 ```
 
 First collection before a module existed: **1 collection error**
-`ModuleNotFoundError: No module named src.providers.call_runner`.
+`ModuleNotFoundError: No module named src.runtime.providers.call_runner`.
 To obtain behavioral RED, a temporary synchronous baseline scaffold provided only
 the proposed imports (`run_call` calls directly, `stream` yields directly, counters
 zero, scope no-op); ChatLLM remained the original baseline and ignored injected
@@ -168,8 +168,8 @@ stream avoiding fallback, and owned-client cleanup retaining capacity.
 Static commands:
 
 ```sh
-.venv/bin/ruff check agent/src/providers/call_runner.py agent/src/providers/chat.py agent/src/agent/loop.py agent/src/api/runtime.py agent/tests/test_provider_call_runner.py agent/tests/test_chat_llm_streaming.py agent/tests/test_anthropic_prompt_cache.py
-.venv/bin/python -m py_compile agent/src/providers/call_runner.py agent/src/providers/chat.py agent/src/agent/loop.py agent/src/api/runtime.py agent/tests/test_provider_call_runner.py agent/tests/test_chat_llm_streaming.py agent/tests/test_anthropic_prompt_cache.py
+.venv/bin/ruff check agent/src/runtime/providers/call_runner.py agent/src/runtime/providers/chat.py agent/src/runtime/agent/loop.py agent/src/interfaces/api/runtime.py agent/tests/test_provider_call_runner.py agent/tests/test_chat_llm_streaming.py agent/tests/test_anthropic_prompt_cache.py
+.venv/bin/python -m py_compile agent/src/runtime/providers/call_runner.py agent/src/runtime/providers/chat.py agent/src/runtime/agent/loop.py agent/src/interfaces/api/runtime.py agent/tests/test_provider_call_runner.py agent/tests/test_chat_llm_streaming.py agent/tests/test_anthropic_prompt_cache.py
 git diff --check
 ```
 
@@ -272,8 +272,8 @@ release after true cleanup success/failure, and successful reuse of the freed sl
 
 ```sh
 .venv/bin/python -m pytest agent/tests/test_provider_call_runner.py agent/tests/test_chat_llm_streaming.py agent/tests/test_chat_llm_lifecycle.py agent/tests/test_chat_response_metadata.py agent/tests/test_api_runtime_lifecycle.py -q --tb=short
-.venv/bin/ruff check agent/src/providers/call_runner.py agent/src/providers/chat.py agent/tests/test_provider_call_runner.py
-.venv/bin/python -m py_compile agent/src/providers/call_runner.py agent/src/providers/chat.py agent/tests/test_provider_call_runner.py
+.venv/bin/ruff check agent/src/runtime/providers/call_runner.py agent/src/runtime/providers/chat.py agent/tests/test_provider_call_runner.py
+.venv/bin/python -m py_compile agent/src/runtime/providers/call_runner.py agent/src/runtime/providers/chat.py agent/tests/test_provider_call_runner.py
 git diff --check
 ```
 
@@ -282,7 +282,7 @@ diffcheck: exit 0. No unrelated/full suite expansion; the original nine ccxt_loa
 NumPy warnings from the earlier 154-test suite remain explicitly recorded above
 and are not suppressed or declared fixed.
 
-Files committed: agent/src/providers/call_runner.py, agent/src/providers/chat.py,
+Files committed: agent/src/runtime/providers/call_runner.py, agent/src/runtime/providers/chat.py,
 agent/tests/test_provider_call_runner.py only. Self-review checked synchronous
 cleanup, startup failure on a running loop, all-client failure completion,
 registration before lease release, no lock held across external cleanup, callback

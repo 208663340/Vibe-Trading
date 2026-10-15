@@ -10,8 +10,8 @@ expectations explicit.
 - Backend and package code live under `agent/`.
 - Frontend code lives under `frontend/`.
 - Public wiki content lives under `wiki/` and has separate GitHub Actions checks.
-- MCP entry point: `vibe-trading-mcp` / `agent/mcp_server.py`.
-- CLI entry point: `vibe-trading` / `agent/cli/`.
+- MCP entry point: `vibe-trading-mcp` / `agent/src/interfaces/mcp_server.py`.
+- CLI entry point: `vibe-trading` / `agent/src/interfaces/cli/`.
 - Broker connector, mandate, order gate, halt, and audit-ledger logic are safety
   critical even when a change appears small.
 - Community commits must include the DCO `Signed-off-by:` trailer; see
@@ -28,8 +28,8 @@ These commands are normally safe for local validation:
 ```bash
 git status --short --branch
 git diff --check
-python -m compileall -q agent/cli
-python -m py_compile agent/api_server.py agent/mcp_server.py
+python -m compileall -q agent/src/interfaces/cli
+python -m py_compile agent/src/interfaces/api_server.py agent/src/interfaces/mcp_server.py
 pytest --ignore=agent/tests/e2e_backtest --ignore=agent/tests/test_e2e_harness_v2.py --tb=short -q
 pytest agent/tests/test_sdk_order_gate.py agent/tests/test_mandate_enforcement.py -q
 cd frontend && npm ci && npm run build

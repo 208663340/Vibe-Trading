@@ -197,10 +197,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   exact copies of `data` are dropped, and only from what the agent reads;
   `MCPServerAdapter.call_tool` still returns every surface to programmatic
   callers, and error or text-only results are unchanged.
-- **Tool-result helpers moved out of `loop.py`** into `src/agent/tool_results.py`
+- **Tool-result helpers moved out of `loop.py`** into `src/runtime/agent/tool_results.py`
   (#1636, thanks @Jackzigen), the first extraction of the loop split. The
   moved functions are byte-identical and `loop` still exports them; their log
-  records now come from the `src.agent.tool_results` logger.
+  records now come from the `src.runtime.agent.tool_results` logger.
 
 ### Fixed
 
@@ -462,7 +462,7 @@ connectors (KIS, Upbit, Toss Securities, Scalable Capital) land alongside.
   across 18 connectors): environment, transport, read-only or write-enabled,
   declared reads, and whether placement requires a mandate. A test fails CI
   when the block and the registry disagree; regenerate with
-  `PYTHONPATH=agent python -m src.trading.capability_matrix`. As merged it
+  `PYTHONPATH=agent python -m src.markets.trading.capability_matrix`. As merged it
   folded each connector into one row; `dec2c0e6` renders each profile on its
   own, so a paper order capability never reads as a live permission, and
   says the rows are declarations, not runtime verification.
@@ -553,7 +553,7 @@ connectors (KIS, Upbit, Toss Securities, Scalable Capital) land alongside.
   price column. The block is stripped from the released answer and never
   streamed; the artifact keeps it. The price-word, level-word, derivation-phrase
   and metric-subject catalogues are deleted with it (65 compiled regexes → 12,
-  all shape), and `src/agent/grounding.py` is now the `src/agent/grounding/`
+  all shape), and `src/runtime/agent/grounding.py` is now the `src/runtime/agent/grounding/`
   package.
 
 - **A rejected answer costs one correction round, not four, and is then
@@ -650,7 +650,7 @@ and Hong Kong game companies after 4m50s. They were two different failures.
   iteration 16; with a larger budget the re-fetches went from 54 to 0. The
   window now comes from `VIBE_TRADING_CONTEXT_WINDOW`, else a limit learned
   from the provider's own context-length error during the run, else
-  `src/providers/context_windows.json` (272K for the Codex GPT-6 / GPT-5.6
+  `src/runtime/providers/context_windows.json` (272K for the Codex GPT-6 / GPT-5.6
   models, 1M for DeepSeek V4, each entry naming its source), else 128K, and
   `VIBE_TRADING_CONTEXT_MAX_TOKENS` (200K) caps what a prompt may cost. Usage
   is read from the input tokens the provider reports. The three layers fire at
@@ -1372,7 +1372,7 @@ values the backtest itself had written.
   looked the hedge ratio up by the series' name. The PR named the regressor;
   the finishing commit (`bd29a187`) replaced the local fit with
   `find_hedge_ratio`, `cointegration_test` and `adf_test` from
-  `src.quantlib.timeseries`, and the half-life example with
+  `src.research.quantlib.timeseries`, and the half-life example with
   `compute_half_life`. The example now inherits their refusal to pair two
   legs on different indices positionally, keeps its result keys and adds
   `half_life`.
@@ -2158,7 +2158,7 @@ Library additions land alongside.
   resolves in `read_file`, the skill-name prefix is dropped so links resolve
   on GitHub, and the `historical_var` quantile formula in the risk-analysis
   skill is corrected. Verification note for the first two: the agent reads
-  through `ReadFileTool` rooted at `src/skills/`, not through GitHub's
+  through `ReadFileTool` rooted at `src/research/skills/`, not through GitHub's
   renderer, so the two conventions had to be checked against the real
   consumer.
 - **Dependencies** (#1321, #1322, #1323, #1324) — dockerhub-description
@@ -2205,7 +2205,7 @@ Rolls up 272 commits / 74 merged pull requests since 0.1.13.
   portfolio Greeks cards, and a live US options chain. The math is not new: two
   read-only HTTP endpoints wrap the existing `options_payoff` /
   `get_options_chain` tools, so the page and the MCP surface compute from the
-  same test-pinned `src/quantlib/options.py`. Research only — it places no
+  same test-pinned `src/research/quantlib/options.py`. Research only — it places no
   orders.
 - **Factor Research tab** in Run Detail (#1099, thanks @shadowinlife) — IC
   statistics cards, the daily IC series with its mean line, quantile-group
@@ -2477,7 +2477,7 @@ Rolls up 272 commits / 74 merged pull requests since 0.1.13.
 Rolls up 408 commits / 162 merged pull requests since 0.1.12.
 
 ### Added
-- **`src/quantlib` — a tested finance-math layer** (265 functions across 19
+- **`src/research/quantlib` — a tested finance-math layer** (265 functions across 19
   modules): one
   implementation each of Black-Scholes price/greeks/IV inversion, bond math +
   Nelson-Siegel/Svensson, Altman Z + Merton/KMV, stationarity/cointegration/
@@ -2492,7 +2492,7 @@ Rolls up 408 commits / 162 merged pull requests since 0.1.12.
   when any allowlisted module exposes nothing. Econometrics needs the
   `stats` extra (`statsmodels`/`arch`), which the functions lazy-import and
   name.
-- **Valuation engine** (`src/quantlib/valuation/`): `run_dcf` (FCFF bridge,
+- **Valuation engine** (`src/research/quantlib/valuation/`): `run_dcf` (FCFF bridge,
   WACC build, dual terminal value that cross-checks each method against the
   other's implied multiple and implied g, mid-year discounting, net-debt
   bridge, WACC×g grid), `run_comps` (EV bridge, LTM + calendar-year
@@ -2503,7 +2503,7 @@ Rolls up 408 commits / 162 merged pull requests since 0.1.12.
   plus input-hashed versioned artifacts with xlsx/pptx export. One shared rule
   in `contracts.py`: **a missing input makes a model NOT RUNNABLE and is never
   silently defaulted.**
-- **Typed entity + irregular dated cash-flow substrate** (`src/entities/`) —
+- **Typed entity + irregular dated cash-flow substrate** (`src/platform/entities/`) —
   the non-bar ingestion path for NAVs, capital calls and coupons, deliberately
   parallel to the bar engines so a `nav` column can never reach one and get
   priced as a close. Surfaced by the read-only `cashflow_performance` tool
@@ -2513,7 +2513,7 @@ Rolls up 408 commits / 162 merged pull requests since 0.1.12.
   depth imbalance, and the impact cost of a stated notional walked through the
   real book in both directions. `fully_filled` and `timestamp_source` must be
   read before quoting anything; equities still have no depth source.
-- **Governance wired into every run** (`src/governance/`): a run manifest hashes
+- **Governance wired into every run** (`src/platform/governance/`): a run manifest hashes
   the prompt, skill contents, tool registry and package versions so "what
   methodology produced that number" is answerable, and the audit ledger is
   hash-chained + fsynced so editing or deleting a record is detectable (an edit
@@ -2537,7 +2537,7 @@ Rolls up 408 commits / 162 merged pull requests since 0.1.12.
   `/attrib` `/memo` `/earnings` `/screen` — each carrying a step skeleton and
   an arithmetic-consistent worked example (the Brinson decomposition sums
   exactly to active return; the earnings bridge sums exactly to the EPS delta).
-- **Investor lenses** as a standalone skill (`src/skills/investor-lenses/`):
+- **Investor lenses** as a standalone skill (`src/research/skills/investor-lenses/`):
   named-investor reasoning frameworks as stackable analysis overlays, decoupled
   from the data layer. Each lens is an operating procedure — priority signals,
   disqualifying conditions, typical misuse — not a biography, and names no tool.
@@ -2721,7 +2721,7 @@ Rolls up 408 commits / 162 merged pull requests since 0.1.12.
     observed evidence (#1037, thanks @wiliao).
 - **Sandbox gap closed**: generated strategy code can no longer import the
   broker layer, nor reach `socket`/`subprocess`/`os.system`/`ctypes` through a
-  renamed binding — both were accepted before. `src.quantlib` still imports.
+  renamed binding — both were accepted before. `src.research.quantlib` still imports.
 - **SEC reporting periods are keyed on their `(start, end)` span.** A 10-Q files
   the true quarter and the year-to-date frame under the same end date and
   fiscal period, so `period="annual"` had been returning a single quarter for
@@ -3075,7 +3075,7 @@ Rolls up 408 commits / 162 merged pull requests since 0.1.12.
 - **Centralized environment variable management** (#440 closing #438, thanks
   @shadowinlife) — every env var flows through a single Pydantic `EnvConfig`
   schema, enforced by an AST-based CI gate that rejects raw
-  `os.getenv`/`os.environ` outside `agent/src/config/`.
+  `os.getenv`/`os.environ` outside `agent/src/platform/config/`.
 - **Factor engine acceleration** — hot rolling operators use
   `bottleneck`/NumPy fast paths, and alpha-bench parallelism stops resending
   large panel payloads to workers.
@@ -3233,7 +3233,7 @@ for the full narrative.
 ## [0.1.8] — 2026-05-17
 
 ### Added — Alpha Zoo (450+ pre-built quant alphas)
-- `agent/src/factors/` — base operators (`rank`, `scale`, `ts_*`, `delta`,
+- `agent/src/research/factors/` — base operators (`rank`, `scale`, `ts_*`, `delta`,
   `decay_linear`, `signed_power`, `safe_div`, market-aware `vwap`) and a
   registry that AST-extracts metadata from each alpha module without
   importing it. Lookahead is enforced at the operator level
@@ -3280,14 +3280,14 @@ for the full narrative.
   - `GET /alpha/bench/{job_id}/stream` — Server-Sent Events with
     `progress`, `result`, `done`, and `error` event types. In-memory
     job state with a 1-hour TTL; no Redis/Celery dependency.
-- Bench math is refactored into `agent/src/factors/bench_runner.py`
+- Bench math is refactored into `agent/src/research/factors/bench_runner.py`
   so the CLI driver (`agent/scripts/w4a_run_benches.py`) and the new
   API worker share a single implementation.
 
 ### Added — Safety floor
 - `agent/tests/factors/test_alpha_purity.py` — AST allowlist scan over
   every `zoo/**/*.py` module (whitelist: pandas, numpy, scipy.\*,
-  `src.factors.base`, `__future__`, `typing`, `math`, `dataclasses`;
+  `src.research.factors.base`, `__future__`, `typing`, `math`, `dataclasses`;
   banned: `os`, `sys`, `subprocess`, `socket`, `urllib`, `requests`,
   `httpx`, `pathlib`, `Path`, `open`, `eval`, `exec`, `compile`,
   `__import__`, and `getattr(_, "__*")`).
@@ -3314,16 +3314,16 @@ for the full narrative.
   and `academic/`, plus an upstream `NOTICE` for `qlib158/`.
 
 ### Changed
-- `agent/src/tools/factor_analysis_tool.py` extracted its IC/IR and
-  layered-backtest helpers to `agent/src/factors/factor_analysis_core.py`
+- `agent/src/runtime/tools/factor_analysis_tool.py` extracted its IC/IR and
+  layered-backtest helpers to `agent/src/research/factors/factor_analysis_core.py`
   so the new `alpha_bench_tool` reuses the same maths. Public tool
   signature is unchanged; `_compute_ic_series` and `_compute_group_equity`
   remain importable as backward-compatible aliases.
 - `agent/cli.py` grew by 7 lines to register the `alpha` subcommand;
-  all handler logic lives in `agent/src/factors/cli_handlers.py`.
+  all handler logic lives in `agent/src/research/factors/cli_handlers.py`.
 - Packaging: `pyproject.toml` now ships `zoo/**/*.yaml`, `zoo/**/*.md`,
   and `zoo/**/NOTICE` as package data; `MANIFEST.in` recursively
-  includes `agent/src/factors`.
+  includes `agent/src/research/factors`.
 
 ### Known limitations
 - The `btc-usdt` universe is single-asset; cross-sectional IC requires

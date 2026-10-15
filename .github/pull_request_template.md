@@ -22,7 +22,7 @@
 
 ## Checklist
 
-- [ ] No changes to protected areas (`src/agent/`, `src/session/`, `src/providers/`) without prior discussion
+- [ ] No changes to protected areas (`src/runtime/agent/`, `src/runtime/session/`, `src/runtime/providers/`) without prior discussion
 - [ ] No hardcoded values (API keys, file paths, magic numbers)
 - [ ] Code follows [CONTRIBUTING.md](../CONTRIBUTING.md) guidelines
 - [ ] Documentation updated (if user-facing change)

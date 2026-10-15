@@ -32,7 +32,7 @@
 
 ### Task 1: Session execution ownership and durable outcomes
 
-**Files:** Create `agent/src/session/execution.py` and, if needed, `agent/src/session/finalization.py`; modify `agent/src/session/service.py`, `store.py`, `search.py`, `agent/src/api/sessions_routes.py`; tests in `agent/tests/test_session_execution_lifecycle.py` and related existing session/search suites.
+**Files:** Create `agent/src/runtime/session/execution.py` and, if needed, `agent/src/runtime/session/finalization.py`; modify `agent/src/runtime/session/service.py`, `store.py`, `search.py`, `agent/src/interfaces/api/sessions_routes.py`; tests in `agent/tests/test_session_execution_lifecycle.py` and related existing session/search suites.
 
 **Interfaces:** Consume existing SessionStore/EventBus/Attempt models. Produce an execution supervisor that reserves, starts, cancels and releases an attempt by identity; retain underlying worker futures until actual exit. Expose `SessionService.aclose(timeout_s)` for Task 2 and a service-closing exception that routes map to 503. Retain public create/send/cancel/delete/get methods and legacy test handles as compatibility views where necessary. Add optional expected_attempt_id to cancellation and optional REST JSON body; atomically compare before admitting cancel, mismatch returns existing no-active status, no-body clients stay compatible.
 Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}/attempts/{attempt_id}` for pending/running/empty-terminal authoritative recovery. Only safe status/timing/runtime metadata; committed linked terminal evidence wins, no prompt/credentials/absolute paths. Default in-flight admission capacity is 16, constructor overridable.
@@ -45,7 +45,7 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 ### Task 2: Application resource lifecycle and reliable SSE controls
 
-**Files:** Create `agent/src/api/runtime.py` if needed; modify `agent/api_server.py`, `agent/src/api/state.py`, `agent/src/session/events.py`, shutdown hooks only as needed; tests `agent/tests/test_api_runtime_lifecycle.py`, `agent/tests/test_event_bus_backpressure.py` and existing lifecycle/events suites.
+**Files:** Create `agent/src/interfaces/api/runtime.py` if needed; modify `agent/src/interfaces/api_server.py`, `agent/src/interfaces/api/state.py`, `agent/src/runtime/session/events.py`, shutdown hooks only as needed; tests `agent/tests/test_api_runtime_lifecycle.py`, `agent/tests/test_event_bus_backpressure.py` and existing lifecycle/events suites.
 
 **Interfaces:** Consume Task 1 `SessionService.aclose(timeout_s)`. Produce RuntimeServices ownership at the API boundary, restart-safe close/reset, and loop-owned SSE subscriber resources. Keep legacy api_server exported symbols and test monkeypatch seams compatible. No domain code may begin reading api_server globals.
 
@@ -69,7 +69,7 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 ### Task 4: Bounded cancellable provider call execution
 
-**Files:** Create `agent/src/providers/call_runner.py`; modify `agent/src/providers/chat.py`, `agent/src/agent/loop.py` compaction waiting and minimal active-run cancellation binding at the provider-call boundary only; modify `agent/src/api/runtime.py` only for the process-scoped abandoned-producer counter handoff; tests `agent/tests/test_provider_call_runner.py` plus existing chat/stream/DSML/thought-signature/provider replay and runtime-summary suites.
+**Files:** Create `agent/src/runtime/providers/call_runner.py`; modify `agent/src/runtime/providers/chat.py`, `agent/src/runtime/agent/loop.py` compaction waiting and minimal active-run cancellation binding at the provider-call boundary only; modify `agent/src/interfaces/api/runtime.py` only for the process-scoped abandoned-producer counter handoff; tests `agent/tests/test_provider_call_runner.py` plus existing chat/stream/DSML/thought-signature/provider replay and runtime-summary suites.
 
 **Interfaces:** A ProviderCallRunner executes blocking stream producers/calls behind finite capacity, copied context, monotonic deadlines and cancellation. Keep ChatLLM.stream_chat/chat signatures and LLMResponse unchanged; preserve ProviderStreamError mapping and encrypted/provider metadata.
 
@@ -81,7 +81,7 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 ### Task 5: Tool execution, admission and write-safe replay
 
-**Files:** Create `agent/src/agent/tool_execution.py` and `tool_replay.py` as appropriate; modify `agent/src/agent/loop.py`, `tool_progress.py` only when needed; modify `agent/src/api/runtime.py` only for the process-scoped abandoned-reader counter handoff; tests `agent/tests/test_tool_execution_lifecycle.py`, `test_tool_replay_write_barriers.py` and existing timeout/replay/cache/grounding and runtime-summary suites.
+**Files:** Create `agent/src/runtime/agent/tool_execution.py` and `tool_replay.py` as appropriate; modify `agent/src/runtime/agent/loop.py`, `tool_progress.py` only when needed; modify `agent/src/interfaces/api/runtime.py` only for the process-scoped abandoned-reader counter handoff; tests `agent/tests/test_tool_execution_lifecycle.py`, `test_tool_replay_write_barriers.py` and existing timeout/replay/cache/grounding and runtime-summary suites.
 
 **Interfaces:** Produce typed prepared calls/results with index/call_id/raw_result/elapsed/executed/outcome, bounded ToolInvoker/ToolBatchExecutor and a dispatch-time replay policy. Keep original parameter cache identity, normalization and existing helper wrappers. Raw result enters grounding before redaction/truncation.
 
@@ -93,7 +93,7 @@ Add `SessionService.get_attempt_snapshot` and authenticated GET `/sessions/{sid}
 
 ### Task 6: One run terminal owner and accurate request budgets
 
-**Files:** Create `agent/src/agent/run_lifecycle.py`; modify `agent/src/agent/loop.py`, `context_budget.py`, `agent/src/core/state.py` and `run_outcome.py` only if needed; tests `agent/tests/test_run_lifecycle_races.py`, `test_context_budget.py`, terminal/watchdog/state tests.
+**Files:** Create `agent/src/runtime/agent/run_lifecycle.py`; modify `agent/src/runtime/agent/loop.py`, `context_budget.py`, `agent/src/platform/core/state.py` and `run_outcome.py` only if needed; tests `agent/tests/test_run_lifecycle_races.py`, `test_context_budget.py`, terminal/watchdog/state tests.
 
 **Interfaces:** RunLifecycle owns generation, cancellation/done, true monotonic progress, requested stop reason and one terminal claim. Watchdog requests failure through this owner; main flow persists outcome once. ContextMeter binds observations to actual tools/model request shape while retaining compatibility for existing callers.
 

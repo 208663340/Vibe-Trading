@@ -22,14 +22,14 @@ flow was used in regression tests.
 
 | Area | Owner/module | Observable behavior |
 |---|---|---|
-| Session execution | `agent/src/session/execution.py`, `service.py` | One attempt owns actual execution and finalization until both exit. Immediate cancellation and failed finalization cannot strand or prematurely release it. Active deletion returns 409; admission is bounded to 16 attempts by default. |
+| Session execution | `agent/src/runtime/session/execution.py`, `service.py` | One attempt owns actual execution and finalization until both exit. Immediate cancellation and failed finalization cannot strand or prematurely release it. Active deletion returns 409; admission is bounded to 16 attempts by default. |
 | Durable outcomes | Session store/service and search projection | Stable linked terminal replies are persisted before optional projections. Recovery adopts committed evidence once; indexing/notification failures do not downgrade it. Partial JSONL tails are repaired. |
-| API lifecycle | `agent/src/api/runtime.py` | Stops inbound work before session/resource shutdown, owns a four-worker executor and reports incomplete close honestly. A closing same-store owner is retained until actual writers exit. |
-| SSE | `agent/src/session/events.py`, `frontend/src/hooks/useSSE.ts` | Bounded ingress, delivery and replay retain independent terminal/gap/close controls. Resync triggers authoritative reads and replacement transport. ID-less controls survive inherited browser Last-Event-ID and do not acknowledge unseen ordinary events. |
+| API lifecycle | `agent/src/interfaces/api/runtime.py` | Stops inbound work before session/resource shutdown, owns a four-worker executor and reports incomplete close honestly. A closing same-store owner is retained until actual writers exit. |
+| SSE | `agent/src/runtime/session/events.py`, `frontend/src/hooks/useSSE.ts` | Bounded ingress, delivery and replay retain independent terminal/gap/close controls. Resync triggers authoritative reads and replacement transport. ID-less controls survive inherited browser Last-Event-ID and do not acknowledge unseen ordinary events. |
 | Web state | `features/agent/sessionRuntime.ts`, `history.ts`, store and Agent leaves | View/operation/attempt guards fence stale reads, sends and cancellation. Durable entities reconcile once with revision checks in both report-read orderings. Base history renders before bounded enrichment. Stream updates subscribe at leaves. |
-| Providers | `agent/src/providers/call_runner.py` | Bounded producer waiting and late-result fencing work even when an SDK iterator/invoke blocks. Default process capacity is eight, held through actual producer/client cleanup. Context and provider metadata are preserved. |
-| Tools and replay | `agent/src/agent/tool_execution.py`, loop dispatch | Process read capacity 32 and physical per-batch capacity eight include abandoned live readers. Fast completions are observed promptly; transcript/trace/raw grounding commits remain ordered. Executed writes invalidate mutable replay at dispatch; running writes are awaited. |
-| Run lifecycle | `agent/src/agent/run_lifecycle.py`, `context_budget.py`, `core/state.py` | One main-owned terminal transition, serialized cancellation handoff and unconditional cleanup. Usage is anchored to actual request shape. State JSON uses flushed/fsynced temporary content and atomic replacement. |
+| Providers | `agent/src/runtime/providers/call_runner.py` | Bounded producer waiting and late-result fencing work even when an SDK iterator/invoke blocks. Default process capacity is eight, held through actual producer/client cleanup. Context and provider metadata are preserved. |
+| Tools and replay | `agent/src/runtime/agent/tool_execution.py`, loop dispatch | Process read capacity 32 and physical per-batch capacity eight include abandoned live readers. Fast completions are observed promptly; transcript/trace/raw grounding commits remain ordered. Executed writes invalidate mutable replay at dispatch; running writes are awaited. |
+| Run lifecycle | `agent/src/runtime/agent/run_lifecycle.py`, `context_budget.py`, `core/state.py` | One main-owned terminal transition, serialized cancellation handoff and unconditional cleanup. Usage is anchored to actual request shape. State JSON uses flushed/fsynced temporary content and atomic replacement. |
 
 Public API, AgentLoop/ChatLLM facades, tool schemas and existing event names remain
 compatible. Additive contracts are authenticated attempt snapshots, optional
@@ -90,7 +90,7 @@ Temporary logs above are local command evidence, not durable repository artifact
 the results, commands, revisions and detailed task records are archived here.
 
 Existing warnings remain visible: NumPy/ccxt and other baseline backend warnings;
-four `os.environ.pop` warnings in unchanged `agent/src/providers/llm.py` at lines
+four `os.environ.pop` warnings in unchanged `agent/src/runtime/providers/llm.py` at lines
 1412/1416/1417/1418; Vite native-config/`__dirname` and the 742.71 kB chart vendor
 chunk warning. The final Agent chunk is 190.75 kB (51.90 kB gzip). These facts do not
 establish native-browser latency or FPS. The controlled render regression measured

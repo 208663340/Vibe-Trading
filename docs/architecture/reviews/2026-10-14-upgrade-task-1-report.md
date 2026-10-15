@@ -19,16 +19,16 @@ test files; the controller's design/plan changes remain unstaged.
 
 ## Changes
 
-- Added `agent/src/session/execution.py`: identity handles, a storage-owner gate,
+- Added `agent/src/runtime/session/execution.py`: identity handles, a storage-owner gate,
   bounded admission, actual executor futures, and monotonic OPEN/CLOSING/CLOSED state.
-- Updated `agent/src/session/service.py`: supervised wrappers/execution/finalizers,
+- Updated `agent/src/runtime/session/service.py`: supervised wrappers/execution/finalizers,
   transcript-first terminal persistence, restart evidence adoption, safe optional
   projections, cancellation identity checks, close and attempt snapshot interfaces.
-- Updated `agent/src/session/store.py`: idempotent linked terminal append, JSONL tail
+- Updated `agent/src/runtime/session/store.py`: idempotent linked terminal append, JSONL tail
   repair and commit delimiting, actual deletion errors instead of ignored failures.
-- Updated `agent/src/session/search.py`: transactional FTS deletion, authoritative
+- Updated `agent/src/runtime/session/search.py`: transactional FTS deletion, authoritative
   store existence filtering, serialized operations on the shared SQLite connection.
-- Updated `agent/src/api/sessions_routes.py`: busy deletion 409, closing/capacity 503,
+- Updated `agent/src/interfaces/api/sessions_routes.py`: busy deletion 409, closing/capacity 503,
   optional conditional-cancel JSON, and an authenticated read-only attempt snapshot.
 - Added `agent/tests/test_session_execution_lifecycle.py`: 30 regression cases using
   temporary filesystem/SQLite stores, fake providers and controlled Events/threads.
@@ -52,7 +52,7 @@ Controller-owned design/plan/brief changes were not staged by this task.
 2. The same file with `-k 'bounded_admission or rest_active'` produced **2 failed,
    17 deselected in 1.89s** before the new constructor/body/REST implementation.
 3. A sanitized current-HEAD baseline was extracted with
-   `git archive HEAD agent/src agent/api_server.py agent/tests/conftest.py | tar -x -C /tmp`;
+   `git archive HEAD agent/src agent/src/interfaces/api_server.py agent/tests/conftest.py | tar -x -C /tmp`;
    the regression file was copied to `/tmp/agent/tests/`. Running
    `.venv/bin/python -m pytest /tmp/agent/tests/test_session_execution_lifecycle.py -q --tb=short -k 'snapshot or share_one or old_callbacks'`
    produced **3 failed, 19 deselected in 2.14s**. The old callback regression was
@@ -90,7 +90,7 @@ Final focused command:
 Result: **277 passed, 9 warnings in 7.50s**, exit 0. This includes all existing
 session/store/search/checkpoint/recovery suites and relevant API/MCP/live-runner
 compatibility tests. No warning filters were added. The nine warnings are existing
-NumPy timedelta DeprecationWarnings from `agent/backtest/loaders/ccxt_loader.py:39-47`.
+NumPy timedelta DeprecationWarnings from `agent/src/backtest/loaders/ccxt_loader.py:39-47`.
 
 After finalizer offload, the complete relevant lifecycle/recovery/metadata/trail/MCP/
 search subset also passed: **76 passed in 2.90s** before adding the index concurrency
@@ -99,7 +99,7 @@ case. The final 277 run covers that additional fix.
 After explicit exception re-export and unused-import cleanup, the new regression
 file was checked again: **30 passed in 2.33s**, exit 0.
 
-`.venv/bin/python -m py_compile agent/src/session/execution.py agent/src/session/service.py agent/src/session/store.py agent/src/session/search.py agent/src/api/sessions_routes.py agent/tests/test_session_execution_lifecycle.py`
+`.venv/bin/python -m py_compile agent/src/runtime/session/execution.py agent/src/runtime/session/service.py agent/src/runtime/session/store.py agent/src/runtime/session/search.py agent/src/interfaces/api/sessions_routes.py agent/tests/test_session_execution_lifecycle.py`
 and `git diff --check`: both exit 0.
 
 Ruff was attempted for the touched files but is unavailable in the existing virtual
@@ -250,7 +250,7 @@ that constructor recovery was an unregistered writer: another SessionService wit
 another SessionStore object for the same directory could retire that recovering
 owner between its idempotency lookup and append, producing two terminal records.
 
-Changed only `agent/src/session/execution.py`, `agent/src/session/service.py` and
+Changed only `agent/src/runtime/session/execution.py`, `agent/src/runtime/session/service.py` and
 `agent/tests/test_session_execution_lifecycle.py`. The supervisor now registers an
 `initializing` owner and retains a strong registration before startup resource
 initialization or any recovery write. Replacement checks initializing ownership as
@@ -291,7 +291,7 @@ Final GREEN command:
 ```
 
 Result: **93 passed in 2.99s**, exit 0. No warnings were emitted by this focused run. Changed-file Ruff:
-`.venv/bin/python -m ruff check agent/src/session/execution.py agent/src/session/service.py agent/tests/test_session_execution_lifecycle.py`
+`.venv/bin/python -m ruff check agent/src/runtime/session/execution.py agent/src/runtime/session/service.py agent/tests/test_session_execution_lifecycle.py`
 → **All checks passed!** `git diff --check` → exit 0. Ruff is now installed by the
 controller; this resolves the initial report's environment omission. No warning
 filter or unrelated loader change was added; the nine existing warnings remain

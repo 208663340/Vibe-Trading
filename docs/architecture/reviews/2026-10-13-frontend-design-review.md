@@ -21,7 +21,7 @@ session runtime、纯 history reconciliation、独立 HTTP 期限层、SSE trans
 
 关联：Task 3 Step 1；总设计前端验收第 4 条、后端 cancel 契约。
 
-现有 `frontend/src/lib/api.ts:533` 只发送 POST `/sessions/{sid}/cancel`，没有 attempt 参数；`agent/src/api/sessions_routes.py:774-783` 直接调用 `svc.cancel_current(session_id)`。因此 operation/view/attempt guard 可以阻止**旧响应**清空新 attempt 的 UI，却不能阻止**旧请求**在服务器迟到后取消当时的新 attempt。
+现有 `frontend/src/lib/api.ts:533` 只发送 POST `/sessions/{sid}/cancel`，没有 attempt 参数；`agent/src/interfaces/api/sessions_routes.py:774-783` 直接调用 `svc.cancel_current(session_id)`。因此 operation/view/attempt guard 可以阻止**旧响应**清空新 attempt 的 UI，却不能阻止**旧请求**在服务器迟到后取消当时的新 attempt。
 
 可触发顺序：A 的 attempt 1 运行 → 客户端发 cancel，网络延迟 → attempt 1 自然结束 → attempt 2 开始 → 旧 cancel 才抵达服务器。仅靠前端响应 token 无法解决后半段。
 

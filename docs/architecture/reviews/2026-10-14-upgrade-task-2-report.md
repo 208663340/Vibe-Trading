@@ -12,21 +12,21 @@ production/test files are included; controller plan/design/report files are not 
 
 ## Implementation and boundaries
 
-- Added `agent/src/api/runtime.py`: RuntimeServices owns a four-worker executor,
+- Added `agent/src/interfaces/api/runtime.py`: RuntimeServices owns a four-worker executor,
   injects it into SessionService, serializes lazy construction/retirement, retains
   incomplete services/resources, and releases resources exactly once only after
   the real CloseSummary says complete.
-- Updated `agent/src/api/state.py`: lazy service composition uses RuntimeServices;
+- Updated `agent/src/interfaces/api/state.py`: lazy service composition uses RuntimeServices;
   legacy api_server service/root monkeypatch seams remain at this API boundary.
   Clearing the legacy service host attr rebuilds only an idle service. A live
   owner cannot be evaded by a reset or changed storage-root override. Completed
   close clears service/channel globals and the stopped research executor cache.
-- Updated `agent/api_server.py`: app.state.runtime_services is bound before
+- Updated `agent/src/interfaces/api_server.py`: app.state.runtime_services is bound before
   startup. Guaranteed finally ordering stops existing live/channel/scheduler
   inbound drivers before session close, then event/executor resources. Startup
   failure or an inbound shutdown exception still closes initialized session work.
   Existing host lifecycle exports and monkeypatches remain compatible.
-- Updated `agent/src/session/events.py`: subscriber-specific actual running loops;
+- Updated `agent/src/runtime/session/events.py`: subscriber-specific actual running loops;
   publish scheduling and replay/registration are serialized under one gate. No
   worker thread directly mutates asyncio subscriber queues. Data queue capacity
   remains 200; resync, latest terminal and close have independent control slots.
@@ -38,7 +38,7 @@ production/test files are included; controller plan/design/report files are not 
   also passes.
 
 No domain module reads api_server globals. The compatibility reads/reset live in
-src.api.state and existing API route helpers. No live trading/account/credential/
+src.interfaces.api.state and existing API route helpers. No live trading/account/credential/
 remote/push/deployment operations; only isolated local loopback/Unix fixtures used
 socket permission. No SDK installation or unrelated registry changes were made.
 
@@ -200,7 +200,7 @@ Three socket-bind PermissionErrors were rerun with the controller-authorized
 Their BASE counterparts were extracted using git archive
 `1c864c9972fac0d21ec6871e10df557017e9bcf2` (sanitized current Task 1 state, not old
 confidential history) into `/tmp/vibe-task2-baseline`, including agent/src,
-agent/api_server.py, the four relevant test modules, conftest and pyproject.toml.
+agent/src/interfaces/api_server.py, the four relevant test modules, conftest and pyproject.toml.
 The same six exact IDs, with `/tmp/vibe-task2-baseline/agent/tests/` prefixes,
 were run together using `.venv/bin/python -m pytest ... -q --tb=short`:
 **6 failed in 1.91s**, identically: two missing telegram imports, two Slack field
@@ -334,10 +334,10 @@ exit 0. `git diff --check`: exit 0.
 
 Changed files (only these are staged in the fix commit):
 
-- agent/src/api/runtime.py
-- agent/src/session/events.py
-- agent/src/session/execution.py (read-only loop evidence)
-- agent/src/session/service.py (read-only interface delegation)
+- agent/src/interfaces/api/runtime.py
+- agent/src/runtime/session/events.py
+- agent/src/runtime/session/execution.py (read-only loop evidence)
+- agent/src/runtime/session/service.py (read-only interface delegation)
 - agent/tests/test_api_runtime_lifecycle.py
 - agent/tests/test_event_bus_backpressure.py
 

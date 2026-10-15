@@ -19,7 +19,7 @@
 
 ## B1：首次执行前的取消无法释放会话
 
-位置：`agent/src/session/service.py:298` 创建 Task，`:301` 保存句柄，`:329-332` 直接 cancel；释放只在 `_run_attempt` 的 `:464-468` finally 中。
+位置：`agent/src/runtime/session/service.py:298` 创建 Task，`:301` 保存句柄，`:329-332` 直接 cancel；释放只在 `_run_attempt` 的 `:464-468` finally 中。
 
 触发：`await svc.send_message(...)` 返回后，在事件循环让新建 Task 第一次执行之前调用 `svc.cancel_current(sid)`。服务方法自身没有让出控制权，因此这在直接调用者、批处理和同一事件循环的紧邻调度中可发生。Task 在 coroutine 进入 try/finally 之前取消，finally 根本不会运行。
 
@@ -31,7 +31,7 @@
 
 ## B2：运行中删除会话造成残留数据重新出现
 
-位置：`agent/src/session/service.py:239-242` 清 EventBus 并直接删除目录；`agent/src/api/sessions_routes.py:656-667` 原样暴露该操作；`agent/src/session/store.py:155-166` 和 `:336-350` 自动创建父目录。
+位置：`agent/src/runtime/session/service.py:239-242` 清 EventBus 并直接删除目录；`agent/src/interfaces/api/sessions_routes.py:656-667` 原样暴露该操作；`agent/src/runtime/session/store.py:155-166` 和 `:336-350` 自动创建父目录。
 
 触发：执行器等待期间 DELETE 会话，随后执行器返回成功或继续发 checkpoint。删除没有检查 claim，也没有停止或等待活跃执行器。后续 append_message/update_attempt/save_partial_response 会重新创建目录。
 
@@ -43,9 +43,9 @@
 
 ## B3：衍生索引故障篡改已经持久化的成功终态
 
-位置：`agent/src/session/service.py:422-428` 依次提交回复、attempt、清除 checkpoint、更新索引；`:459-463` 将整段中的任何异常都当作执行失败，覆盖 attempt 并发送失败事件。
+位置：`agent/src/runtime/session/service.py:422-428` 依次提交回复、attempt、清除 checkpoint、更新索引；`:459-463` 将整段中的任何异常都当作执行失败，覆盖 attempt 并发送失败事件。
 
-触发：模型执行成功且回复与 completed attempt 已落盘，随后 `index_message` 因 SQLite 锁、磁盘或连接异常抛错。索引实现 `agent/src/session/search.py:196-220` 没有吞掉写入异常。
+触发：模型执行成功且回复与 completed attempt 已落盘，随后 `index_message` 因 SQLite 锁、磁盘或连接异常抛错。索引实现 `agent/src/runtime/session/search.py:196-220` 没有吞掉写入异常。
 
 实测：只对 assistant 索引操作注入 RuntimeError。持久化回复 `metadata.status=completed`，持久化 attempt 却变为 `failed`，最后事件为 `attempt.failed`。重启恢复只扫描 pending/running，无法修复这种终态冲突。用户可能重试已成功操作。
 
@@ -55,7 +55,7 @@
 
 ## B4：删除不清理可搜索消息
 
-位置：`agent/src/session/service.py:239-242` 完全不更新 `_search_index`；`agent/src/session/search.py:240-294` 搜索只查询索引，不与文件存储核对会话存在性。
+位置：`agent/src/runtime/session/service.py:239-242` 完全不更新 `_search_index`；`agent/src/runtime/session/search.py:240-294` 搜索只查询索引，不与文件存储核对会话存在性。
 
 触发：创建会话并索引一条消息，删除会话，再搜索消息中的唯一词。
 
@@ -67,7 +67,7 @@
 
 ## B5：满队列会吞掉关闭通知
 
-位置：`agent/src/session/events.py:257` 队列上限 200；`:294-322` clear 先从订阅表移除队列，再用可能失败的 put_nowait/_safe_put 填入 sentinel；`:158-169` 满队列丢弃任何类型事件。
+位置：`agent/src/runtime/session/events.py:257` 队列上限 200；`:294-322` clear 先从订阅表移除队列，再用可能失败的 put_nowait/_safe_put 填入 sentinel；`:158-169` 满队列丢弃任何类型事件。
 
 触发：SSE 消费者暂停，发布 200 条事件填满队列，再 clear。真实场景可由网络慢、客户端挂起和流式事件突发触发。
 
@@ -79,7 +79,7 @@
 
 ## B6：会话执行器没有与应用一致的关闭边界
 
-位置：`agent/api_server.py:146-153` lifespan 只调用 `_stop_scheduled_research_on_shutdown`；后者 `agent/src/api/scheduled_routes.py:184-203` 停止 live/channels/scheduler，没有 SessionService；`agent/src/session/service.py:33` 模块全局 ThreadPoolExecutor；`:531-541` 和 `:555-573` 把 registry/agent 工作提交线程池。
+位置：`agent/src/interfaces/api_server.py:146-153` lifespan 只调用 `_stop_scheduled_research_on_shutdown`；后者 `agent/src/interfaces/api/scheduled_routes.py:184-203` 停止 live/channels/scheduler，没有 SessionService；`agent/src/runtime/session/service.py:33` 模块全局 ThreadPoolExecutor；`:531-541` 和 `:555-573` 把 registry/agent 工作提交线程池。
 
 触发：有会话任务运行或 registry 构建中关闭 app，或在同一进程启动下一次 app lifespan。Service 没有 close/shutdown 方法，executor 不归 app 管理。取消 asyncio 包装 Task 不会终止已经开始的 Python 线程，agent.cancel 也未在这个路径调用。旧线程可能继续回调 EventBus/checkpoint，而 Task 的 finally 已释放 claim。
 
@@ -89,7 +89,7 @@
 
 ## 建议的职责划分
 
-1. **API assembler / RuntimeServices**：`api_server.py` 只创建 app、注册 middleware/router 和 lifespan；`src/api/state.py` 负责构造容器与 FastAPI dependency provider。服务挂在 `app.state`，首次创建绑定 running loop，关闭顺序明确。保留既有 api_server re-export/monkeypatch 兼容桥，但将其限制在边界，不让领域服务读取 `sys.modules`。
+1. **API assembler / RuntimeServices**：`api_server.py` 只创建 app、注册 middleware/router 和 lifespan；`src/interfaces/api/state.py` 负责构造容器与 FastAPI dependency provider。服务挂在 `app.state`，首次创建绑定 running loop，关闭顺序明确。保留既有 api_server re-export/monkeypatch 兼容桥，但将其限制在边界，不让领域服务读取 `sys.modules`。
 2. **会话应用服务**：SessionService 管理 create/send/cancel/delete、session gate、终态状态机。提取一个小型 attempt task supervisor 管理 admission、任务/worker 句柄和关闭；不改 Agent 推理策略。
 3. **数据访问**：继续使用 SessionStore 的 JSON/JSONL、原子 replace 和已有 SQLite FTS。集中提供 `commit_terminal` 与按 session 的删除操作；索引作为投影有明确故障降级和重建路径。文件 atomic replace 不能等同于多文件事务，使用已存在的 transcript-first 恢复顺序，并补齐故障注入覆盖。
 4. **执行适配器**：注入 async attempt runner，生产适配器封装 registry/LLM/AgentLoop；测试直接注入 stub，不再必须改私有方法。运行资源有明确 owner，ChatLLM/registry 是否由 AgentLoop 关闭需和 Agent 审查结论对齐后决定，避免重复关闭。
@@ -99,7 +99,7 @@
 
 ### 可实施的 ownership 接口边界
 
-建议新增 `agent/src/session/execution.py`，集中放 `AttemptSupervisor` 与 `AttemptHandle`，不让 routes 直接操作 task 字典。Handle 至少记录 session_id、attempt_id、唯一 generation、包装 task、实际 worker future、cancel_requested、是否已进入 coroutine、是否已提交 terminal。Supervisor 的状态为 accepting/closing/closed；handle 的状态为 reserved/starting/running/finalizing/finished。状态转移通过同一个锁保护；terminal 与 release 都只能由当前 handle 执行一次。
+建议新增 `agent/src/runtime/session/execution.py`，集中放 `AttemptSupervisor` 与 `AttemptHandle`，不让 routes 直接操作 task 字典。Handle 至少记录 session_id、attempt_id、唯一 generation、包装 task、实际 worker future、cancel_requested、是否已进入 coroutine、是否已提交 terminal。Supervisor 的状态为 accepting/closing/closed；handle 的状态为 reserved/starting/running/finalizing/finished。状态转移通过同一个锁保护；terminal 与 release 都只能由当前 handle 执行一次。
 
 建议接口（名称可按项目风格微调）：
 
@@ -110,9 +110,9 @@
 - `exclusive_idle(session_id)`：给 delete 或需要排斥新发送的操作提供原子的 idle guard；busy 抛 SessionBusyError。
 - `aclose(timeout) -> ShutdownResult`：禁止新任务、发协作取消、取消排队工作并等待 worker；返回实际退出/仍未退出清单，不能把超时等同于成功关闭。
 
-`agent/src/session/service.py` 保留应用入口，但统一调用 `finalize_attempt(handle, outcome)`；它负责建立 Message/Attempt 并执行主存储 commit，之后调用隔离的索引和事件投影。B1 的未开始取消、正常完成、异常失败和协作取消都复用这个终态路径；shutdown 中尚有实际 worker 的取消保持 recoverable，不伪装为用户取消。
+`agent/src/runtime/session/service.py` 保留应用入口，但统一调用 `finalize_attempt(handle, outcome)`；它负责建立 Message/Attempt 并执行主存储 commit，之后调用隔离的索引和事件投影。B1 的未开始取消、正常完成、异常失败和协作取消都复用这个终态路径；shutdown 中尚有实际 worker 的取消保持 recoverable，不伪装为用户取消。
 
-`agent/src/session/store.py` 提供 terminal commit 所需的幂等读取/追加辅助和明确的删除失败；`agent/src/session/search.py` 增加事务性 `delete_session`；`agent/src/api/state.py` 定义 app 所有的 RuntimeServices/provider；`agent/api_server.py` lifespan 在统一容器上启动/关闭，兼容桥留在 API 外缘。通过假 worker Future、临时 store、假 projection 注入验证，不需要真实网络。
+`agent/src/runtime/session/store.py` 提供 terminal commit 所需的幂等读取/追加辅助和明确的删除失败；`agent/src/runtime/session/search.py` 增加事务性 `delete_session`；`agent/src/interfaces/api/state.py` 定义 app 所有的 RuntimeServices/provider；`agent/src/interfaces/api_server.py` lifespan 在统一容器上启动/关闭，兼容桥留在 API 外缘。通过假 worker Future、临时 store、假 projection 注入验证，不需要真实网络。
 
 恢复必须在运行期开始接受请求之前完成；同一进程多次 app lifespan 不能复用未关闭的全局 service。采用单存储 owner 的部署约束，先停止旧 writer 再恢复 pending/running。若 worker shutdown 超时，进程内不能立即对同一存储再次启动 recovery；返回清楚的关闭失败并保留可恢复状态。
 

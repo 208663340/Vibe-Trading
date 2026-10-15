@@ -11,9 +11,9 @@ Signed local commit: **784c39d70bda4e910ecec9034c74d2b1fb92766b** `fix(agent): b
 
 ## Implemented boundary and precise interfaces
 
-New `agent/src/agent/tool_execution.py` separates invocation/resource ownership
+New `agent/src/runtime/agent/tool_execution.py` separates invocation/resource ownership
 from finite admission, early completion observation and ordered caller commits.
-New `agent/src/agent/tool_replay.py` decides observation validity at dispatch.
+New `agent/src/runtime/agent/tool_replay.py` decides observation validity at dispatch.
 No production dependency, configuration or schema was added.
 
 - `PreparedToolCall(index, call_id, name, arguments, readonly, call=None,
@@ -95,10 +95,10 @@ covers all synthetic paths. Grounding identity/authorization policy is unchanged
 
 ## Files in the signed commit
 
-1. agent/src/agent/tool_execution.py
-2. agent/src/agent/tool_replay.py
-3. agent/src/agent/loop.py
-4. agent/src/api/runtime.py
+1. agent/src/runtime/agent/tool_execution.py
+2. agent/src/runtime/agent/tool_replay.py
+3. agent/src/runtime/agent/loop.py
+4. agent/src/interfaces/api/runtime.py
 5. agent/tests/test_tool_execution_lifecycle.py
 6. agent/tests/test_tool_replay_write_barriers.py
 
@@ -177,8 +177,8 @@ call identity; partial failure and persistence failure invalidation; determinist
 replay and denied/never-started separation.
 
 ```sh
-.venv/bin/ruff check agent/src/agent/tool_execution.py agent/src/agent/tool_replay.py agent/src/agent/loop.py agent/src/api/runtime.py agent/tests/test_tool_execution_lifecycle.py agent/tests/test_tool_replay_write_barriers.py
-.venv/bin/python -m py_compile agent/src/agent/tool_execution.py agent/src/agent/tool_replay.py agent/src/agent/loop.py agent/src/api/runtime.py agent/tests/test_tool_execution_lifecycle.py agent/tests/test_tool_replay_write_barriers.py
+.venv/bin/ruff check agent/src/runtime/agent/tool_execution.py agent/src/runtime/agent/tool_replay.py agent/src/runtime/agent/loop.py agent/src/interfaces/api/runtime.py agent/tests/test_tool_execution_lifecycle.py agent/tests/test_tool_replay_write_barriers.py
+.venv/bin/python -m py_compile agent/src/runtime/agent/tool_execution.py agent/src/runtime/agent/tool_replay.py agent/src/runtime/agent/loop.py agent/src/interfaces/api/runtime.py agent/tests/test_tool_execution_lifecycle.py agent/tests/test_tool_replay_write_barriers.py
 git diff --check
 git diff --cached --check
 ```
@@ -300,8 +300,8 @@ why the caller poll change is necessary; it is not represented as a baseline rac
 
 ```sh
 .venv/bin/python -m pytest agent/tests/test_tool_execution_lifecycle.py agent/tests/test_tool_replay_write_barriers.py agent/tests/test_tool_timeout.py agent/tests/test_readonly_replay_after_microcompact.py agent/tests/test_agent_loop_deterministic_cache.py agent/tests/test_tool_progress.py agent/tests/test_progress.py agent/tests/test_agent_loop_no_progress.py agent/tests/test_agent_loop_stall_watchdog.py agent/tests/test_agent_grounding.py agent/tests/test_grounding_release.py agent/tests/test_compaction_call_identity.py agent/tests/test_technical_indicator_compaction_replay.py agent/tests/test_api_runtime_lifecycle.py -q --tb=short
-.venv/bin/ruff check agent/src/agent/tool_execution.py agent/tests/test_tool_execution_lifecycle.py
-.venv/bin/python -m py_compile agent/src/agent/tool_execution.py agent/tests/test_tool_execution_lifecycle.py
+.venv/bin/ruff check agent/src/runtime/agent/tool_execution.py agent/tests/test_tool_execution_lifecycle.py
+.venv/bin/python -m py_compile agent/src/runtime/agent/tool_execution.py agent/tests/test_tool_execution_lifecycle.py
 git diff --check
 git diff --cached --check
 ```
@@ -380,8 +380,8 @@ actual worker exit. Finally always releases the worker and joins every producer.
 
 ```sh
 .venv/bin/python -m pytest agent/tests/test_tool_execution_lifecycle.py agent/tests/test_tool_replay_write_barriers.py agent/tests/test_tool_timeout.py agent/tests/test_readonly_replay_after_microcompact.py agent/tests/test_tool_progress.py agent/tests/test_progress.py agent/tests/test_api_runtime_lifecycle.py -q --tb=short
-.venv/bin/ruff check agent/src/agent/tool_execution.py agent/tests/test_tool_execution_lifecycle.py
-.venv/bin/python -m py_compile agent/src/agent/tool_execution.py agent/tests/test_tool_execution_lifecycle.py
+.venv/bin/ruff check agent/src/runtime/agent/tool_execution.py agent/tests/test_tool_execution_lifecycle.py
+.venv/bin/python -m py_compile agent/src/runtime/agent/tool_execution.py agent/tests/test_tool_execution_lifecycle.py
 git diff --check
 git diff --cached --check
 ```

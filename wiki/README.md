@@ -67,7 +67,7 @@ number.
 
 `alpha-library/content/` and `manifest.json` are generated, not committed. The
 deploy workflow builds them before uploading, and also redeploys when
-`agent/src/factors/` changes:
+`agent/src/research/factors/` changes:
 
 ```bash
 vibe-trading alpha export-manifest --out wiki/alpha-library/manifest.json --force

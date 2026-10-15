@@ -125,12 +125,12 @@ By making a contribution to this project, I certify that:
 ## Alpha PR Reviewer Checklist
 
 This checklist applies to any PR adding or modifying files under
-`agent/src/factors/zoo/**/*.py`. Reviewers MUST verify every box before
+`agent/src/research/factors/zoo/**/*.py`. Reviewers MUST verify every box before
 merging. Authors are strongly encouraged to self-check first.
 
 - [ ] **Purity gate**: file passes `pytest agent/tests/factors/test_alpha_purity.py`.
   The AST scan rejects any imports outside the allowlist
-  (`pandas`, `numpy`, `scipy.*`, `src.factors.base`, `__future__`, `typing`,
+  (`pandas`, `numpy`, `scipy.*`, `src.research.factors.base`, `__future__`, `typing`,
   `math`, `dataclasses`) and any reference to forbidden names: `os`,
   `subprocess`, `socket`, `urllib`, `requests`, `httpx`, `pathlib`, `Path`,
   `eval`, `exec`, `compile`, `__import__`, bare `open`, or `getattr` with a
@@ -159,12 +159,12 @@ merging. Authors are strongly encouraged to self-check first.
 
 ## Adding a New Alpha (Quickstart)
 
-1. Pick the target zoo directory under `agent/src/factors/zoo/` (e.g.
+1. Pick the target zoo directory under `agent/src/research/factors/zoo/` (e.g.
    `gtja191/`, `alpha101/`, `qlib158/`, `academic/`).
 2. Create `<alpha_id_short>.py` in that directory. Define `__alpha_meta__`
    (must satisfy the pydantic `AlphaMeta` schema in
-   `agent/src/factors/registry.py`) and a pure `compute(panel)` function
-   that imports only from `src.factors.base` plus the allowlisted stdlib /
+   `agent/src/research/factors/registry.py`) and a pure `compute(panel)` function
+   that imports only from `src.research.factors.base` plus the allowlisted stdlib /
    numpy / pandas / scipy.
 3. Run the purity and lookahead gates locally:
    ```bash
@@ -182,12 +182,12 @@ merging. Authors are strongly encouraged to self-check first.
 Channels ship through one authoring contract; the Web UI renders any channel's
 configuration with no per-channel frontend code.
 
-1. Create `agent/src/channels/<name>.py` with a `BaseChannel` subclass:
+1. Create `agent/src/interfaces/channels/<name>.py` with a `BaseChannel` subclass:
    implement `start`, `stop`, and `send` (abstract), and `default_config()`
-   returning the stored config shape. The registry (`src/channels/registry.py`)
+   returning the stored config shape. The registry (`src/interfaces/channels/registry.py`)
    auto-discovers the module; delivery receipts, retries and manager wiring come
    from the base class and manager.
-2. Field metadata lives in `agent/src/channels/config_meta.py`. Hand-written
+2. Field metadata lives in `agent/src/interfaces/channels/config_meta.py`. Hand-written
    `FIELD_HINTS[name]` entries supply labels and authoritative secret flags;
    channels without hand-written hints derive them from `default_config()` with
    type inference. Stored keys without a hand-written declaration use the
@@ -274,7 +274,7 @@ matrix row records a declaration; attach separate evidence for runtime claims.
   Never commit credentials, account records, or unsanitized broker responses.
 - [ ] Regenerate the README from the repository root and run the CI drift guard:
   ```bash
-  PYTHONPATH=agent python -m src.trading.capability_matrix
+  PYTHONPATH=agent python -m src.markets.trading.capability_matrix
   pytest agent/tests/test_capability_matrix.py -q
   ```
   Include the generated profile rows and verification evidence in the same PR.
@@ -288,7 +288,7 @@ be dispatched manually. It is separate from offline PR tests. To reproduce:
 python3.11 -m venv /tmp/vibe-loader-health-venv
 /tmp/vibe-loader-health-venv/bin/python -m pip install -r tools/requirements-loader-health.txt
 cd agent
-/tmp/vibe-loader-health-venv/bin/python -m backtest.loader_health --output /tmp/loader-health.json
+/tmp/vibe-loader-health-venv/bin/python -m src.backtest.loader_health --output /tmp/loader-health.json
 ```
 
 Use the isolated environment to keep optional SDK pins separate from the
