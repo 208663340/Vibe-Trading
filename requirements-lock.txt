@@ -1477,6 +1477,10 @@ jsonpatch==1.33 \
     --hash=sha256:0ae28c0cd062bbd8b8ecc26d7d164fbbea9652a1a3693f3b956c1eae5145dade \
     --hash=sha256:9fcd4009c41e6d12348b4a0ff2563ba56a2923a7dfee731d004e212e1ee5030c
     # via langchain-core
+json-repair==0.64.0 \
+    --hash=sha256:2890be942a7ef20626e4eda4bd91b37485bc5271ac122efe7bb924232fef60ea \
+    --hash=sha256:3bf14cf14d8ae96f7bc467e6964d8accd52aaad084f973e38ebe4e43f9d051e4
+    # via pi-py-ai
 jsonpath==0.82.2 \
     --hash=sha256:d87ef2bcbcded68ee96bc34c1809b69457ecec9b0c4dd471658a12bd391002d1
     # via akshare
@@ -2833,6 +2837,14 @@ protobuf==7.36.2 \
     --hash=sha256:e11e1f0180583a2af89db6a2ecd9e8dc40aa6d2988ca175bfd0e6d12ea72d74e \
     --hash=sha256:f4fee11ec330d238b34a05c9b675f693c20415d1c5bd7d5320cc2f8a798eb9cf
     # via yfinance
+pi-py-agent-core==0.84.1 \
+    --hash=sha256:7f210f879b69b2e21f47ecfca7e02ceec07bc6ab8a7555cc46babf7ffb7aea51 \
+    --hash=sha256:d6efda6fcaf1ab5226936dde71427dffa4f978af49d155f2fbd0043d4696d427
+    # via -r agent/requirements.txt
+pi-py-ai==0.84.1 \
+    --hash=sha256:6317272e5e5a065a6a3adf75d477a10953f544b178203d0d1a9c125768e013c4 \
+    --hash=sha256:87ed531f2d52bce340bc25f256998f90c3c6657760e5e70410ba58d19f7016a6
+    # via pi-py-agent-core
 py-key-value-aio==0.4.6 \
     --hash=sha256:267c03c3e24cb99d3097612f8a5cfd8e11785c6a2975e272db0e303ea1850bfd \
     --hash=sha256:820b30c7959fc738ea3d00160cdb10cd258f51e38737b2add530defeea1ded77

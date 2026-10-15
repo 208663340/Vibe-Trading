@@ -3,7 +3,7 @@
 
 Scans Python files under the agent source tree and rejects any direct
 environment-variable **read** that bypasses the centralized
-``agent/src/config/`` accessor layer.
+``agent/src/platform/config/`` accessor layer.
 
 Detected patterns (READ calls):
     os.getenv("KEY")
@@ -15,10 +15,10 @@ Allowlisted (NOT flagged):
     os.environ.items()
     os.environ.setdefault(...)
     os.environ["KEY"] = value  # Store context in Assign / AugAssign targets
-    os.environ.pop()           # only in src/api/settings_routes.py + src/config/
+    os.environ.pop()           # only in src/interfaces/api/settings_routes.py + src/platform/config/
 
 Warnings (non-blocking):
-    os.environ.pop() outside src/api/settings_routes.py and src/config/
+    os.environ.pop() outside src/interfaces/api/settings_routes.py and src/platform/config/
 
 Usage::
 
@@ -41,10 +41,6 @@ from pathlib import Path
 # Directories / files to scan (relative to repo root).
 SCAN_TARGETS: list[str] = [
     "agent/src/",
-    "agent/backtest/",
-    "agent/cli/",
-    "agent/mcp_server.py",
-    "agent/api_server.py",
     "agent/scripts/",
 ]
 
@@ -54,10 +50,10 @@ SKIP_PREFIXES: tuple[str, ...] = (
 )
 
 # The allowed zone — reads here are the *point* of the config layer.
-ALLOWED_PREFIX: str = "agent/src/config/"
+ALLOWED_PREFIX: str = "agent/src/platform/config/"
 
 # File (relative) where os.environ.pop() is explicitly permitted.
-POP_ALLOWLISTED_FILE: str = "agent/src/api/settings_routes.py"
+POP_ALLOWLISTED_FILE: str = "agent/src/interfaces/api/settings_routes.py"
 
 # ---------------------------------------------------------------------------
 # AST visitor
@@ -124,7 +120,7 @@ class _EnvReadVisitor(ast.NodeVisitor):
                 self.generic_visit(node)
                 return
             self._violations.append(
-                (node.lineno, "os.getenv() — use src.config accessor")
+                (node.lineno, "os.getenv() — use src.platform.config accessor")
             )
             self.generic_visit(node)
             return
@@ -147,7 +143,7 @@ class _EnvReadVisitor(ast.NodeVisitor):
                     self.generic_visit(node)
                     return
                 self._violations.append(
-                    (node.lineno, "os.environ.get() — use src.config accessor")
+                    (node.lineno, "os.environ.get() — use src.platform.config accessor")
                 )
                 self.generic_visit(node)
                 return
@@ -171,7 +167,7 @@ class _EnvReadVisitor(ast.NodeVisitor):
             self._violations.append(
                 (
                     node.lineno,
-                    f"os.environ.{method}() — use src.config accessor",
+                    f"os.environ.{method}() — use src.platform.config accessor",
                 )
             )
 
@@ -185,7 +181,7 @@ class _EnvReadVisitor(ast.NodeVisitor):
         ):
             if not self._line_has_noqa(node.lineno):
                 self._violations.append(
-                    (node.lineno, 'os.environ["..."] read — use src.config accessor')
+                    (node.lineno, 'os.environ["..."] read — use src.platform.config accessor')
                 )
 
         self.generic_visit(node)
@@ -203,7 +199,7 @@ def _collect_python_files(repo_root: Path) -> list[Path]:
     for target in SCAN_TARGETS:
         target_path = repo_root / target
         if target_path.is_file():
-            # Single file target (e.g. agent/mcp_server.py)
+            # Single file target (e.g. agent/src/interfaces/mcp_server.py)
             if target_path.suffix == ".py":
                 rel = str(target_path.relative_to(repo_root)).replace("\\", "/")
                 if not _should_skip(rel):
@@ -238,8 +234,8 @@ Allowlisted patterns (NOT flagged by this gate):
   2. os.environ.items()         — iteration over env vars
   3. os.environ.setdefault(...) — conditional write
   4. os.environ["KEY"] = value  — explicit write (Store context)
-  5. os.environ.pop()           — only in src/api/settings_routes.py + src/config/
-  6. All reads inside agent/src/config/ — the config layer itself
+  5. os.environ.pop()           — only in src/interfaces/api/settings_routes.py + src/platform/config/
+  6. All reads inside agent/src/platform/config/ — the config layer itself
   7. All files under agent/tests/ — test code is exempt
 """
 
@@ -290,7 +286,7 @@ def main(argv: list[str] | None = None) -> int:
         for rel, lineno, msg in all_violations:
             print(f"  {rel}:{lineno}: {msg}")
         print()
-        print("Use the centralized config accessor in agent/src/config/ instead.")
+        print("Use the centralized config accessor in agent/src/platform/config/ instead.")
         print("Run with --allowlist to see permitted patterns.")
         return 1
 

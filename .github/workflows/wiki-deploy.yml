@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "wiki/**"
-      - "agent/src/factors/**"
+      - "agent/src/research/factors/**"
       - ".github/workflows/wiki-deploy.yml"
 
 concurrency:

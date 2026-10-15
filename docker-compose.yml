@@ -28,7 +28,7 @@ services:
       - vibe-swarm-runs:/app/agent/.swarm/runs
       - vibe-uploads:/app/agent/uploads
       # Persist Web-UI-driven agent/.env edits (_write_env_values in
-      # src/api/helpers.py writes to /app/agent/.env) across container recreation.
+      # src/interfaces/api/helpers.py writes to /app/agent/.env) across container recreation.
       # env_file above still seeds the initial boot env from the same file.
       - ./agent/.env:/app/agent/.env
       # Published Taiwan stock snapshots, mounted read-only. The default host

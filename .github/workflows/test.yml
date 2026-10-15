@@ -122,12 +122,12 @@ jobs:
       - name: Syntax check
         run: |
           cd agent
-          python -m compileall -q cli
-          python -m py_compile api_server.py
-          python -m py_compile mcp_server.py
-          python -m py_compile src/agent/loop.py
-          python -m py_compile src/tools/__init__.py
-          python -m py_compile backtest/runner.py
+          python -m compileall -q src/interfaces/cli
+          python -m py_compile src/interfaces/api_server.py
+          python -m py_compile src/interfaces/mcp_server.py
+          python -m py_compile src/runtime/agent/loop.py
+          python -m py_compile src/runtime/tools/__init__.py
+          python -m py_compile src/backtest/runner.py
 
       - name: Run tests
         # test_e2e_harness_v2.py is gated by VIBE_TRADING_RUN_LIVE_E2E

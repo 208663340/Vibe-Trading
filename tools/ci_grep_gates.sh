@@ -18,7 +18,7 @@
 #   (d) No deprecated `datetime.utcnow(` usage or bare `datetime.now()` calls
 #       in Python sources; `datetime.now(timezone.utc)` is allowed.
 #   (e) No raw `os.getenv` / `os.environ.get` / `os.environ["KEY"]` reads
-#       outside the centralized config layer (`agent/src/config/`).
+#       outside the centralized config layer (`agent/src/platform/config/`).
 #       AST-based; uses `tools/ci_env_var_gate.py`.
 #
 # Exclusions: .git, node_modules, __pycache__, .venv, dist, build, this
@@ -105,16 +105,16 @@ fi
 # -------------------------------------------------------------- gate (d)
 echo "[gate d] no deprecated datetime.utcnow() / bare datetime.now() calls ..."
 TARGET_FILES=(
-  agent/api_server.py
-  agent/src/agent/context.py
-  agent/src/api/system_routes.py
-  agent/src/channels/mochat.py
-  agent/src/goal/store.py
-  agent/src/session/models.py
-  agent/src/swarm/worker.py
-  agent/src/tools/lockup_expiry_tool.py
-  agent/src/trading/connectors/dhan/sdk.py
-  agent/src/trading/connectors/shoonya/sdk.py
+  agent/src/interfaces/api_server.py
+  agent/src/runtime/agent/context.py
+  agent/src/interfaces/api/system_routes.py
+  agent/src/interfaces/channels/mochat.py
+  agent/src/runtime/goal/store.py
+  agent/src/runtime/session/models.py
+  agent/src/runtime/swarm/worker.py
+  agent/src/runtime/tools/lockup_expiry_tool.py
+  agent/src/markets/trading/connectors/dhan/sdk.py
+  agent/src/markets/trading/connectors/shoonya/sdk.py
 )
 D_HITS=$(grep -Hn -E 'datetime\.utcnow\(|datetime\.now\(' "${TARGET_FILES[@]}" 2>/dev/null \
     | grep -v "$SELF" \
@@ -133,7 +133,7 @@ echo "[gate e] no raw os.getenv / os.environ reads outside config layer ..."
 E_OUTPUT=$(python tools/ci_env_var_gate.py 2>&1)
 E_RC=$?
 if [ "$E_RC" -ne 0 ]; then
-    echo "${RED}FAIL${NC}: raw env-var reads outside agent/src/config/:"
+    echo "${RED}FAIL${NC}: raw env-var reads outside agent/src/platform/config/:"
     echo "$E_OUTPUT"
     FAILED=1
 else

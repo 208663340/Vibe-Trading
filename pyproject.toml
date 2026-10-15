@@ -20,6 +20,7 @@ classifiers = [
 dependencies = [
     "rich>=13.0.0",
     "pyyaml>=6.0.0",
+    "pi-py-agent-core>=0.84.1,<0.85",
     "langchain>=1.3.9,<2",
     "langchain-core>=1.0.0,<2",
     "langchain-openai>=1.0.0,<2",
@@ -92,36 +93,35 @@ Repository = "https://github.com/HKUDS/Vibe-Trading"
 Issues = "https://github.com/HKUDS/Vibe-Trading/issues"
 
 [project.scripts]
-vibe-trading = "cli:main"
-vibe-trading-mcp = "mcp_server:main"
+vibe-trading = "src.interfaces.cli:main"
+vibe-trading-mcp = "src.interfaces.mcp_server:main"
 
 [tool.setuptools]
 package-dir = {"" = "agent"}
-py-modules = ["api_server", "mcp_server"]
 
 [tool.setuptools.packages.find]
 where = ["agent"]
-include = ["src*", "backtest*", "cli*", "evals*"]
+include = ["src*"]
 
 [tool.setuptools.package-data]
 "src" = [
-    "skills/**/*.md",
-    "skills/**/*.yaml",
-    "skills/**/*.json",
-    "skills/**/*.py",
-    "providers/*.json",
-    "scheduled_research/playbooks/*.md",
-    "swarm/presets/*.yaml",
-    "shadow_account/templates/*.j2",
-    "shadow_account/templates/*.html",
-    "shadow_account/templates/*.css",
-    "shadow_account/assets/*.ttf",
-    "shadow_account/assets/*.txt",
-    "shadow_account/assets/*.md",
+    "research/skills/**/*.md",
+    "research/skills/**/*.yaml",
+    "research/skills/**/*.json",
+    "research/skills/**/*.py",
+    "runtime/providers/*.json",
+    "research/scheduled_research/playbooks/*.md",
+    "runtime/swarm/presets/*.yaml",
+    "markets/shadow_account/templates/*.j2",
+    "markets/shadow_account/templates/*.html",
+    "markets/shadow_account/templates/*.css",
+    "markets/shadow_account/assets/*.ttf",
+    "markets/shadow_account/assets/*.txt",
+    "markets/shadow_account/assets/*.md",
 ]
-"evals.harness" = ["README.md", "cases/**/*.json"]
-"backtest" = ["*.py", "loaders/*.json"]
-"src.factors" = ["zoo/**/*.yaml", "zoo/**/*.md", "zoo/**/NOTICE"]
+"src.runtime.evals.harness" = ["README.md", "cases/**/*.json"]
+"src.backtest" = ["*.py", "loaders/*.json"]
+"src.research.factors" = ["zoo/**/*.yaml", "zoo/**/*.md", "zoo/**/NOTICE"]
 
 [project.optional-dependencies]
 ibkr = [
@@ -165,7 +165,7 @@ anthropic = [
     "langchain-anthropic>=1.3.0,<2",
 ]
 openbb = [
-    # OpenBB Workspace custom-agent bridge (src/openbb_bridge): protocol models
+    # OpenBB Workspace custom-agent bridge (src/interfaces/openbb_bridge): protocol models
     # + SSE helpers. api_server.py registers /agents.json and /v1/query only
     # when this import succeeds, so a base install stays unaffected.
     "openbb-ai>=2.0.0,<3",
@@ -176,7 +176,7 @@ krx = [
     "pykrx>=1.0.45",
 ]
 stats = [
-    # Econometrics behind src/quantlib/timeseries: stationarity (ADF),
+    # Econometrics behind src/research/quantlib/timeseries: stationarity (ADF),
     # cointegration, Granger causality, Ljung-Box, VIF and GARCH. Those
     # functions lazy-import and raise an actionable ImportError naming this
     # extra, so the base install stays lean and nothing silently degrades.
@@ -194,7 +194,7 @@ harmonic = [
 ]
 smc = [
     # Smart Money Concepts (ICT) signal engine — used by exactly one skill
-    # example, src/skills/smc/example_signal_engine.py, whose SKILL.md already
+    # example, src/research/skills/smc/example_signal_engine.py, whose SKILL.md already
     # tells the reader to install it. It is an extra rather than a base
     # dependency because it drags in numba -> llvmlite, and llvmlite ships no
     # macOS x86_64 wheel from 0.46 on: as a base dependency it turned every
@@ -321,7 +321,7 @@ select = ["E", "F", "W"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
-# Alpha zoo files import the full src.factors.base surface verbatim
+# Alpha zoo files import the full src.research.factors.base surface verbatim
 # to match research-paper formulas. F401 (unused-import) is noise here;
 # F841 (unused-local-variable) stays active to catch real formula bugs.
-"agent/src/factors/zoo/**/*.py" = ["F401"]
+"agent/src/research/factors/zoo/**/*.py" = ["F401"]

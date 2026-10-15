@@ -134,7 +134,7 @@ services:
     depends_on:
       vibe-trading-init:
         condition: service_completed_successfully
-    command: ["python", "-m", "src.br_data", "daemon"]
+    command: ["python", "-m", "src.platform.br_data", "daemon"]
     environment:
       TZ: America/Sao_Paulo
       # First years to download (B3 publishes from 1986; each year of

@@ -139,27 +139,27 @@ class TestEnvironSubscriptWriteAllowed:
 
 
 class TestConfigDirectoryAllowed:
-    """Files in agent/src/config/ are NOT scanned (skipped entirely)."""
+    """Files in agent/src/platform/config/ are NOT scanned (skipped entirely)."""
 
     def test_config_file_skipped(self) -> None:
         # Even with os.getenv in the source, the file is in config/ so
         # _should_skip returns True and the scanner never visits it.
-        assert _should_skip("agent/src/config/accessor.py") is True
-        assert _should_skip("agent/src/config/env_schema.py") is True
+        assert _should_skip("agent/src/platform/config/accessor.py") is True
+        assert _should_skip("agent/src/platform/config/env_schema.py") is True
 
     def test_config_visitor_clean(self) -> None:
         # Even if we *did* visit a config file, the visitor itself would
         # flag it — but the scanner skips it.  Verify the skip logic.
         violations, _ = _run_visitor(
             'import os\nx = os.getenv("FOO")\n',
-            rel_path="agent/src/config/env_schema.py",
+            rel_path="agent/src/platform/config/env_schema.py",
         )
         # The visitor doesn't know about skip rules — it just visits.
         # But the scanner would never call it on this file.
         # This test documents that the visitor IS strict; the skip is
         # enforced at the file-discovery layer.
         assert len(violations) == 1  # visitor flags it
-        assert _should_skip("agent/src/config/env_schema.py")  # scanner skips
+        assert _should_skip("agent/src/platform/config/env_schema.py")  # scanner skips
 
 
 class TestTestsDirectorySkipped:
@@ -190,7 +190,7 @@ class TestEnvironPopWarning:
     def test_pop_in_settings_routes_no_warning(self) -> None:
         violations, warnings = _run_visitor(
             'import os\nos.environ.pop("FOO", None)\n',
-            rel_path="agent/src/api/settings_routes.py",
+            rel_path="agent/src/interfaces/api/settings_routes.py",
         )
         assert len(violations) == 0
         assert len(warnings) == 0

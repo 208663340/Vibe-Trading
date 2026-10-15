@@ -1,4 +1,6 @@
 # Core LLM & Orchestration
+# Pi's in-process agent loop (Python port). The trading turn stays in AgentLoop.
+pi-py-agent-core>=0.84.1,<0.85
 rich>=13.0.0
 prompt_toolkit>=3.0.0
 pyyaml>=6.0.0

@@ -33,7 +33,7 @@ for name in font['name'].names:
         name.string=('VibeCJK-Regular' if name.nameID==6 else 'Vibe CJK Regular').encode(name.getEncoding())
     elif name.nameID in (2,17):
         name.string='Regular'.encode(name.getEncoding())
-out=Path('agent/src/shadow_account/assets')
+out=Path('agent/src/markets/shadow_account/assets')
 out.mkdir(parents=True,exist_ok=True)
 font.save(out/'VibeCJK-Regular.ttf')
 with urllib.request.urlopen(base+'/LICENSE') as response:

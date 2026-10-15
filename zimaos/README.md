@@ -37,9 +37,9 @@ or at `VIBE_BR_DATA_DB`.
 Run selected sources manually inside the application container:
 
 ```bash
-python -m src.br_data status
-python -m src.br_data sync --only bcb tesouro
-python -m src.br_data sync --only cotahist --cotahist-from 2025
+python -m src.platform.br_data status
+python -m src.platform.br_data sync --only bcb tesouro
+python -m src.platform.br_data sync --only cotahist --cotahist-from 2025
 ```
 
 The initial full download can be several GB. The daily sync service is off by
