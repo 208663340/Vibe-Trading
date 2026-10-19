@@ -242,6 +242,7 @@ class DataConfig(_EnvBase):
     vibe_trading_sec_ftd_files: int = Field(alias="VIBE_TRADING_SEC_FTD_FILES", default=1)
     vibe_trading_openalex_mailto: str = Field(alias="VIBE_TRADING_OPENALEX_MAILTO", default="")
     vibe_tw_stock_db: str = Field(alias="VIBE_TW_STOCK_DB", default="")
+    vibe_trading_quant_root: str = Field(alias="VIBE_TRADING_QUANT_ROOT", default="")
     # Brazilian official data (B3 COTAHIST, CVM, BCB, Tesouro Direto), synced
     # by ``vibe-trading br-data sync`` into one SQLite file. Empty = default
     # ``~/.vibe-trading/br-data/br_data.db``.

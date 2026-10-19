@@ -1380,8 +1380,9 @@ class BaseEngine(ABC):
             if stop_run:
                 break
 
-        # f. Force close all remaining positions
-        if len(dates) > 0:
+        # f. Default to terminal liquidation. Local replay can retain actual
+        # holdings instead of inventing a final fill through a halt or T+1 lock.
+        if len(dates) > 0 and self.config.get("liquidate_at_end", True):
             _last_row = min(self._bar_idx, len(dates) - 1)
             last_ts = dates[_last_row]
             for c in list(self.positions.keys()):

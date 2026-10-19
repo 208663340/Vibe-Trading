@@ -552,9 +552,9 @@ Más allá del OHLCV, **22 herramientas de datos de solo lectura** alcanzan fund
 Los inventarios detallados se pliegan a continuación para mantener el README principal fácil de escanear. Ábrelos cuando quieras inspeccionar los bloques de construcción disponibles.
 
 <details>
-<summary><b>Biblioteca de Skills Financieras</b> <sub>90 skills en 9 categorías</sub></summary>
+<summary><b>Biblioteca de Skills Financieras</b> <sub>91 skills en 9 categorías</sub></summary>
 
-- 📊 90 skills financieras especializadas organizadas en 9 categorías
+- 📊 91 skills financieras especializadas organizadas en 9 categorías
 - 🌐 Cobertura completa desde mercados tradicionales hasta cripto y DeFi
 - 🔬 Capacidades integrales que abarcan desde el sourcing de datos hasta la investigación cuantitativa
 
@@ -1446,7 +1446,7 @@ Explora en ClawHub: [clawhub.ai/skills/vibe-trading](https://clawhub.ai/skills/v
 <details>
 <summary><b>OpenSpace — self-evolving skills</b></summary>
 
-Los 90 skills de finanzas están publicados en [open-space.cloud](https://open-space.cloud) y evolucionan de forma autónoma mediante el motor de auto-evolución de OpenSpace.
+La biblioteca incluye 91 skills financieros que se pueden publicar en [open-space.cloud](https://open-space.cloud) para usar la evolución autónoma de OpenSpace. Este cambio no publica el nuevo skill cuantitativo local.
 
 Para usarlo con OpenSpace, añade ambos servidores MCP a la configuración de tu agente:
 
@@ -1468,7 +1468,7 @@ Para usarlo con OpenSpace, añade ambos servidores MCP a la configuración de tu
 }
 ```
 
-OpenSpace descubrirá automáticamente los 90 skills, habilitando auto-fix, auto-improve y compartición comunitaria. Busca skills de Vibe-Trading mediante `search_skills("finance backtest")` en cualquier agente conectado a OpenSpace.
+OpenSpace descubrirá automáticamente los 91 skills, habilitando auto-fix, auto-improve y compartición comunitaria. Busca skills de Vibe-Trading mediante `search_skills("finance backtest")` en cualquier agente conectado a OpenSpace.
 
 </details>
 
@@ -1801,7 +1801,7 @@ Vibe-Trading/
 │   │   ├── agent/                  # Núcleo del agente ReAct
 │   │   │   ├── loop.py             #   compresión de 5 capas + agrupación de herramientas de lectura/escritura
 │   │   │   ├── context.py          #   system prompt + auto-recuperación desde memoria persistente
-│   │   │   ├── skills.py           #   cargador de skills (90 incluidas + creadas por el usuario vía CRUD)
+│   │   │   ├── skills.py           #   cargador de skills (91 incluidas + creadas por el usuario vía CRUD)
 │   │   │   ├── tools.py            #   clase base de herramientas + registro
 │   │   │   ├── memory.py           #   estado ligero del workspace por ejecución
 │   │   │   ├── frontmatter.py      #   parser de frontmatter YAML compartido
@@ -1810,7 +1810,7 @@ Vibe-Trading/
 │   │   ├── memory/                 # Memoria persistente entre sesiones
 │   │   │   └── persistent.py       #   memoria basada en archivos (~/.vibe-trading/memory/)
 │   │   │
-│   │   ├── tools/                  # 110 herramientas de agente autodescubiertas
+│   │   ├── tools/                  # 113 herramientas de agente autodescubiertas
 │   │   │   ├── backtest_tool.py    #   ejecuta backtests
 │   │   │   ├── remember_tool.py    #   memoria entre sesiones (save/recall/forget)
 │   │   │   ├── skill_writer_tool.py #  CRUD de skills (save/patch/delete/file)
@@ -1828,7 +1828,7 @@ Vibe-Trading/
 │   │   ├── api/                    # Módulos de rutas FastAPI
 │   │   │   └── alpha_routes.py     #   /alpha/list, /alpha/{id}, /alpha/bench, flujo SSE
 │   │   │
-│   │   ├── skills/                 # 90 skills financieras en 9 categorías (un SKILL.md cada una)
+│   │   ├── skills/                 # 91 skills financieras en 9 categorías (un SKILL.md cada una)
 │   │   ├── swarm/                  # Motor de ejecución de DAG swarm
 │   │   │   └── presets/            #   31 definiciones YAML de presets swarm
 │   │   ├── session/                # Chat multi-turno + búsqueda de sesiones FTS5

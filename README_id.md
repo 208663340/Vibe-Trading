@@ -715,16 +715,16 @@ Di luar OHLCV, **22 tool data read-only** menjangkau fundamental & flow — fund
 Inventaris detail dilipat di bawah agar README utama tetap mudah dipindai. Buka bagian yang Anda perlukan saat ingin memeriksa building block yang tersedia.
 
 <details>
-<summary><b>Library Skill Finansial</b> <sub>90 skill dalam 9 kategori</sub></summary>
+<summary><b>Library Skill Finansial</b> <sub>91 skill dalam 9 kategori</sub></summary>
 
-- 📊 90 skill finansial khusus yang diorganisasi dalam 9 kategori
+- 📊 91 skill finansial khusus yang diorganisasi dalam 9 kategori
 - 🌐 Cakupan lengkap dari market tradisional hingga crypto & DeFi
 - 🔬 Kapabilitas menyeluruh dari sourcing data hingga riset quant
 
 | Kategori | Skill | Contoh |
 |----------|--------|----------|
 | Data Source | 10 | `data-routing`, `tushare`, `yfinance`, `okx-market`, `akshare`, `mootdx`, `ccxt`, `eastmoney`, `sec-edgar`, `qveris` |
-| Strategy | 19 | `strategy-generate`, `cross-market-strategy`, `technical-basic`, `candlestick`, `ichimoku`, `elliott-wave`, `smc`, `multi-factor`, `ml-strategy` |
+| Strategy | 20 | `local-quant-strategy`, `strategy-generate`, `cross-market-strategy`, `technical-basic`, `candlestick`, `ichimoku`, `elliott-wave`, `smc`, `multi-factor`, `ml-strategy` |
 | Analysis | 23 | `factor-research`, `correlation-regime`, `macro-analysis`, `global-macro`, `valuation-model`, `investor-lenses`, `credit-analysis`, `dividend-analysis` |
 | Asset Class | 9 | `options-strategy`, `options-advanced`, `convertible-bond`, `etf-analysis`, `asset-allocation`, `sector-rotation` |
 | Crypto | 7 | `perp-funding-basis`, `liquidation-heatmap`, `stablecoin-flow`, `defi-yield`, `onchain-analysis` |
@@ -1690,7 +1690,7 @@ Jelajahi di ClawHub: [clawhub.ai/skills/vibe-trading](https://clawhub.ai/skills/
 <details>
 <summary><b>OpenSpace — skill yang berkembang sendiri</b></summary>
 
-Semua 90 skill finansial dipublikasikan di [open-space.cloud](https://open-space.cloud) dan berkembang secara otonom melalui engine self-evolution OpenSpace.
+Paket ini menyertakan 91 skill finansial yang dapat dipublikasikan di [open-space.cloud](https://open-space.cloud) untuk evolusi otonom OpenSpace. Perubahan ini tidak memublikasikan skill kuantitatif lokal yang baru.
 
 Untuk menggunakan OpenSpace, tambahkan kedua server MCP ke config agent Anda:
 
@@ -1712,7 +1712,7 @@ Untuk menggunakan OpenSpace, tambahkan kedua server MCP ke config agent Anda:
 }
 ```
 
-OpenSpace akan menemukan seluruh 90 skill secara otomatis, mengaktifkan auto-fix, auto-improve, dan sharing komunitas. Cari skill Vibe-Trading melalui `search_skills("finance backtest")` pada agent mana pun yang terhubung OpenSpace.
+OpenSpace akan menemukan seluruh 91 skill secara otomatis, mengaktifkan auto-fix, auto-improve, dan sharing komunitas. Cari skill Vibe-Trading melalui `search_skills("finance backtest")` pada agent mana pun yang terhubung OpenSpace.
 
 </details>
 
@@ -2046,7 +2046,7 @@ Vibe-Trading/
 │   │   ├── agent/                  # ReAct agent core
 │   │   │   ├── loop.py             #   5-layer compression + read/write tool batching
 │   │   │   ├── context.py          #   system prompt + auto-recall from persistent memory
-│   │   │   ├── skills.py           #   skill loader (90 bundled + user-created via CRUD)
+│   │   │   ├── skills.py           #   skill loader (91 bundled + user-created via CRUD)
 │   │   │   ├── tools.py            #   tool base class + registry
 │   │   │   ├── memory.py           #   lightweight workspace state per run
 │   │   │   ├── frontmatter.py      #   shared YAML frontmatter parser
@@ -2055,7 +2055,7 @@ Vibe-Trading/
 │   │   ├── memory/                 # Cross-session persistent memory
 │   │   │   └── persistent.py       #   file-based memory (~/.vibe-trading/memory/)
 │   │   │
-│   │   ├── tools/                  # 110 auto-discovered agent tools
+│   │   ├── tools/                  # 113 auto-discovered agent tools
 │   │   │   ├── backtest_tool.py    #   run backtests
 │   │   │   ├── remember_tool.py    #   cross-session memory (save/recall/forget)
 │   │   │   ├── skill_writer_tool.py #  skill CRUD (save/patch/delete/file)
@@ -2073,7 +2073,7 @@ Vibe-Trading/
 │   │   ├── api/                    # FastAPI route modules
 │   │   │   └── alpha_routes.py     #   /alpha/list, /alpha/{id}, /alpha/bench, SSE stream
 │   │   │
-│   │   ├── skills/                 # 90 finance skills in 9 categories (SKILL.md each)
+│   │   ├── skills/                 # 91 finance skills in 9 categories (SKILL.md each)
 │   │   ├── swarm/                  # Swarm DAG execution engine
 │   │   │   └── presets/            #   31 swarm preset YAML definitions
 │   │   ├── session/                # Multi-turn chat + FTS5 session search

@@ -18,9 +18,13 @@ agents:
       untested hypotheses. Record missing data rather than inventing results.
       For synthesis, incorporate both supporting and opposing evidence and state
       what remains unverified. Write the final answer directly in your response.
+      For requests about local quant strategies, load local-quant-strategy, discover
+      and load a supported strategy, then run backtest_local_quant_strategy with
+      explicit dates and close-screen rules. Inspect the returned report and actual
+      fills with read_file. Report failures and data-quality exclusions honestly.
       {upstream_context}
-    tools: [web_search, read_url, get_market_data, get_stock_news, load_skill]
-    skills: [macro-analysis]
+    tools: [web_search, read_url, get_market_data, get_stock_news, load_skill, read_file, list_local_quant_strategies, load_local_quant_strategy, backtest_local_quant_strategy]
+    skills: [macro-analysis, local-quant-strategy]
     max_iterations: 20
     timeout_seconds: 300
 
@@ -33,9 +37,14 @@ agents:
       For synthesis, preserve disagreements and missing evidence. Never describe
       a strategy as backtested unless an actual engine artifact establishes it.
       Write the final answer directly in your response.
+      For local quant requests, load local-quant-strategy and choose a supported
+      source strategy using list_local_quant_strategies and load_local_quant_strategy.
+      Run backtest_local_quant_strategy with explicit dates and close-screen rules;
+      read its actual artifacts with read_file and challenge unsupported profitability
+      claims. Preserve the requested hypothesis and distinguish any alternative test.
       {upstream_context}
-    tools: [web_search, read_url, get_market_data, get_stock_news, load_skill]
-    skills: [macro-analysis]
+    tools: [web_search, read_url, get_market_data, get_stock_news, load_skill, read_file, list_local_quant_strategies, load_local_quant_strategy, backtest_local_quant_strategy]
+    skills: [macro-analysis, local-quant-strategy]
     max_iterations: 20
     timeout_seconds: 300
 
@@ -49,7 +58,7 @@ agents:
       is qualitative; do not claim statistical validation without run artifacts.
       Write the final review directly in your response.
       {upstream_context}
-    tools: [web_search, read_url, get_market_data, get_stock_news]
+    tools: [web_search, read_url, get_market_data, get_stock_news, read_file]
     max_iterations: 15
     timeout_seconds: 300
 

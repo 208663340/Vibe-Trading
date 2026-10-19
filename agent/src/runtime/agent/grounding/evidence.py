@@ -650,6 +650,10 @@ class _EvidenceMixin:
             ) not in (0, "0"):
                 return
             recorded = self._record_backtest_metrics(arguments, payload, call_id)
+        elif tool_name == "backtest_local_quant_strategy":
+            if str(payload.get("status") or "").casefold() != "ok":
+                return
+            recorded = self._record_leaf_metrics(payload.get("metrics"), call_id, tool_name, "metrics")
         elif tool_name == "factor_analysis":
             if str(payload.get("status") or "").casefold() != "ok":
                 return
