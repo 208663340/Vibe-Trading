@@ -655,9 +655,9 @@ LONGBRIDGE_ACCESS_TOKEN=...
 </details>
 
 <details>
-<summary><b>Preset Trading Teams</b> <sub>30 个 swarm presets</sub></summary>
+<summary><b>Preset Trading Teams</b> <sub>31 个 swarm presets</sub></summary>
 
-- 🏢 30 个开箱即用的智能体团队
+- 🏢 31 个开箱即用的智能体团队
 - ⚡ 预配置金融工作流
 - 🎯 投资、交易与风险管理 presets
 
@@ -1145,6 +1145,10 @@ vibe-trading run -p "Deep dive BTC on-chain: whale flows, exchange balances, min
 ```
 
 ### Swarm Workflows
+
+新增可选的 [`autonomous_research_team` 模式](docs/autonomous-swarm.md)：研究 Agent
+按能力自主认领就绪任务，支持租约接管和重启恢复，可通过现有 CLI/API 使用。
+其他预设继续使用原有 DAG 调度。
 
 ```bash
 # Bull/bear debate on a stock
@@ -1745,7 +1749,7 @@ Vibe-Trading/
 │   │   │
 │   │   ├── skills/                 # 9 个类别共 90 个 finance skills（每个一份 SKILL.md）
 │   │   ├── swarm/                  # Swarm DAG 执行引擎
-│   │   │   └── presets/            #   30 个 swarm preset YAML 定义
+│   │   │   └── presets/            #   31 个 swarm preset YAML 定义
 │   │   ├── session/                # 多轮对话 + FTS5 session 搜索
 │   │   └── providers/              # LLM provider 抽象层
 │   │

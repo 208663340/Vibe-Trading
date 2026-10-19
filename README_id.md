@@ -806,9 +806,9 @@ Pemisahan paper-vs-live adalah **guard runtime struktural per broker** (format a
 </details>
 
 <details>
-<summary><b>Preset Tim Trading</b> <sub>30 preset swarm</sub></summary>
+<summary><b>Preset Tim Trading</b> <sub>31 preset swarm</sub></summary>
 
-- 🏢 30 tim agent siap pakai
+- 🏢 31 tim agent siap pakai
 - ⚡ Workflow finansial yang sudah dikonfigurasi
 - 🎯 Preset investasi, trading & manajemen risiko
 
@@ -2075,7 +2075,7 @@ Vibe-Trading/
 │   │   │
 │   │   ├── skills/                 # 90 finance skills in 9 categories (SKILL.md each)
 │   │   ├── swarm/                  # Swarm DAG execution engine
-│   │   │   └── presets/            #   30 swarm preset YAML definitions
+│   │   │   └── presets/            #   31 swarm preset YAML definitions
 │   │   ├── session/                # Multi-turn chat + FTS5 session search
 │   │   └── providers/              # LLM provider abstraction
 │   │

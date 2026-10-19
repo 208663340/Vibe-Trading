@@ -642,9 +642,9 @@ Paper-vs-live is a **structural per-broker runtime guard** (account-id format, h
 </details>
 
 <details>
-<summary><b>Preset Trading Teams</b> <sub>30 swarm presets</sub></summary>
+<summary><b>Preset Trading Teams</b> <sub>31 swarm presets</sub></summary>
 
-- 🏢 すぐ使える 30 の agent teams
+- 🏢 すぐ使える 31 の agent teams
 - ⚡ 事前構成済みの finance workflows
 - 🎯 投資、トレーディング、リスク管理向け presets
 
@@ -1750,7 +1750,7 @@ Vibe-Trading/
 │   │   │
 │   │   ├── skills/                 # 9 カテゴリ 90 個の finance skills（各 SKILL.md）
 │   │   ├── swarm/                  # Swarm DAG 実行エンジン
-│   │   │   └── presets/            #   30 個の swarm preset YAML 定義
+│   │   │   └── presets/            #   31 個の swarm preset YAML 定義
 │   │   ├── session/                # マルチターンチャット + FTS5 セッション検索
 │   │   └── providers/              # LLM プロバイダー抽象化
 │   │

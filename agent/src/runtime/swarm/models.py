@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -198,6 +199,7 @@ class SwarmAgentSpec(BaseModel):
     timeout_seconds: int = 300
     model_name: str | None = None
     max_retries: int = 2
+    capabilities: list[str] = Field(default_factory=list)
 
 
 class SwarmTask(BaseModel):
@@ -223,8 +225,9 @@ class SwarmTask(BaseModel):
     """
 
     id: str
-    agent_id: str
+    agent_id: str = ""
     prompt_template: str
+    required_capabilities: list[str] = Field(default_factory=list)
     depends_on: list[str] = Field(default_factory=list)
     blocked_by: list[str] = Field(default_factory=list)
     input_from: dict[str, str] = Field(default_factory=dict)
@@ -235,6 +238,9 @@ class SwarmTask(BaseModel):
     started_at: str | None = None
     completed_at: str | None = None
     worker_iterations: int = 0
+    attempt: int = 0
+    lease_epoch: int = 0
+    lease_expires_at: str | None = None
 
 
 class SwarmEvent(BaseModel):
@@ -256,6 +262,14 @@ class SwarmEvent(BaseModel):
     task_id: str | None = None
     data: dict = Field(default_factory=dict)
     timestamp: str
+
+
+class AutonomySettings(BaseModel):
+    """Durable admission limits; recovery never resets the original deadline."""
+
+    lease_seconds: float = Field(default=30, ge=1, le=300, allow_inf_nan=False)
+    timeout_seconds: float = Field(default=3600, ge=1, le=86400, allow_inf_nan=False)
+    max_attempts: int = Field(default=3, ge=1, le=10)
 
 
 class SwarmRun(BaseModel):
@@ -308,6 +322,9 @@ class SwarmRun(BaseModel):
     reasoning_effort: str | None = None
     use_responses_api: bool | None = None
     grounding_data: dict[str, list[dict]] | None = None
+    execution_mode: Literal["dag", "autonomous"] = "dag"
+    autonomy: AutonomySettings = Field(default_factory=AutonomySettings)
+    final_task_id: str | None = None
 
 
 class WorkerResult(BaseModel):

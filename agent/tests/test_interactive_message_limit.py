@@ -42,7 +42,7 @@ def test_empty_prompt_keeps_normal_validation(client):
 
 
 def test_frontend_message_bound_matches_the_server_schema():
-    frontend = Path(__file__).resolve().parents[2] / "frontend/src/lib/chatPrompt.ts"
+    frontend = Path(__file__).resolve().parents[2] / "frontend/src/features/agent/prompt.ts"
     constant = re.search(r"MAX_MESSAGE_CHARS = ([\d_]+)", frontend.read_text())
     assert constant is not None
     assert int(constant[1].replace("_", "")) == MAX_MESSAGE_CHARS

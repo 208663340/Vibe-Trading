@@ -771,9 +771,9 @@ Paper-vs-live is a **structural per-broker runtime guard** (account-id format, h
 </details>
 
 <details>
-<summary><b>Preset Trading Teams</b> <sub>30 swarm presets</sub></summary>
+<summary><b>Preset Trading Teams</b> <sub>31 swarm presets</sub></summary>
 
-- 🏢 30 ready-to-use agent teams
+- 🏢 31 ready-to-use agent teams
 - ⚡ Pre-configured finance workflows
 - 🎯 Investment, trading & risk management presets
 
@@ -1460,6 +1460,10 @@ vibe-trading run -p "Deep dive BTC on-chain: whale flows, exchange balances, min
 ```
 
 ### Swarm Workflows
+
+For peers that independently claim ready research tasks, use the opt-in
+[`autonomous_research_team` mode](docs/autonomous-swarm.md), with durable leases,
+restart recovery and the existing CLI/API. Other presets keep their DAG behavior.
 
 ```bash
 # Bull/bear debate on a stock
@@ -2198,7 +2202,7 @@ Vibe-Trading/
 │   │   │
 │   │   ├── skills/                 # 90 finance skills in 9 categories (SKILL.md each)
 │   │   ├── swarm/                  # Swarm DAG execution engine
-│   │   │   └── presets/            #   30 swarm preset YAML definitions
+│   │   │   └── presets/            #   31 swarm preset YAML definitions
 │   │   ├── session/                # Multi-turn chat + FTS5 session search
 │   │   │   ├── execution.py        #   attempt/worker/finalizer ownership
 │   │   │   └── events.py           #   bounded replay, subscriber ingress and gap recovery

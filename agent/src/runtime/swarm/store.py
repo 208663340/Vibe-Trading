@@ -195,7 +195,8 @@ class SwarmStore:
         last: Exception | None = None
         for attempt in range(_REPLACE_ATTEMPTS):
             try:
-                return SwarmRun.model_validate_json(run_file.read_text(encoding="utf-8"))
+                run = SwarmRun.model_validate_json(run_file.read_text(encoding="utf-8"))
+                return self.hydrate_run(run) if run.execution_mode == "autonomous" else run
             except (OSError, ValueError) as exc:
                 last = exc
                 if attempt < len(_REPLACE_BACKOFF):
@@ -237,6 +238,8 @@ class SwarmStore:
             if run_file.exists():
                 try:
                     run = SwarmRun.model_validate_json(run_file.read_text(encoding="utf-8"))
+                    if run.execution_mode == "autonomous":
+                        run = self.hydrate_run(run)
                     runs.append(run)
                 except (json.JSONDecodeError, ValueError):
                     continue
@@ -257,6 +260,10 @@ class SwarmStore:
         rd = self.run_dir(run_id)
         if not rd.exists():
             raise FileNotFoundError(f"Run directory not found: {rd.name}")
+        from src.runtime.swarm.blackboard import Blackboard
+        if Blackboard(rd).initialized:
+            Blackboard(rd).append_event(event)
+            return
         events_file = rd / "events.jsonl"
         with self._write_lock:
             with events_file.open("a", encoding="utf-8") as f:
@@ -272,7 +279,11 @@ class SwarmStore:
         Returns:
             List of SwarmEvent instances.
         """
-        events_file = self.run_dir(run_id) / "events.jsonl"
+        rd = self.run_dir(run_id)
+        from src.runtime.swarm.blackboard import Blackboard
+        if Blackboard(rd).initialized:
+            return Blackboard(rd).read_events(after_index)
+        events_file = rd / "events.jsonl"
         if not events_file.exists():
             return []
 
@@ -296,6 +307,9 @@ class SwarmStore:
         :meth:`pydantic.BaseModel.model_copy`. Falls back to ``run`` unchanged
         when no task files exist.
         """
+        from src.runtime.swarm.blackboard import Blackboard
+        if run.execution_mode == "autonomous" and Blackboard(self.run_dir(run.id)).initialized:
+            return Blackboard(self.run_dir(run.id)).snapshot(run)
         from src.runtime.swarm.task_store import TaskStore
 
         tasks_dir = self.run_dir(run.id) / "tasks"
@@ -355,7 +369,11 @@ class SwarmStore:
 
         if run.status != RunStatus.running:
             return False
-        last_activity = _last_event_timestamp(self.run_dir(run.id) / "events.jsonl")
+        from src.runtime.swarm.blackboard import Blackboard
+        if run.execution_mode == "autonomous" and Blackboard(self.run_dir(run.id)).initialized:
+            last_activity = _parse_iso(Blackboard(self.run_dir(run.id)).last_activity())
+        else:
+            last_activity = _last_event_timestamp(self.run_dir(run.id) / "events.jsonl")
         last_activity = last_activity or _parse_iso(run.created_at)
         if last_activity is None:
             return False
@@ -392,6 +410,10 @@ class SwarmStore:
         Returns:
             Reconciled ``SwarmRun`` (a new instance — original is not mutated).
         """
+        # Expired peer leases are recoverable work, not a reason to fail a run.
+        # Its terminal state belongs to SQLite; never overwrite it from JSON.
+        if run.execution_mode == "autonomous":
+            return self.hydrate_run(run)
         from src.runtime.swarm.models import RunStatus, TaskStatus
 
         hydrated = self.hydrate_run(run)

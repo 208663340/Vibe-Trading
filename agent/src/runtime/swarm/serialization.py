@@ -35,6 +35,10 @@ def serialize_task(task: Any) -> dict:
         "completed_at": getattr(task, "completed_at", None),
         "depends_on": list(getattr(task, "depends_on", []) or []),
         "blocked_by": list(getattr(task, "blocked_by", []) or []),
+        "required_capabilities": list(getattr(task, "required_capabilities", []) or []),
+        "attempt": getattr(task, "attempt", 0),
+        "lease_epoch": getattr(task, "lease_epoch", 0),
+        "lease_expires_at": getattr(task, "lease_expires_at", None),
     }
 
 

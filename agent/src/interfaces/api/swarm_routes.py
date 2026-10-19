@@ -148,6 +148,7 @@ def register_swarm_routes(
         return {
             "id": run.id,
             "preset_name": run.preset_name,
+            "execution_mode": run.execution_mode,
             "status": run.status.value,
             "is_stale": runtime._store.is_run_stale(run),
             "user_vars": run.user_vars,
@@ -204,6 +205,12 @@ def register_swarm_routes(
                 # stream open forever and block the dashboard's "done" state.
                 reconciled = runtime._store.reconcile_run(run, write=True)
                 if reconciled.status.value in ("completed", "failed", "cancelled"):
+                    # Completion may commit after the first event read; peer
+                    # deadline reconciliation can itself append terminal events.
+                    # Terminal state is immutable, so drain its tail before done.
+                    for evt in runtime._store.read_events(run_id, after_index=idx):
+                        idx += 1
+                        yield f"id: {idx}\nevent: {evt.type}\ndata: {json.dumps(evt.model_dump())}\n\n"
                     yield f'event: done\ndata: {{"status": "{reconciled.status.value}"}}\n\n'
                     break
                 await asyncio.sleep(2)
@@ -219,6 +226,22 @@ def register_swarm_routes(
         if not ok:
             raise HTTPException(status_code=404, detail=f"No active run {run_id}")
         return {"status": "cancelled"}
+
+    @app.post("/swarm/runs/{run_id}/recover", dependencies=[Depends(require_auth)])
+    async def recover_swarm_run(run_id: str, http_request: Request):
+        """Rejoin a peer run without resetting its leases, results or deadline."""
+        _host_validate_path_param(run_id, "run_id")
+        runtime = _get_swarm_runtime()
+        try:
+            run = runtime.recover_run(
+                run_id, include_shell_tools=_host_shell_tools_enabled_for_request(http_request),
+            )
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from None
+        except (ValueError, RuntimeError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
+        return {"id": run.id, "status": run.status.value, "preset_name": run.preset_name,
+                "execution_mode": run.execution_mode}
 
     @app.post("/swarm/runs/{run_id}/retry", dependencies=[Depends(require_auth)])
     async def retry_swarm_run(run_id: str, http_request: Request, resume: bool = Query(False)):

@@ -2737,7 +2737,8 @@ def cmd_swarm_inspect(preset: str) -> int:
         )
     console.print(agent_table)
 
-    dag_table = Table(title="DAG Execution Plan", show_lines=False)
+    autonomous = report.get("execution_mode") == "autonomous"
+    dag_table = Table(title="Autonomous Task Dependencies" if autonomous else "DAG Execution Plan", show_lines=False)
     dag_table.add_column("Layer", justify="right", width=6)
     dag_table.add_column("Task", style="cyan")
     dag_table.add_column("Agent")
@@ -2749,7 +2750,7 @@ def cmd_swarm_inspect(preset: str) -> int:
             dag_table.add_row(
                 str(idx),
                 item["task_id"],
-                item["agent_id"],
+                item["agent_id"] or ("requires: " + ", ".join(task.get("required_capabilities", [])) if autonomous else ""),
                 ", ".join(task.get("depends_on", [])) or "-",
             )
     console.print(dag_table)

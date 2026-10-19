@@ -1,7 +1,7 @@
 ---
 name: vibe-trading
 version: 0.1.16
-description: Professional finance research toolkit — backtesting (11 engines + benchmark comparison panel), factor analysis, Alpha Zoo (478 pre-built alphas across qlib158/alpha101/gtja191/academic/fundamental), options pricing, 90 finance skills, 30 multi-agent swarm teams, Trade Journal analyzer, and Shadow Account (extract → backtest → render) across 29 market-data sources (tushare, yfinance, okx, binance, akshare, baostock, tencent, mootdx, ccxt, futu, mt5, tickerall, local, eastmoney, sina, stooq, yahoo, pykrx, india_broker, qveris, longbridge, nobitex, wallex, plus optional-key finnhub/alphavantage/tiingo/fmp/gildata).
+description: Professional finance research toolkit — backtesting (11 engines + benchmark comparison panel), factor analysis, Alpha Zoo (478 pre-built alphas across qlib158/alpha101/gtja191/academic/fundamental), options pricing, 90 finance skills, 31 multi-agent swarm teams, Trade Journal analyzer, and Shadow Account (extract → backtest → render) across 29 market-data sources (tushare, yfinance, okx, binance, akshare, baostock, tencent, mootdx, ccxt, futu, mt5, tickerall, local, eastmoney, sina, stooq, yahoo, pykrx, india_broker, qveris, longbridge, nobitex, wallex, plus optional-key finnhub/alphavantage/tiingo/fmp/gildata).
 dependencies:
   python: ">=3.11"
   pip:
@@ -98,7 +98,7 @@ Example workflow:
 4. Use `backtest()` to run and get metrics (Sharpe, return, drawdown, etc.)
 
 ### Multi-Agent Swarm Teams
-30 pre-built agent teams for complex research:
+31 pre-built agent teams for complex research:
 - **Investment Committee**: bull/bear debate → risk review → PM decision
 - **Global Equities Desk**: A-share + HK/US + crypto → global strategist
 - **Crypto Trading Desk**: funding/basis + liquidation + flow → risk manager

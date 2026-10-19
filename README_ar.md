@@ -642,9 +642,9 @@ LONGBRIDGE_ACCESS_TOKEN=...
 </details>
 
 <details>
-<summary><b>فرق تداول جاهزة</b> <sub>30 إعداد سرب مسبق</sub></summary>
+<summary><b>فرق تداول جاهزة</b> <sub>31 إعداد سرب مسبق</sub></summary>
 
-- 🏢 30 فريق وكلاء جاهزاً للاستخدام
+- 🏢 31 فريق وكلاء جاهزاً للاستخدام
 - ⚡ تدفقات مالية مهيأة مسبقاً
 - 🎯 إعدادات للاستثمار والتداول وإدارة المخاطر
 
@@ -1742,7 +1742,7 @@ Vibe-Trading/
 │   │   │
 │   │   ├── skills/                 # 90 finance skills in 9 categories (SKILL.md each)
 │   │   ├── swarm/                  # Swarm DAG execution engine
-│   │   │   └── presets/            #   30 swarm preset YAML definitions
+│   │   │   └── presets/            #   31 swarm preset YAML definitions
 │   │   ├── session/                # Multi-turn chat + FTS5 session search
 │   │   └── providers/              # LLM provider abstraction
 │   │

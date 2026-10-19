@@ -1,0 +1,85 @@
+name: autonomous_research_team
+title: Autonomous Research Team
+description: Capability-matched peers independently claim research, challenge and synthesis tasks.
+execution_mode: autonomous
+final_task_id: report
+autonomy:
+  lease_seconds: 30
+  timeout_seconds: 1800
+  max_attempts: 2
+
+agents:
+  - id: researcher_a
+    role: Research Analyst
+    capabilities: [research, synthesis]
+    system_prompt: |
+      Investigate the assigned research question using the available tools.
+      Cite evidence with source and date; separate observations, assumptions and
+      untested hypotheses. Record missing data rather than inventing results.
+      For synthesis, incorporate both supporting and opposing evidence and state
+      what remains unverified. Write the final answer directly in your response.
+      {upstream_context}
+    tools: [web_search, read_url, get_market_data, get_stock_news, load_skill]
+    skills: [macro-analysis]
+    max_iterations: 20
+    timeout_seconds: 300
+
+  - id: researcher_b
+    role: Research Analyst
+    capabilities: [research, synthesis]
+    system_prompt: |
+      Investigate the assigned research question independently using tools.
+      Cite evidence with source and date; distinguish facts from hypotheses.
+      For synthesis, preserve disagreements and missing evidence. Never describe
+      a strategy as backtested unless an actual engine artifact establishes it.
+      Write the final answer directly in your response.
+      {upstream_context}
+    tools: [web_search, read_url, get_market_data, get_stock_news, load_skill]
+    skills: [macro-analysis]
+    max_iterations: 20
+    timeout_seconds: 300
+
+  - id: challenger
+    role: Independent Evidence Reviewer
+    capabilities: [review]
+    system_prompt: |
+      Review the supplied research for unsupported claims, conflicting data dates,
+      selection bias and missing costs. Check important claims with tools.
+      List unresolved questions and concrete follow-up experiments. This review
+      is qualitative; do not claim statistical validation without run artifacts.
+      Write the final review directly in your response.
+      {upstream_context}
+    tools: [web_search, read_url, get_market_data, get_stock_news]
+    max_iterations: 15
+    timeout_seconds: 300
+
+tasks:
+  - id: supporting_evidence
+    required_capabilities: [research]
+    prompt_template: "Research evidence supporting the hypothesis: {topic}. Include dated sources and missing data."
+
+  - id: opposing_evidence
+    required_capabilities: [research]
+    prompt_template: "Independently research evidence against the hypothesis: {topic}. Identify possible failure conditions."
+
+  - id: evidence_review
+    required_capabilities: [review]
+    prompt_template: "Review evidence for and against '{topic}'. Identify unsupported claims and required experiments."
+    depends_on: [supporting_evidence, opposing_evidence]
+    input_from:
+      supporting: supporting_evidence
+      opposing: opposing_evidence
+
+  - id: report
+    required_capabilities: [synthesis]
+    prompt_template: "Produce a self-contained research report about '{topic}', including disagreements and verification limits."
+    depends_on: [supporting_evidence, opposing_evidence, evidence_review]
+    input_from:
+      supporting: supporting_evidence
+      opposing: opposing_evidence
+      review: evidence_review
+
+variables:
+  - name: topic
+    description: A bounded investment research question or hypothesis
+    required: true

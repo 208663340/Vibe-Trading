@@ -195,6 +195,7 @@ def _agent_spec_changed(prev: SwarmAgentSpec, new: SwarmAgentSpec) -> bool:
         or prev.system_prompt != new.system_prompt
         or prev.tools != new.tools
         or prev.skills != new.skills
+        or prev.capabilities != new.capabilities
         or prev.model_name != new.model_name
         or prev.max_retries != new.max_retries
         or prev.max_iterations != new.max_iterations
@@ -233,6 +234,7 @@ def _task_definition_changed(
         or prev.prompt_template != new.prompt_template
         or prev.depends_on != new.depends_on
         or prev.input_from != new.input_from
+        or prev.required_capabilities != new.required_capabilities
     ):
         return True
     prev_agent = prev_agents.get(prev.agent_id)
@@ -284,6 +286,7 @@ class SwarmRuntime:
         self._cancel_events: dict[str, threading.Event] = {}
         self._live_callbacks: dict[str, Callable] = {}
         self._lock = threading.Lock()
+        self._autonomous_slots = threading.BoundedSemaphore(max_workers)
 
     def start_run(
         self,
@@ -372,10 +375,52 @@ class SwarmRuntime:
         """
         with self._lock:
             cancel_event = self._cancel_events.get(run_id)
+        run = self._store.load_run(run_id)
+        if run is not None and run.execution_mode == "autonomous":
+            from src.runtime.swarm.blackboard import Blackboard
+            if run.status in {RunStatus.completed, RunStatus.failed, RunStatus.cancelled}:
+                return False
+            board = Blackboard(self._store.run_dir(run_id))
+            if not board.initialized:
+                board.initialize(run, max_workers=self._max_workers)
+            board.cancel()
+            if cancel_event is not None:
+                cancel_event.set()
+            return True
         if cancel_event is None:
             return False
         cancel_event.set()
         return True
+
+    def recover_run(self, run_id: str, *, include_shell_tools: bool = False, live_callback: Callable | None = None) -> SwarmRun:
+        """Join a nonterminal autonomous run, preserving leases and its deadline."""
+        run = self._store.load_run(run_id)
+        if run is None:
+            raise FileNotFoundError(f"Run {run_id} not found")
+        if run.execution_mode != "autonomous":
+            raise ValueError("Only autonomous runs support in-place recovery")
+        if run.status in {RunStatus.completed, RunStatus.failed, RunStatus.cancelled}:
+            raise ValueError("Cannot recover a terminal run; use retry to create a new run")
+        cfg = get_env_config().llm
+        if (
+            (run.provider is not None and run.provider != public_provider_metadata(cfg.langchain_provider.lower()))
+            or (run.model is not None and run.model != public_model_metadata(cfg.langchain_model_name))
+            or (run.reasoning_effort is not None and run.reasoning_effort != public_reasoning_effort(cfg.langchain_reasoning_effort))
+            or (run.use_responses_api is not None and run.use_responses_api != uses_responses_api(
+                cfg.langchain_provider, cfg.langchain_use_responses_api))
+        ):
+            raise ValueError("Run model/provider settings changed; use retry to create a new run")
+        with self._lock:
+            if run_id in self._cancel_events:
+                raise RuntimeError("Run is already active in this runtime")
+            cancel = threading.Event()
+            self._cancel_events[run_id] = cancel
+            if live_callback:
+                self._live_callbacks[run_id] = live_callback
+        threading.Thread(target=self._execute_run, args=(run, cancel),
+                         kwargs={"include_shell_tools": include_shell_tools}, daemon=True,
+                         name=f"swarm-recover-{run_id}").start()
+        return run
 
     def _emit_event(self, run_id: str, event: SwarmEvent) -> None:
         """Persist an event and forward to live callback if registered.
@@ -388,6 +433,11 @@ class SwarmRuntime:
             self._store.append_event(run_id, event)
         except Exception:
             logger.warning("Failed to persist event for run %s", run_id, exc_info=True)
+        if (self._store.run_dir(run_id) / "blackboard.sqlite3").is_file():
+            return  # The autonomous event pump forwards committed events once.
+        self._forward_event(run_id, event)
+
+    def _forward_event(self, run_id: str, event: SwarmEvent) -> None:
         with self._lock:
             cb = self._live_callbacks.get(run_id)
         if cb is not None:
@@ -448,6 +498,10 @@ class SwarmRuntime:
             resume_from: Optional prior run whose completed tasks are kept
                 (see :meth:`_apply_resume_overlay`). ``None`` executes fresh.
         """
+        if run.execution_mode == "autonomous":
+            from src.runtime.swarm.autonomous import execute_autonomous
+            execute_autonomous(self, run, cancel_event, include_shell_tools=include_shell_tools, resume_from=resume_from)
+            return
         run_id = run.id
         run_dir = self._store.run_dir(run_id)
 

@@ -138,6 +138,7 @@ def list_presets() -> list[dict]:
                 "agent_count": len(data.get("agents", [])),
                 "variables": data.get("variables", []),
                 "source": source,
+                "execution_mode": data.get("execution_mode", "dag"),
             }
 
     return sorted(by_stem.values(), key=lambda entry: entry["name"])
@@ -175,7 +176,11 @@ def inspect_preset(name: str) -> dict:
     mistakes early and exposes the topological task layers used by the runtime.
     """
     data = load_preset(name)
-    run = build_run_from_preset(name, {})
+    try:
+        run = build_run_from_preset(name, {})
+    except ValueError as exc:
+        return {"name": name, "valid": False, "errors": [str(exc)], "warnings": [], "layers": [],
+                "agents": [], "tasks": [], "variables": [], "used_variables": []}
 
     errors: list[str] = []
     warnings: list[str] = []
@@ -191,7 +196,7 @@ def inspect_preset(name: str) -> dict:
         errors.append(f"Duplicate task id: {duplicate}")
 
     for task in run.tasks:
-        if task.agent_id not in agent_id_set:
+        if task.agent_id not in agent_id_set and (task.agent_id or run.execution_mode == "dag"):
             errors.append(f"Task '{task.id}' references unknown agent '{task.agent_id}'")
         for _, upstream_task_id in task.input_from.items():
             if upstream_task_id not in task_id_set:
@@ -258,13 +263,15 @@ def inspect_preset(name: str) -> dict:
         "name": data.get("name", name),
         "title": data.get("title", ""),
         "description": data.get("description", ""),
+        "execution_mode": run.execution_mode,
         "valid": not errors,
         "errors": errors,
         "warnings": warnings,
         "variables": sorted(declared_variables),
         "used_variables": sorted(used_variables),
         "agents": [
-            {"id": agent.id, "role": agent.role, "tools": agent.tools, "skills": agent.skills}
+            {"id": agent.id, "role": agent.role, "tools": agent.tools, "skills": agent.skills,
+             "capabilities": agent.capabilities}
             for agent in run.agents
         ],
         "tasks": [
@@ -273,6 +280,7 @@ def inspect_preset(name: str) -> dict:
                 "agent_id": task.agent_id,
                 "depends_on": task.depends_on,
                 "input_from": task.input_from,
+                "required_capabilities": task.required_capabilities,
             }
             for task in run.tasks
         ],
@@ -305,6 +313,9 @@ def build_run_from_preset(preset_name: str, user_vars: dict[str, str]) -> SwarmR
         ValueError: If preset YAML is malformed.
     """
     data = load_preset(preset_name)
+    mode = data.get("execution_mode", "dag")
+    if mode not in {"dag", "autonomous"}:
+        raise ValueError("execution_mode must be 'dag' or 'autonomous'")
 
     # Parse agents
     agents: list[SwarmAgentSpec] = []
@@ -319,6 +330,7 @@ def build_run_from_preset(preset_name: str, user_vars: dict[str, str]) -> SwarmR
             timeout_seconds=agent_data.get("timeout_seconds", 300),
             model_name=agent_data.get("model_name"),
             max_retries=agent_data.get("max_retries", 2),
+            capabilities=agent_data.get("capabilities", []),
         ))
 
     # Parse tasks, initialize blocked_by from depends_on
@@ -328,7 +340,8 @@ def build_run_from_preset(preset_name: str, user_vars: dict[str, str]) -> SwarmR
         status = TaskStatus.blocked if depends_on else TaskStatus.pending
         tasks.append(SwarmTask(
             id=task_data["id"],
-            agent_id=task_data["agent_id"],
+            agent_id=task_data.get("agent_id", "") if mode == "autonomous" else task_data["agent_id"],
+            required_capabilities=task_data.get("required_capabilities", []),
             prompt_template=task_data.get("prompt_template", ""),
             depends_on=depends_on,
             blocked_by=list(depends_on),
@@ -342,7 +355,7 @@ def build_run_from_preset(preset_name: str, user_vars: dict[str, str]) -> SwarmR
     short_uuid = uuid.uuid4().hex[:8]
     run_id = f"swarm-{ts}-{short_uuid}"
 
-    return SwarmRun(
+    run = SwarmRun(
         id=run_id,
         preset_name=preset_name,
         status=RunStatus.pending,
@@ -350,4 +363,11 @@ def build_run_from_preset(preset_name: str, user_vars: dict[str, str]) -> SwarmR
         agents=agents,
         tasks=tasks,
         created_at=now.isoformat(),
+        execution_mode=mode,
+        autonomy=data.get("autonomy", {}),
+        final_task_id=data.get("final_task_id"),
     )
+    if run.execution_mode == "autonomous":
+        from src.runtime.swarm.autonomous_models import validate_autonomous_run
+        validate_autonomous_run(run)
+    return run
