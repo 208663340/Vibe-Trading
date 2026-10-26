@@ -8,20 +8,19 @@
     "groups": {
       "research": "일상 리서치",
       "analysis": "전문 분석",
-      "automation": "자동화 및 설정"
+      "automation": "Connection"
     },
     "howTo": "{{feature}} 사용 방법",
-    "startResearch": "리서치 도우미로 시작하기",
+    "startResearch": "워크벤치 열기",
     "descriptions": {
-      "agent": "리서치 질문이나 검증할 전략을 자연어로 설명하세요.",
       "reports": "완료된 백테스트를 확인하고 비교합니다.",
       "portfolio": "연결된 계좌의 잔고와 보유 자산을 모아 봅니다.",
       "alphaZoo": "종목 선택 신호를 살펴보고 과거 성과를 평가하거나 비교합니다.",
       "optionsLab": "옵션 전략을 구성하고 손익과 위험, 미국 옵션 체인을 살펴봅니다.",
       "correlation": "여러 자산의 가격 움직임 관계를 비교합니다.",
-      "scheduled": "지정한 주기로 리서치를 반복합니다.",
-      "runtime": "브로커 연결과 거래 실행 상태를 확인합니다.",
-      "settings": "모델, 데이터 소스, 브로커 연결을 설정합니다."
+      "settings": "Local execution and API connection. No model configuration is required.",
+      "workbench": "Submit strategies from your code agent. Track experiments, inspect results and compare revisions.",
+      "compare": "Compare metrics and equity curves from two experiments."
     },
     "instructions": {
       "reports": "먼저 도우미에게 전략 백테스트를 요청한 후 여기에서 결과를 엽니다. 대화에서 생성한 PDF 등은 원래 대화에서 다운로드하세요.",
@@ -29,20 +28,16 @@
       "alphaZoo": "팩터 정의를 읽고 시장과 날짜 범위를 선택하여 평가하거나 비교하세요. 후보 신호는 백테스트로 검증하세요.",
       "optionsLab": "프리셋을 선택하거나 옵션 레그를 추가하고 가격, 만기, 변동성을 조정하면 결과가 자동 갱신됩니다. 실제 체인의 종목과 시뮬레이션 입력은 별도로 설정합니다.",
       "correlation": "자산 코드를 두 개 이상 입력하고 기간을 선택한 다음 계산을 누르세요.",
-      "scheduled": "리서치 지시와 실행 주기를 입력하고 저장하세요. 실행하려면 로컬 스케줄러가 활성화되어 있어야 하며, 결과 전달에는 채널 설정이 필요합니다.",
-      "runtime": "먼저 설정 또는 보유 자산 페이지에서 브로커를 연결하세요. 사용 가능한 거래 작업은 브로커 기능과 사용자의 승인에 따라 달라집니다.",
-      "settings": "먼저 모델을 설정하세요. 필요에 따라 데이터 소스나 브로커 연결을 추가하면 됩니다. 공개 시장 리서치에는 브로커 계좌가 필요하지 않습니다."
+      "settings": "Local execution and API connection. No model configuration is required.",
+      "workbench": "The service snapshots only the files explicitly listed in your manifest. Run from the repository root; see README for the artifact contract.",
+      "compare": "Select two completed experiments in the workbench."
     }
   },
   "layout": {
-    "home": "홈",
-    "agent": "리서치 도우미",
-    "runtime": "거래 상태",
-    "scheduled": "예약 리서치",
     "reports": "백테스트 보고서",
     "portfolio": "계좌 보유 자산",
     "alphaZoo": "팩터 리서치",
-    "settings": "설정",
+    "settings": "Workbench settings",
     "correlation": "자산 상관관계",
     "optionsLab": "옵션 분석",
     "sessions": "세션",
@@ -58,217 +53,12 @@
     "collapse": "접기",
     "expand": "펼치기",
     "skipToMain": "본문으로 건너뛰기",
-    "sidebar": "Vibe-Trading 사이드바",
+    "sidebar": "Quant Workbench 사이드바",
     "mainNavigation": "주 내비게이션",
     "about": "소개",
-    "sessionsLoadFailed": "대화를 불러올 수 없습니다."
-  },
-  "runtime": {
-    "monitorBadge": "거래 모니터",
-    "title": "실거래 / 페이퍼 운영 상태",
-    "subtitlePre": "읽기 전용 상태 소스:",
-    "subtitlePost": ". 이 페이지는 커넥터 인증, 러너 시작/중지, 주문 제출/취소, mandate 변경을 수행하지 않습니다.",
-    "refresh": "새로 고침",
-    "unavailableTitle": "운영 상태를 사용할 수 없음",
-    "unavailableHint": "백엔드가 현재 상태 스냅샷을 제공할 때까지 커넥터를 사용 불가로 간주하세요.",
-    "statusUnavailable": "운영 상태를 사용할 수 없습니다.",
-    "globalHalt": "전체 정지",
-    "halted": "정지됨",
-    "clear": "해제",
-    "brokers": "브로커",
-    "authorized": "인증됨",
-    "runners": "러너",
-    "running": "{{count}}개 실행 중",
-    "noProfilesTitle": "보고된 커넥터 프로필이 없습니다",
-    "noProfilesBody": "백엔드가 인식된 실거래/페이퍼 브로커 프로필을 반환하지 않았습니다.",
-    "authPresent": "인증 있음",
-    "authMissing": "인증 없음",
-    "runnerAlive": "러너 활성",
-    "runnerStopped": "러너 정지",
-    "haltedPill": "정지",
-    "recognizedProfile": "인식된 커넥터 프로필",
-    "unknownProfile": "알 수 없는 커넥터 프로필",
-    "lastTick": "마지막 틱",
-    "authorization": "인증",
-    "oauthToken": "OAuth 토큰",
-    "present": "있음",
-    "missing": "없음",
-    "profileType": "프로필 유형",
-    "recognized": "인식됨",
-    "unknown": "알 수 없음",
-    "mandate": "운용 권한",
-    "account": "계좌",
-    "unrecorded": "기록 없음",
-    "expiry": "만료",
-    "expired": "만료됨",
-    "limits": "한도",
-    "noMandate": "활성 mandate가 보고되지 않았습니다.",
-    "riskStateTitle": "운영 리스크 상태",
-    "riskHalted": "리스크 정지",
-    "riskHaltedDesc": "이 프로필의 킬 스위치가 작동했습니다. 상태가 해제될 때까지 커넥터를 정지된 것으로 간주하세요.",
-    "riskActive": "운영 중",
-    "riskActiveDesc": "러너가 활성 상태이고 만료되지 않은 mandate가 있습니다. 이 페이지는 여전히 읽기 전용입니다.",
-    "riskIdle": "준비됨(유휴)",
-    "riskIdleDesc": "인증과 mandate가 모두 존재하지만 러너는 활성 상태가 아닙니다.",
-    "riskDormant": "휴면",
-    "riskDormantDesc": "인증, mandate 또는 러너 활성 상태 중 하나가 누락되어 커넥터가 자율 운영 준비가 되지 않았습니다.",
-    "limitsUnavailable": "한도 정보 없음",
-    "perOrder": "/주문",
-    "exposure": "익스포저",
-    "perDay": "/일",
-    "leverageSuffix": "배 레버리지",
-    "never": "없음",
-    "ago": "전",
-    "notConfigured": "설정되지 않음",
-    "readyToVerify": "검증 가능",
-    "connectedReadOnly": "연결됨 · 읽기 전용",
-    "connectionFailed": "연결 실패",
-    "verifyConnection": "연결 검증",
-    "retry": "다시 시도",
-    "credentialSource": "인증 정보 출처",
-    "sdk": "SDK",
-    "configDeclared": "설정 파일에 선언됨",
-    "connectorStatusUnavailable": "상태를 확인할 수 없음",
-    "connectedAccessUnknown": "연결됨 · 접근 권한 불명",
-    "missingLongbridgeVariables": "설정이 누락되었습니다. agent/.env에 다음 변수를 설정하고 서비스를 다시 생성하세요:",
-    "missingEtoroVariables": "설정이 누락되었습니다. 다음 환경 변수를 설정하거나 ~/.vibe-trading/etoro.json을 생성하세요:",
-    "missingEtoroFileHint": "예: {\"api_key\": \"YOUR_PUBLIC_API_KEY\", \"user_key\": \"YOUR_USER_KEY\", \"profile\": \"live-readonly\"}. 프로필: etoro-paper-sdk, etoro-live-sdk-readonly, etoro-paper-trade, etoro-live-trade.",
-    "missingConnectorVariables": "설정이 누락되었습니다. ~/.vibe-trading/ 또는 agent/.env에 커넥터 자격 증명을 구성한 후 연결을 검증하세요.",
-    "pathSeparatedKeyBound": "데모/실계좌 경로 분리(공유 키 페어)",
-    "sdkConnectorProfile": "SDK 직접 연결 · 읽기 전용 프로필",
-    "connectionDetails": "연결 세부 정보",
-    "environment": "환경",
-    "environmentIdentity": "설정에 선언된 환경",
-    "capabilities": "사용 가능 기능",
-    "capabilityAccount": "계정",
-    "capabilityPositions": "포지션",
-    "capabilityOpenOrders": "미체결 주문",
-    "capabilityQuotes": "시세",
-    "capabilityHistory": "내역",
-    "readOnly": "읽기 전용",
-    "accessUnknown": "접근 권한 불명",
-    "diagnostics": "진단",
-    "lastChecked": "마지막 확인",
-    "errorCode": "오류 코드",
-    "installed": "설치됨",
-    "notInstalled": "설치되지 않음",
-    "connectorVerifyFailed": "연결 검증에 실패했습니다.",
-    "diagnosticCredentialsPartial": "인증 정보가 불완전합니다. 필수 변수를 모두 설정하고 서비스를 다시 생성하세요.",
-    "diagnosticCredentialsConflict": "인증 정보 출처가 충돌합니다. 완전한 출처 하나만 남긴 뒤 다시 시도하세요.",
-    "diagnosticSdkMissing": "이 브로커에 필요한 SDK가 백엔드 서비스에 설치되어 있지 않습니다.",
-    "diagnosticAuthenticationFailed": "인증에 실패했습니다. 설정된 인증 정보를 확인하세요.",
-    "diagnosticNetworkUnreachable": "브로커 서비스 또는 로컬 게이트웨이에 연결할 수 없습니다. 연결 주소와 네트워크 연결을 확인한 후 다시 시도하세요.",
-    "diagnosticBrokerError": "브로커가 읽기 전용 검증 요청을 거부했습니다. 다시 시도하거나 백엔드 로그를 확인하세요."
-  },
-  "scheduled": {
-    "title": "예약 리서치",
-    "subtitle": "현지 시계 기준으로 반복 실행——서머타임 전환 후에도 주기가 유지됩니다.",
-    "promptLabel": "리서치 프롬프트",
-    "promptPlaceholder": "예: 장 시작 전 스캔: 전일 이상 거래량 순위와 야간 뉴스 요약",
-    "modeLabel": "실행 주기",
-    "modeTime": "매일 지정 시각",
-    "modeAdvanced": "고급(cron 또는 간격)",
-    "timeLabel": "현지 시각",
-    "daysLabel": "요일",
-    "daysWeekdays": "평일(월–금)",
-    "daysEveryDay": "매일",
-    "scheduleLabel": "스케줄 표현식",
-    "advancedHint": "선택한 시간대 기준으로 평가되는 5필드 cron 표현식(분 시 일 월 요일; 목록과 범위 지원) 또는 밀리초 단위 간격.",
-    "timezoneLabel": "시간대",
-    "create": "예약 생성",
-    "saveChanges": "변경 사항 저장",
-    "cancelEdit": "편집 취소",
-    "editingHint": "이 예약 실행을 편집 중입니다. 저장해도 식별 정보와 실행 기록은 유지됩니다.",
-    "edit": "편집",
-    "editAria": "예약 실행 편집: {{prompt}}",
-    "editRunningDisabled": "실행 또는 전송이 완료된 후 편집하세요.",
-    "deliveryInApp": "Vibe에만 보관(전송 안 함)",
-    "deliveryNoChannels": "활성화된 전송 채널이 구성되어 있지 않습니다. 설정 → 채널에서 하나를 구성하세요.",
-    "deliveryChannelsLoadFailed": "구성된 전송 채널을 불러오지 못했습니다.",
-    "deliveryChannelUnavailable": "{{channel}} (현재 사용할 수 없음)",
-    "deliveryTargetKind_destination": "대상",
-    "deliveryTargetKind_email_address": "수신자 이메일 주소",
-    "deliveryTargetKind_chat": "채팅",
-    "deliveryTargetKind_channel": "채널",
-    "deliveryTargetDisabled": "먼저 전송 채널을 선택하세요.",
-    "deliverySummary": "{{channel}} → {{target}}",
-    "deliveryUnknownTarget": "구성된 대상",
-    "promptRequired": "예약을 만들기 전에 리서치 프롬프트를 입력하세요.",
-    "invalidTime": "유효한 시각을 HH:MM 형식으로 입력하세요.",
-    "executorHint": "서버에서 VIBE_TRADING_ENABLE_SCHEDULER가 활성화된 경우에만 실행됩니다.",
-    "listTitle": "예약 목록",
-    "loading": "예약을 불러오는 중…",
-    "retry": "다시 시도",
-    "empty": "예약된 작업이 없습니다——위에서 만들어 보세요.",
-    "cadenceEvery": "{{interval}}마다",
-    "cadenceDaily": "매일 {{time}}",
-    "cadenceWeekly": "{{days}} {{time}}",
-    "statusPending": "대기 중",
-    "statusRunning": "실행 중",
-    "statusCompleted": "완료",
-    "statusFailed": "실패",
-    "statusCancelled": "취소됨",
-    "statusExpired": "만료됨",
-    "noFurtherRuns": "추가 실행 없음",
-    "endsAt": "종료: {{when}}",
-    "proposalCreateTitle": "예약 리서치 확인 · 생성",
-    "proposalCancelTitle": "예약 리서치 확인 · 취소",
-    "proposalConfirmed": "확인됨",
-    "proposalDiscarded": "폐기됨",
-    "proposalExpired": "만료됨",
-    "proposalCadence": "실행 주기",
-    "proposalTimezone": "시간대",
-    "proposalEndAt": "종료 시간",
-    "proposalNoEnd": "없음",
-    "proposalDelivery": "결과 전송",
-    "proposalInApp": "앱에만 보관",
-    "proposalDiscard": "폐기",
-    "proposalConfirmCreate": "생성 확인",
-    "proposalConfirmCancel": "취소 확인",
-    "nextRun": "다음 실행: {{when}}",
-    "lastError": "최근 오류: {{error}}",
-    "delete": "삭제",
-    "deleteAria": "예약 삭제: {{prompt}}",
-    "confirmDelete": "삭제 확인",
-    "confirmDeleteAria": "예약 삭제 확인: {{prompt}}",
-    "deliveryChannelLabel": "전달할 채널",
-    "deliveryChannelPlaceholder": "telegram, feishu … (비우면 앱 안에만 남습니다)",
-    "deliveryTargetLabel": "채널 대상",
-    "deliveryTargetPlaceholder": "채팅 / 그룹 / 사용자 ID",
-    "deliveryFormatLabel": "Email report format",
-    "deliveryFormatDefault": "Channel default (plain text)",
-    "deliveryFormatHtml": "HTML email",
-    "deliveryFormatPdf": "PDF attachment",
-    "proposalPdfProtection": "PDF 비밀번호 보호",
-    "proposalPdfProtectionOn": "켜짐",
-    "proposalPdfProtectionOff": "꺼짐",
-    "deliveryFormatDefaultHint": "Keeps the existing plain-text delivery behavior.",
-    "deliveryFormatHtmlHint": "Shows the full report as sanitized HTML in the email body.",
-    "deliveryFormatPdfHint": "Attaches the full report as PDF and keeps only a short notice in the body.",
-    "deliveryHint": "기본은 꺼짐입니다. 브리핑은 예약 시점이 아니라 실행이 **끝난 뒤** 전달됩니다.",
-    "deliveryTargetRequired": "해당 채널의 대상을 지정하거나 채널을 비워 주세요.",
-    "delivery_none": "다음 실행이 끝나면 {{channel}}(으)로 전달합니다",
-    "delivery_pending": "{{channel}}(으)로 전달 대기 중",
-    "delivery_sending": "{{channel}}(으)로 전달하는 중",
-    "delivery_accepted": "{{channel}}에서 전송을 접수했습니다(제공자 확인 없음)",
-    "delivery_sent": "{{channel}}(으)로 전달했습니다",
-    "delivery_failed": "{{channel}}(으)로 전달하지 못했습니다",
-    "verdictEmpty": "아직 판정 없음",
-    "verdictUnreadable": "최신 판정을 읽을 수 없음",
-    "verdictNoCalls": "호출 없음",
-    "verdictDelta": "{{was}} → {{now}}",
-    "verdictRecorded": "{{when}} 기준",
-    "deliveryKnownTargetLabel": "알려진 대상",
-    "deliveryKnownTargetPlaceholder": "알려진 대상 선택…",
-    "deliverySuggestionKind_private_chat": "내 비공개 채팅",
-    "deliveryTargetPlaceholder_email_address": "name@example.com",
-    "deliveryTargetPlaceholder_chat": "채팅, 그룹 또는 사용자 ID",
-    "deliveryTargetPlaceholder_channel": "채널 ID",
-    "deliveryTargetPlaceholder_destination": "채팅 / 그룹 / 사용자 ID",
-    "deliveryTargetPlaceholder_slack_destination": "#채널, @사용자 또는 대화 ID",
-    "deliveryTargetKind_slack_destination": "대상",
-    "deliveryProtectPdf": "PDF 비밀번호 보호",
-    "deliveryProtectPdfUnavailable": "PDF 비밀번호가 설정되지 않았습니다. 설정 > 채널 > 이메일에서 비밀번호를 설정하세요."
+    "sessionsLoadFailed": "대화를 불러올 수 없습니다.",
+    "workbench": "Research workbench",
+    "compare": "Compare experiments"
   },
   "reports": {
     "badge": "리포트",
@@ -297,7 +87,8 @@
     "sharpe": "Sharpe",
     "fullReport": "전체 리포트",
     "compare": "비교",
-    "unknown": "알 수 없음"
+    "unknown": "알 수 없음",
+    "status": "상태"
   },
   "connection": {
     "reconnecting": "다시 연결하는 중…",
@@ -306,923 +97,8 @@
     "retry": "연결 다시 시도",
     "requestFailed": "API 서버에 연결할 수 없습니다. 서버 실행 여부와 네트워크 연결을 확인하세요.",
     "requestTimeout": "요청 시간이 초과되었습니다. 서버 연결을 확인한 후 다시 시도하세요.",
-    "requestTimeoutMutation": "요청 시간이 초과되었습니다. 서버에서 아직 처리 중일 수 있으니 현재 상태를 확인한 후 다시 시도하세요."
-  },
-  "welcome": {
-    "tasks": {
-      "research": "주식 조사하기",
-      "backtest": "전략 검증하기",
-      "portfolio": "내 보유 자산 확인",
-      "hint": "예시가 입력창에 채워집니다. 종목이나 전략을 수정한 뒤 보내세요.",
-      "researchPrompt": "현재 이용 가능한 데이터로 AAPL의 사업, 최근 재무 성과, 주요 위험을 조사하세요. 출처와 날짜를 밝히고 누락된 정보를 명시하세요.",
-      "backtestPrompt": "지난 1년간 AAPL의 20/60일 이동평균 전략을 백테스트하고 거래 비용을 포함하여 매수 후 보유 전략과 수익 및 낙폭을 비교하세요. 리서치만 수행하세요.",
-      "portfolioPrompt": "연결된 계좌의 보유 자산, 집중도, 포트폴리오 위험을 요약하세요. 연결된 계좌가 없다면 먼저 설정 방법을 설명하세요. 주문을 제출하거나 변경하지 마세요."
-    },
-    "categories": {
-      "multiMarketBacktest": "A주 백테스트",
-      "researchAnalysis": "리서치 & 분석",
-      "swarmTeams": "AI 애널리스트 팀",
-      "docWebResearch": "문서 & 웹 리서치",
-      "tradeJournal": "매매 일지",
-      "tradingConnectors": "트레이딩 커넥터",
-      "shadowAccount": "섀도우 계좌",
-      "valueInvesting": "가치투자"
-    },
-    "examples": {
-      "crossMarketPortfolio": "3개 종목 포트폴리오 배분",
-      "crossMarketPortfolioDesc": "3개 A주에 자금을 배분해 각 종목의 위험을 같게 맞춘 뒤 동일 비중 포트폴리오와 비교",
-      "btcMacd": "A주 MACD 전략",
-      "btcMacdDesc": "분 단위 데이터 기반 A주 MACD 전략 백테스트",
-      "usTechMaxDiv": "우량주 위험 분산",
-      "usTechMaxDivDesc": "한 종목에 위험이 쏠리지 않도록 최대분산 최적화로 5개 우량주의 비중을 배분",
-      "multiFactorAlpha": "멀티 팩터 Alpha 모델",
-      "multiFactorAlphaDesc": "300개 종목에서 4개 종목선정 신호를 결합하고 과거 수익률 예측력(IC)에 따라 가중",
-      "optionsGreeks": "옵션 위험 점검(Greeks)",
-      "optionsGreeksDesc": "옵션 가격을 계산하고 주가·시간·변동성 변화에 얼마나 민감한지(Greeks) 확인",
-      "valueCommittee": "가치투자 위원회",
-      "valueCommitteeDesc": "Buffett / Munger / Duan Yongping / Li Lu 네 관점으로 한 종목 토론",
-      "valueCommitteePrompt": "run_swarm으로 value_investing_committee 프리셋을 사용해 Tencent (00700.HK)를 분석하세요: Buffett은 moat와 가격, Munger는 역발상, Duan Yongping은 사업과 경영진, Li Lu는 10년 확실성을 평가하고 의장이 합의점과 모순을 종합하세요",
-      "bottleneckHunter": "공급망 병목 헌터",
-      "bottleneckHunterDesc": "큰 흐름에 꼭 필요한 소규모 공급업체를 찾고 아직 저평가되어 있는지 확인",
-      "bottleneckHunterPrompt": "bottleneck-hunter 스킬을 사용해 AI 인프라(광통신 / 레이저 / InP 기판)의 Layer 2/3 공급망 병목 기회를 찾고, 각 병목을 점수화한 뒤 밸류에이션 게이트를 통과하는 후보 기업을 나열하세요",
-      "thesisTracker": "투자 테제 트래커",
-      "thesisTrackerDesc": "보유 이유를 5문장으로 정리하고 매도를 결정할 레드라인도 설정",
-      "thesisTrackerPrompt": "thesis-tracker 스킬로 Kweichow Moutai (600519.SH)의 투자 테제를 작성하세요: 5문장 핵심 테제, 반증 가능한 가정, 레드라인, 밸류에이션 앵커를 financial_rigor로 검증하세요",
-      "valuationCheck": "고평가 여부 점검(PE/PB/ROE)",
-      "valuationCheckDesc": "PE / PB / ROE / 시가총액을 세부 단위까지 다시 계산하고 3가지 성장 시나리오로 스트레스 테스트",
-      "valuationCheckPrompt": "financial_rigor 도구로 Kweichow Moutai의 밸류에이션을 검증하세요: 가격 1500, EPS 68.6, 주당순자산 180으로 PE, PB, ROE를 정확히 계산하고, 3년 3개 시나리오(성장률 12%/8%/0%, PE 22/18/14)도 계산하세요",
-      "investmentCommittee": "매수냐 매도냐, 위원회 토론",
-      "investmentCommitteeDesc": "멀티 에이전트 토론: 롱 vs 숏, 리스크 리뷰, PM 결정",
-      "quantStrategyDesk": "퀀트 전략 데스크",
-      "quantStrategyDeskDesc": "스크리닝 → 팩터 리서치 → 백테스트 → 리스크 감사 파이프라인",
-      "earningsReport": "실적 보고서 PDF 분석",
-      "earningsReportDesc": "PDF를 업로드하고 재무 관련 질문을 하세요",
-      "macroResearch": "웹 리서치: 매크로 전망",
-      "macroResearchDesc": "거시경제 분석과 A주 시장 전망",
-      "analyzeBrokerExport": "내 브로커 내보내기 분석",
-      "analyzeBrokerExportDesc": "Tonghuashun·Eastmoney·Futu 및 일반 CSV를 읽어 보유일, 승률, 손익비, 시간대별 패턴 분석",
-      "diagnoseBehavior": "내 행동 편향 진단",
-      "diagnoseBehaviorDesc": "처분 효과, 과매매, 모멘텀 추격, 닻 고정 — 심각도 + 수치 증거",
-      "checkConnector": "선택한 커넥터 확인",
-      "checkConnectorDesc": "커넥터 프로필을 나열하고 선택한 항목을 검증",
-      "analyzePortfolio": "커넥터 포트폴리오 분석",
-      "analyzePortfolioDesc": "선택한 커넥터에서 계좌 요약과 포지션을 읽기",
-      "quoteTrend": "시세 & 추세",
-      "quoteTrendDesc": "선택한 커넥터로 시세 및 최근 일봉 조회",
-      "trainShadow": "일지에서 내 섀도우 학습",
-      "trainShadowDesc": "브로커 CSV에서 전략 규칙을 추출하여 섀도우 프로필로 저장",
-      "shadowDelta": "놓치고 있는 수익은 얼마일까?",
-      "shadowDeltaDesc": "섀도우 전략을 백테스트하고 실제 PnL과의 차이를 귀인 분석",
-      "shadowReport": "섀도우 리포트 생성",
-      "shadowReportDesc": "공유 가능한 8개 섹션 보고서로 계정 가치 추이, 위험조정 수익률, 수익 발생 원인을 제공",
-      "crossMarketPortfolioPrompt": "000001.SZ, 600519.SH, 000858.SZ로 리스크 패리티 포트폴리오를 구축하고 2024년 전체 백테스트하여 등가중 벤치마크와 비교",
-      "btcMacdPrompt": "000001.SZ 5분봉으로 MACD 전략 백테스트: 단기선12, 장기선26, 시그널9, 최근 30일",
-      "usTechMaxDivPrompt": "600519.SH, 000858.SZ, 601318.SH, 000001.SZ, 600036.SH의 최대 분산 포트폴리오를 2024년 전체 백테스트",
-      "multiFactorAlphaPrompt": "CSI 300 구성 종목에서 모멘텀, 반전, 거래량, 변동성을 활용한 다중 요인 Alpha 모델을 IC 가중 요인 합성으로 구축하고 2023-2024년 백테스트",
-      "optionsGreeksPrompt": "Black-Scholes로 옵션 Greeks 계산: 현물=100, 행사가=105, 무위험 이자율=3%, 변동성=25%, 만기=90일, Delta/Gamma/Theta/Vega 분석",
-      "investmentCommitteePrompt": "[Swarm 팀 모드] investment_committee 프리셋을 사용하여 현재 시장 환경에서 600519.SH를 롱할지 숏할지 평가",
-      "quantStrategyDeskPrompt": "[Swarm 팀 모드] quant_strategy_desk 프리셋을 사용하여 CSI 300 구성 종목에서 최적의 모멘텀 전략을 찾아 백테스트",
-      "earningsReportPrompt": "업로드한 실적 보고서의 주요 재무 지표, 리스크, 전망을 요약",
-      "macroResearchPrompt": "최신 중앙은행 통화 정책 보고서를 읽고 A주 시장에 미치는 영향을 요약",
-      "analyzeBrokerExportPrompt": "방금 업로드한 매매 일지를 분석 — 보유 통계, 승률, 주요 종목, 시간대별 분포의 전체 프로필",
-      "diagnoseBehaviorPrompt": "매매 일지에 4가지 행동 진단(처분 효과, 과매매, 모멘텀 추격, 닻 고정)을 실행하고 어떤 편향이 PnL에 가장 해로운지 알려주세요",
-      "checkConnectorPrompt": "내 트레이딩 커넥터 프로필을 나열하고 선택된 것을 보여준 다음 해당 커넥터를 확인하세요. 준비되지 않았다면 어떤 설정 단계가 누락되었는지 정확히 알려주세요. 주문하지 마세요.",
-      "analyzePortfolioPrompt": "선택한 트레이딩 커넥터 프로필을 사용하여 내 계좌, 포지션, 집중도, 현금, 포트폴리오 리스크를 요약하세요. 주문하지 마세요.",
-      "quoteTrendPrompt": "선택한 트레이딩 커넥터로 600519.SH의 시세와 30일 일봉을 가져온 다음 현재 시세를 최근 추세와 비교하여 요약하세요. 읽기 전용으로 유지하세요.",
-      "trainShadowPrompt": "방금 업로드한 매매 일지에서 내 섀도우 계좌를 학습 — 추출된 규칙을 보여주고 내 행동과 일치하는지 확인",
-      "shadowDeltaPrompt": "지난 90일간의 섀도우 백테스트를 실행하고 실제 PnL이 섀도우와 갈라진 부분(규칙 위반, 조기 퇴장, 시그널 놓침)을 세분화하여 분석",
-      "shadowReportPrompt": "섀도우 리포트를 렌더링하고 URL을 제공 — 내 PnL vs 섀도우 델타를 선두에 표시"
-    },
-    "taskSubtitle": "종목, 전략, 포트폴리오에 대해 물어보세요. 데이터 수집부터 계산까지 모든 과정을 보여드립니다.",
-    "quickActions": "빠른 작업",
-    "browseAllExamples": "모든 예시 보기",
-    "greetings": {
-      "morning1": "좋은 아침입니다.",
-      "morning2": "좋은 아침입니다. 언제든 시작하세요.",
-      "morning3": "좋은 아침입니다. 시작해 볼까요.",
-      "afternoon1": "좋은 오후입니다.",
-      "afternoon2": "다음 질문을 살펴볼까요?",
-      "afternoon3": "오늘 오후에는 무엇을 탐구할까요?",
-      "evening1": "좋은 저녁입니다.",
-      "evening2": "시장을 함께 읽어봅시다.",
-      "evening3": "집중 리서치를 시작할까요?",
-      "night1": "아직 고민 중인가요?",
-      "night2": "함께 정리해 봅시다.",
-      "night3": "마무리 전에 아이디어 하나 더?"
-    }
-  },
-  "settings": {
-    "title": "설정",
-    "authRequired": "인증 필요",
-    "authDesc": "설정 잠금을 해제하려면 API 인증 키를 입력하세요.",
-    "dataSources": "데이터 소스",
-    "llmBackend": "LLM 백엔드",
-    "save": "저장",
-    "saving": "저장 중…",
-    "saved": "설정이 저장되었습니다",
-    "saveFailed": "저장 실패",
-    "provider": "프로바이더",
-    "refresh": "새로 고침",
-    "modelName": "모델 이름",
-    "baseUrl": "기본 URL",
-    "apiAuthKey": "API 인증 키",
-    "loading": "불러오는 중…",
-    "temperature": "온도",
-    "temperatureDesc": "응답의 무작위성을 조절합니다. 낮을수록 안정적이며 금융 분석에는 0~0.2가 적합합니다.",
-    "timeoutSeconds": "타임아웃(초)",
-    "maxRetries": "최대 재시도 횟수",
-    "reasoningEffort": "추론 강도",
-    "providerDefault": "제공자 기본값",
-    "useDefaultModel": "기본 모델 사용",
-    "useDefaultUrl": "기본 URL 사용",
-    "dataSourcesDesc": "백테스트 엔진용 외부 데이터 소스를 구성하세요.",
-    "tushareDesc": "중국 A주 과거 데이터(TUSHARE_TOKEN 환경 변수 필요).",
-    "baostockDesc": "TCP 프로토콜 기반의 대체 A주 데이터(API 키 불필요).",
-    "status": "상태",
-    "installed": "설치됨",
-    "notInstalled": "설치되지 않음",
-    "token": "토큰",
-    "tokenConfigured": "토큰 설정됨",
-    "tokenNotSet": "TUSHARE_TOKEN 환경 변수가 설정되지 않음",
-    "apiTimeout": "API 요청 타임아웃",
-    "loaderAvailable": "로더 사용 가능",
-    "noProjectLoader": "프로젝트 로더 없음",
-    "pythonPackageInstalled": "Python 패키지 설치됨",
-    "pythonPackageNotInstalled": "Python 패키지 미설치",
-    "off": "끔",
-    "reasoningEffortNone": "없음(명시)",
-    "reasoningEffortLow": "낮음",
-    "reasoningEffortMedium": "중간",
-    "reasoningEffortHigh": "높음",
-    "reasoningEffortXhigh": "매우 높음",
-    "reasoningEffortMax": "최대",
-    "reasoningEffortDesc": "지원되는 모델의 추론 깊이를 조절합니다. 높을수록 복잡한 분석에 도움이 될 수 있지만 더 오래 걸리며, 지원하지 않는 제공자는 이 설정을 무시할 수 있습니다. '없음(명시)'은 추론을 끈 상태로 필드를 명시적으로 전송하며, 일부 OpenAI 모델은 도구를 사용할 때 이 값이 필요합니다.",
-    "reasoningEffortReset": "선택한 모델은 {{level}}을(를) 지원하지 않아 제공자 기본값으로 되돌렸습니다.",
-    "localApiAccess": "로컬 API 액세스",
-    "localApiAccessDesc": "원격 또는 비공개 Web UI 배포의 경우, 브라우저에 서버 API 키를 한 번 입력하세요. 로컬호스트는 비워둬도 됩니다.",
-    "serverApiKey": "서버 API 키",
-    "storedInBrowser": "이 브라우저에만 저장됩니다. 비우면 삭제됩니다.",
-    "localApiKeySaved": "로컬 API 키가 저장되었습니다",
-    "subtitle": "이 로컬 프로젝트의 모델 자격 증명과 마켓 데이터 소스 토큰을 구성합니다.",
-    "unavailable": "설정을 사용할 수 없습니다",
-    "llmSettings": "LLM 설정",
-    "llmSettingsDesc": "에이전트가 사용할 모델을 선택하고 프로젝트 로컬 agent/.env 파일에 저장합니다.",
-    "connection": "연결",
-    "model": "모델",
-    "useProviderDefaults": "프로바이더 기본값 사용",
-    "modelIdHint": "프로바이더가 요구하는 정확한 모델 ID를 사용하세요.",
-    "loadModels": "모델 불러오기",
-    "modelsLoaded": "사용 가능한 모델 {{count}}개를 불러왔습니다.",
-    "modelsLoadFailed": "프로바이더 모델 목록을 불러오지 못했습니다.",
-    "modelOptions": "사용 가능한 모델",
-    "modelDiscoveryOauthUnsupported": "이 프로바이더의 OAuth 엔드포인트는 모델 검색을 지원하지 않습니다.",
-    "modelDiscoveryApiKeyRequired": "사용 가능한 모델을 불러오려면 이 프로바이더의 API 키를 입력하거나 저장하세요.",
-    "modelDiscoveryUnavailable": "프로바이더가 모델 목록을 반환하지 않았습니다. 정확한 모델 ID를 직접 입력할 수도 있습니다.",
-    "modelPickerHint": "프로바이더 모델을 불러오거나 정확한 사용자 지정 모델 ID를 입력하세요.",
-    "clearApiKey": "저장된 API 키 삭제",
-    "channels": {
-      "title": "IM 채널",
-      "description": "채팅 어댑터를 Web UI와 CLI가 사용하는 동일한 Vibe-Trading 세션 런타임에 연결합니다.",
-      "runtime": "런타임",
-      "running": "실행 중",
-      "stopped": "중지됨",
-      "enabled": "활성화됨",
-      "disabled": "비활성화됨",
-      "loaded": "로드됨",
-      "notLoaded": "로드되지 않음",
-      "unavailable": "사용 불가",
-      "channel": "채널",
-      "state": "상태",
-      "recovery": "복구",
-      "noRecovery": "준비됨",
-      "refresh": "새로 고침",
-      "start": "채널 시작",
-      "stop": "채널 중지",
-      "started": "IM 채널이 시작되었습니다",
-      "stoppedToast": "IM 채널이 중지되었습니다",
-      "refreshFailed": "IM 채널 새로 고침 실패",
-      "startFailed": "IM 채널 시작 실패",
-      "stopFailed": "IM 채널 중지 실패",
-      "config": {
-        "toggleConfig": "{{name}} 설정",
-        "keepCurrent": "현재 값 유지({{masked}})",
-        "secretNotSet": "설정되지 않음",
-        "clearSecret": "지우기",
-        "required": "필수",
-        "listPlaceholder": "값을 입력하고 Enter로 추가",
-        "removeValue": "{{value}} 제거",
-        "save": "설정 저장",
-        "hotApply": "저장하면 즉시 적용됩니다. 재시작이 필요하지 않습니다.",
-        "saved": "채널 설정을 저장했습니다",
-        "appliedInPlace": "채널을 다시 연결하지 않고 설정을 저장했습니다.",
-        "appliedReset": "설정을 저장하고 채널 연결을 다시 시작했습니다.",
-        "appliedOnStart": "설정을 저장했습니다. 채널을 시작하면 적용됩니다.",
-        "appliedReconnect": "설정을 저장하고 이 채널을 다시 연결했습니다.",
-        "saveFailed": "채널 설정 저장 실패: {{message}}",
-        "test": "연결 테스트",
-        "testing": "테스트 중…",
-        "testOk": "연결이 확인되었습니다",
-        "testFailed": "연결 테스트 실패: {{message}}",
-        "testCodeOk": "공급자가 이 자격 증명을 수락했습니다.",
-        "testCodeInvalidCredentials": "공급자가 이 자격 증명을 거부했습니다.",
-        "testCodeNetwork": "공급자에 연결할 수 없습니다.",
-        "testCodeUnsupported": "이 채널은 연결 테스트를 지원하지 않습니다.",
-        "testedSavedConfig": "저장된 설정을 테스트했습니다.",
-        "testedDraftConfig": "양식의 현재 값(아직 저장되지 않음)을 테스트했습니다.",
-        "enable": "채널 사용",
-        "enableHint": "사용을 중지해도 저장된 자격 증명은 유지되며 언제든 다시 사용할 수 있습니다.",
-        "enabledToast": "채널을 사용하도록 설정했습니다",
-        "disabledToast": "채널을 사용 중지했습니다",
-        "enableFailed": "채널 사용 설정 실패: {{message}}",
-        "disableFailed": "채널 사용 중지 실패: {{message}}",
-        "enableRejected": "공급자가 자격 증명을 거부하여 채널을 사용하도록 설정하지 않았습니다.",
-        "enableRejectedDetail": "공급자 응답: {{detail}}",
-        "enableAnyway": "그래도 사용",
-        "enableAnywayHint": "그래도 사용하면 자격 증명 검사를 건너뛰므로 채널이 연결되지 않을 수 있습니다.",
-        "notWritable": "채널 설정이 YAML 파일({{path}})에 저장되어 있어 웹 UI에서 편집할 수 없습니다. 자격 증명을 변경하려면 해당 파일을 직접 편집하세요.",
-        "notWritableChip": "읽기 전용(YAML)",
-        "sdkMissing": "런타임 SDK가 설치되지 않음 — {{hint}}",
-        "sdkMissingNoHint": "런타임 SDK가 설치되어 있지 않습니다. 설정은 가능하지만 시작하지 못할 수 있습니다.",
-        "noFields": "이 채널에는 구성할 수 있는 필드가 없습니다.",
-        "loadFailed": "채널 설정을 불러오지 못했습니다."
-      },
-      "fields": {
-        "dingtalk": {
-          "client_id": {
-            "label": "Client ID(AppKey)",
-            "help": "DingTalk 개발자 콘솔의 자격 증명 페이지에 있는 앱 AppKey입니다."
-          },
-          "client_secret": {
-            "label": "Client Secret(AppSecret)",
-            "help": "앱의 AppSecret입니다. 서버에 저장되며 브라우저로 다시 전송되지 않습니다."
-          },
-          "allow_from": {
-            "label": "허용된 발신자",
-            "help": "에이전트와 대화할 수 있는 DingTalk 발신자 ID 허용 목록입니다(\"*\"는 모두 허용). 페어링되지 않은 발신자는 DM으로 페어링 코드를 받습니다."
-          },
-          "allow_remote_media_redirects": {
-            "label": "미디어 리디렉션 허용",
-            "help": "메시지 미디어를 내려받을 때 공급자 리디렉션을 따릅니다. 기본값은 꺼짐입니다."
-          },
-          "remote_media_redirect_allowed_hosts": {
-            "label": "허용된 리디렉션 호스트",
-            "help": "미디어 리디렉션을 켰을 때 허용할 호스트입니다. 비어 있으면 모든 교차 호스트 리디렉션이 차단됩니다."
-          },
-          "group_user_isolation": {
-            "label": "그룹에서 사용자별 세션 분리",
-            "help": "그룹 채팅의 각 멤버에게 별도의 에이전트 세션을 제공합니다."
-          },
-          "force_ipv4": {
-            "label": "IPv4 강제",
-            "help": "DingTalk API 호출을 IPv4에 바인딩합니다. 발신 IP 화이트리스트를 사용 중이고 IPv6 접두사는 자주 바뀌지만 IPv4는 안정적일 때 활성화하세요."
-          }
-        },
-        "qq": {
-          "app_id": {
-            "label": "AppID",
-            "help": "QQ 오픈 플랫폼(q.qq.com) 앱 설정에 있는 봇의 AppID입니다."
-          },
-          "secret": {
-            "label": "AppSecret",
-            "help": "봇의 AppSecret입니다. 서버에 저장되며 브라우저로 다시 전송되지 않습니다."
-          },
-          "allow_from": {
-            "label": "허용된 발신자",
-            "help": "에이전트와 대화할 수 있는 QQ 발신자 openid 허용 목록입니다(\"*\"는 모두 허용). 페어링되지 않은 발신자는 DM으로 페어링 코드를 받습니다."
-          },
-          "msg_format": {
-            "label": "메시지 형식",
-            "help": "응답 형식: plain 또는 markdown."
-          },
-          "ack_message": {
-            "label": "확인 메시지",
-            "help": "메시지가 도착했을 때 즉시 보내는 확인 응답입니다. 비워 두면 전송하지 않습니다."
-          },
-          "media_dir": {
-            "label": "미디어 디렉터리",
-            "help": "수신한 첨부 파일을 저장할 위치입니다. 비워 두면 ~/.vibe-trading/media/qq를 사용합니다."
-          },
-          "download_chunk_size": {
-            "label": "다운로드 청크 크기",
-            "help": "첨부 파일을 내려받을 때 청크당 바이트 수(기본 262144)."
-          },
-          "download_max_bytes": {
-            "label": "최대 다운로드 크기(바이트)",
-            "help": "첨부 파일 하나 다운로드의 안전 상한(기본 209715200 = 200 MB)."
-          }
-        },
-        "email": {
-          "consent_granted": {
-            "label": "동의 승인",
-            "help": "최상위 허용 스위치입니다. 여기서 명시적으로 동의해야만 이 채널이 메일을 읽고 보냅니다."
-          },
-          "imap_host": {
-            "label": "IMAP 호스트",
-            "help": "수신 메일 서버 호스트입니다(예: imap.gmail.com). 새 메일은 이 서버에서 IMAP으로 폴링합니다."
-          },
-          "imap_port": {
-            "label": "IMAP 포트",
-            "help": "수신 포트입니다(기본 993, SSL 사용)."
-          },
-          "imap_username": {
-            "label": "IMAP 사용자 이름",
-            "help": "IMAP 로그인에 사용하는 메일함 계정으로, 보통 전체 이메일 주소입니다."
-          },
-          "imap_password": {
-            "label": "IMAP 비밀번호",
-            "help": "IMAP용 메일함 비밀번호 또는 앱 비밀번호입니다. 서버 측에만 저장되며 브라우저로 반환되지 않습니다."
-          },
-          "imap_mailbox": {
-            "label": "IMAP 메일함",
-            "help": "새 메일을 폴링할 폴더입니다(기본 INBOX)."
-          },
-          "imap_use_ssl": {
-            "label": "IMAP SSL",
-            "help": "SSL로 IMAP에 연결합니다(기본 켜짐, 포트 993에 필요)."
-          },
-          "imap_use_tls": {
-            "label": "IMAP STARTTLS",
-            "help": "IMAP SSL이 꺼져 있으면 로그인 전에 STARTTLS로 연결을 암호화합니다(기본 켜짐, 포트 143의 표준). TLS를 지원하지 않는 서버를 신뢰할 수 있는 네트워크에서 쓸 때만 끄세요. 끄면 비밀번호가 평문으로 전송됩니다."
-          },
-          "smtp_host": {
-            "label": "SMTP 호스트",
-            "help": "발신 메일 서버 호스트입니다(예: smtp.gmail.com). 답장은 이 서버를 통해 전송됩니다."
-          },
-          "smtp_port": {
-            "label": "SMTP 포트",
-            "help": "발신 포트입니다(기본 587, STARTTLS 사용. 465는 암시적 SSL)."
-          },
-          "smtp_username": {
-            "label": "SMTP 사용자 이름",
-            "help": "SMTP 인증에 사용하는 계정으로, 보통 전체 이메일 주소입니다."
-          },
-          "smtp_password": {
-            "label": "SMTP 비밀번호",
-            "help": "SMTP용 비밀번호 또는 앱 비밀번호입니다. 서버 측에만 저장되며 브라우저로 반환되지 않습니다."
-          },
-          "smtp_use_tls": {
-            "label": "SMTP STARTTLS",
-            "help": "STARTTLS로 SMTP 연결을 암호화합니다(기본 켜짐, 포트 587의 표준). 실제로는 SMTP SSL과 함께 사용하지 않습니다."
-          },
-          "smtp_use_ssl": {
-            "label": "SMTP SSL",
-            "help": "암시적 TLS로 SMTP에 연결합니다(예: 포트 465, 기본 꺼짐). 실제로는 STARTTLS와 함께 사용하지 않습니다."
-          },
-          "verify_tls": {
-            "label": "TLS 인증서 검증",
-            "help": "메일 서버의 TLS 인증서와 호스트 이름을 검증합니다(권장). 자체 서명 또는 내부 CA 서버인 경우에만 끄세요."
-          },
-          "from_address": {
-            "label": "보낸 사람 주소",
-            "help": "답장을 보낼 주소입니다. 비워 두면 SMTP 사용자 이름을 사용합니다."
-          },
-          "auto_reply_enabled": {
-            "label": "자동 답장",
-            "help": "수신 메일에 자동으로 답장합니다. 에이전트가 시작하는 발신에는 영향을 주지 않습니다."
-          },
-          "poll_interval_seconds": {
-            "label": "폴링 간격(초)",
-            "help": "IMAP 메일함에서 새 메일을 확인하는 주기입니다(기본 30, 최소 5)."
-          },
-          "mark_seen": {
-            "label": "읽음으로 표시",
-            "help": "처리한 메일을 메일함에서 읽음으로 표시합니다."
-          },
-          "post_action": {
-            "label": "처리 후 동작",
-            "help": "처리한 메일의 처리 방식: delete(삭제), move(다른 메일함으로 이동), 비워 두면 그대로 유지."
-          },
-          "post_action_move_mailbox": {
-            "label": "이동할 메일함",
-            "help": "‘처리 후 동작’이 move일 때 사용할 대상 메일함입니다."
-          },
-          "post_action_expunge": {
-            "label": "삭제 후 expunge",
-            "help": "삭제한 메일에 삭제 플래그를 남기지 않고 완전히 제거합니다."
-          },
-          "post_action_ignore_skipped": {
-            "label": "본인·필터 메일 제외",
-            "help": "건너뛴 메일(본인이 보낸 메일과 허용 목록에서 걸러진 발신자)에는 처리 후 동작을 적용하지 않습니다(기본 켜짐)."
-          },
-          "max_body_chars": {
-            "label": "본문 최대 문자 수",
-            "help": "메일 본문을 이 문자 수로 잘라냅니다(기본 12000)."
-          },
-          "subject_prefix": {
-            "label": "답장 제목 접두사",
-            "help": "답장 제목 앞에 붙일 접두사입니다(기본 \"Re: \")."
-          },
-          "allow_from": {
-            "label": "허용 발신자",
-            "help": "에이전트와 대화할 수 있는 이메일 주소 허용 목록입니다(선택, \"*\"는 모든 사람 허용). 페어링되지 않은 발신자에게는 답장으로 페어링 코드가 전송됩니다."
-          },
-          "verify_dkim": {
-            "label": "DKIM 검증",
-            "help": "Authentication-Results 헤더에 dkim=pass를 요구합니다. DKIM과 SPF를 모두 끄면 위조된 From 헤더를 허용하게 됩니다."
-          },
-          "verify_spf": {
-            "label": "SPF 검증",
-            "help": "Authentication-Results 헤더에 spf=pass를 요구합니다. DKIM과 SPF를 모두 끄면 위조된 From 헤더를 허용하게 됩니다."
-          },
-          "allowed_attachment_types": {
-            "label": "허용 첨부 유형",
-            "help": "수신 첨부 파일의 MIME 허용 목록입니다(예: application/pdf, image/*). 비워 두면 첨부가 비활성화됩니다."
-          },
-          "max_attachment_size": {
-            "label": "첨부 크기 상한(바이트)",
-            "help": "첨부 파일 하나의 최대 바이트 수입니다(기본 2000000 = 2 MB)."
-          },
-          "max_attachments_per_email": {
-            "label": "메일당 첨부 수 상한",
-            "help": "메일 한 통에서 허용하는 첨부 파일 수입니다(기본 5)."
-          },
-          "trusted_authserv_id": {
-            "label": "신뢰할 인증 서버",
-            "help": "수신 서버의 authserv-id(예: mx.google.com)입니다. 메일 제공자는 이 ID를 위조한 외부 Authentication-Results 헤더를 제거해야 합니다. SPF 또는 DKIM 검증을 사용하면 필수이며, 비워 두면 수신 메일이 거부됩니다."
-          },
-          "pdf_password": {
-            "label": "PDF 보고서 비밀번호",
-            "help": "보호를 명시적으로 요청한 예약 PDF 보고서에 사용하는 선택 사항입니다. 서버에만 저장되며 예약 작업이나 브라우저 응답에 포함되지 않습니다."
-          }
-        },
-        "websocket": {
-          "host": {
-            "label": "바인드 호스트",
-            "help": "WebSocket 서버가 바인드할 로컬 주소입니다(기본 127.0.0.1, 로컬 전용). 0.0.0.0 또는 :: 같은 와일드카드 호스트는 모든 인터페이스에 서버를 노출하므로 토큰이나 토큰 발급 시크릿이 없으면 거부됩니다."
-          },
-          "port": {
-            "label": "바인드 포트",
-            "help": "WebSocket 서버가 수신 대기할 로컬 포트입니다(기본 8765). Unix 소켓 경로를 설정하면 무시됩니다."
-          },
-          "unix_socket_path": {
-            "label": "Unix 소켓 경로",
-            "help": "선택적 절대 경로입니다. 설정하면 호스트와 포트 대신 이 Unix 소켓에서 수신 대기합니다."
-          },
-          "path": {
-            "label": "업그레이드 경로",
-            "help": "클라이언트가 연결하는 WebSocket 업그레이드 경로입니다(기본 /). \"/\"로 시작해야 합니다."
-          },
-          "token": {
-            "label": "정적 토큰",
-            "help": "핸드셰이크 시 token 쿼리 파라미터로 확인하는 공유 시크릿입니다. 서버 측에만 저장되며 브라우저로 반환되지 않습니다."
-          },
-          "token_issue_path": {
-            "label": "토큰 발급 경로",
-            "help": "단기 일회용 토큰을 JSON으로 발급하는 HTTP GET 경로입니다. 업그레이드 경로와 달라야 합니다."
-          },
-          "token_issue_secret": {
-            "label": "토큰 발급 시크릿",
-            "help": "토큰 발급 경로가 요구하는 Bearer 시크릿입니다(Authorization: Bearer 또는 X-Vibe-Trading-Auth). 서버 측에만 저장되며 브라우저로 반환되지 않습니다."
-          },
-          "token_ttl_s": {
-            "label": "발급 토큰 TTL(초)",
-            "help": "토큰 발급 경로가 발급한 토큰의 유효 시간(초)입니다(30–86400, 기본 300)."
-          },
-          "websocket_requires_token": {
-            "label": "토큰 필수",
-            "help": "유효한 정적 토큰이나 발급된 토큰이 없는 핸드셰이크를 거부합니다(기본 켜짐)."
-          },
-          "allow_from": {
-            "label": "허용 클라이언트",
-            "help": "연결을 허용할 클라이언트 ID 허용 목록입니다(선택, \"*\"는 모든 클라이언트 허용, 기본)."
-          },
-          "streaming": {
-            "label": "출력 스트리밍",
-            "help": "모델 출력 델타를 생성되는 즉시 연결된 클라이언트로 전송합니다."
-          },
-          "max_message_bytes": {
-            "label": "메시지 상한(바이트)",
-            "help": "허용하는 수신 프레임의 최대 바이트 수입니다(기본 37748736, 범위 1024–41943040)."
-          },
-          "ping_interval_s": {
-            "label": "Ping 간격(초)",
-            "help": "연결 유지 ping을 보내는 간격(초)입니다(5–300, 기본 20)."
-          },
-          "ping_timeout_s": {
-            "label": "Ping 타임아웃(초)",
-            "help": "ping 응답을 기다리는 시간(초)입니다. 초과하면 연결을 끊습니다(5–300, 기본 20)."
-          },
-          "ssl_certfile": {
-            "label": "TLS 인증서 경로",
-            "help": "WSS용 서버의 PEM 인증서 경로입니다. 인증서와 키를 모두 설정하거나 모두 비워 두세요. 업로드 자료가 아니라 서버의 파일 경로입니다."
-          },
-          "ssl_keyfile": {
-            "label": "TLS 키 경로",
-            "help": "WSS용 서버의 PEM 개인 키 경로입니다. 인증서와 키를 모두 설정하거나 모두 비워 두세요. 업로드 자료가 아니라 서버의 파일 경로입니다."
-          }
-        },
-        "feishu": {
-          "app_id": {
-            "label": "App ID",
-            "help": "Feishu / Lark 개발자 콘솔의 앱 App ID(cli_ 로 시작)."
-          },
-          "app_secret": {
-            "label": "App Secret",
-            "help": "앱의 App Secret. 서버 측에만 저장되며 브라우저로는 절대 반환되지 않습니다."
-          },
-          "encrypt_key": {
-            "label": "Encrypt Key",
-            "help": "이벤트 구독 설정의 Encrypt Key. 롱커넥션 모드에서는 선택 사항입니다."
-          },
-          "verification_token": {
-            "label": "Verification Token",
-            "help": "이벤트 구독 설정의 Verification Token. 롱커넥션 모드에서는 선택 사항입니다."
-          },
-          "allow_from": {
-            "label": "허용된 발신자",
-            "help": "에이전트와 대화할 수 있는 Feishu 발신자 ID 허용 목록. 비워 두면 봇이 볼 수 있는 모든 사용자에게 허용됩니다."
-          },
-          "react_emoji": {
-            "label": "작업 중 이모지",
-            "help": "에이전트가 작업하는 동안 들어온 메시지에 붙이는 이모지(기본값 THUMBSUP)."
-          },
-          "done_emoji": {
-            "label": "완료 이모지",
-            "help": "작업이 끝났을 때 붙이는 이모지. 비우면 붙이지 않습니다."
-          },
-          "tool_hint_prefix": {
-            "label": "도구 힌트 접두사",
-            "help": "답변의 인라인 도구 힌트 앞에 표시되는 접두사."
-          },
-          "group_policy": {
-            "label": "그룹 정책",
-            "help": "\"mention\"은 그룹에서 @ 멘션될 때만 답변하고, \"open\"은 모든 그룹 메시지에 답변합니다."
-          },
-          "reply_to_message": {
-            "label": "원문 인용 답변",
-            "help": "답변할 때 원문 메시지를 인용합니다."
-          },
-          "streaming": {
-            "label": "스트리밍 답변",
-            "help": "CardKit 라이브 편집으로 답변을 스트리밍합니다."
-          },
-          "domain": {
-            "label": "도메인",
-            "help": "중국용은 \"feishu\"(open.feishu.cn), 국제용 Lark는 \"lark\"(open.larksuite.com)."
-          },
-          "topic_isolation": {
-            "label": "토픽별 세션",
-            "help": "그룹의 각 토픽에 별도 에이전트 세션을 할당합니다."
-          }
-        },
-        "slack": {
-          "bot_token": {
-            "label": "봇 토큰(xoxb-)",
-            "help": "Slack 봇 사용자 OAuth 토큰(xoxb- 로 시작). 서버 측에만 저장되며 브라우저로는 절대 반환되지 않습니다."
-          },
-          "app_token": {
-            "label": "앱 토큰(xapp-)",
-            "help": "connections:write 범위를 가진 Slack 앱 수준 토큰(xapp- 로 시작). Socket Mode에 필요합니다. 서버 측에만 저장되며 브라우저로는 절대 반환되지 않습니다."
-          },
-          "user_token_read_only": {
-            "label": "사용자 토큰 읽기 전용",
-            "help": "동작 플래그(자격 증명이 아님): 사용자 토큰 접근을 읽기 전용으로 유지합니다."
-          },
-          "reply_in_thread": {
-            "label": "스레드로 답변",
-            "help": "채널에 직접 게시하는 대신 원본 메시지 아래의 스레드로 답변합니다."
-          },
-          "react_emoji": {
-            "label": "작업 중 이모지",
-            "help": "에이전트가 작업하는 동안 수신 메시지에 추가할 이모지(기본값 eyes)."
-          },
-          "done_emoji": {
-            "label": "완료 이모지",
-            "help": "작업 완료 시 추가할 이모지(기본값 white_check_mark). 비워 두면 사용하지 않습니다."
-          },
-          "include_thread_context": {
-            "label": "스레드 컨텍스트 포함",
-            "help": "봇이 스레드에 처음 호출될 때 이전 스레드 답변을 컨텍스트로 앞에 첨부합니다."
-          },
-          "thread_context_limit": {
-            "label": "스레드 컨텍스트 제한",
-            "help": "컨텍스트로 포함할 스레드 메시지 수의 최대값(기본값 20)."
-          },
-          "allow_from": {
-            "label": "허용된 발신자",
-            "help": "에이전트와 대화할 수 있는 Slack 사용자 ID 허용 목록. DM 및 채널 접근은 DM 정책과 그룹 정책으로도 제어됩니다."
-          },
-          "group_policy": {
-            "label": "그룹 정책",
-            "help": "\"mention\"은 채널에서 @ 멘션될 때만 답변하고, \"open\"은 모든 채널 메시지에 답변하며, \"allowlist\"는 아래에 나열된 채널에서만 답변합니다."
-          },
-          "group_allow_from": {
-            "label": "허용된 채널",
-            "help": "그룹 정책이 \"allowlist\"일 때 봇이 응답할 채널 ID."
-          },
-          "group_require_mention": {
-            "label": "허용 채널에서 멘션 요구",
-            "help": "\"allowlist\" 정책에서 승인된 채널에서도 @ 멘션되어야 답변합니다. \"mention\"과 \"open\" 정책에는 영향이 없습니다."
-          }
-        },
-        "discord": {
-          "token": {
-            "label": "봇 토큰",
-            "help": "Discord 개발자 포털의 봇 토큰입니다(사용자 토큰이나 OAuth 토큰이 아님). 서버 측에만 저장되며 브라우저로는 절대 반환되지 않습니다."
-          },
-          "allow_from": {
-            "label": "허용된 발신자",
-            "help": "에이전트와 대화할 수 있는 Discord 사용자 ID 허용 목록. 비워 두면 모두 허용됩니다."
-          },
-          "allow_channels": {
-            "label": "허용된 채널",
-            "help": "봇이 응답할 Discord 채널 ID 허용 목록. 비워 두면 모든 채널이 허용됩니다."
-          },
-          "intents": {
-            "label": "게이트웨이 인텐트",
-            "help": "게이트웨이 인텐트 비트필드 정수(기본값 37377 = GUILDS | GUILD_MESSAGES | DIRECT_MESSAGES | MESSAGE_CONTENT). MESSAGE CONTENT는 특권 인텐트라 개발자 포털에서 활성화해야 하며, 그렇지 않으면 봇이 연결에 실패합니다."
-          },
-          "group_policy": {
-            "label": "그룹 정책",
-            "help": "\"mention\"은 서버 채널에서 @ 멘션될 때만 답변하고, \"open\"은 모든 채널 메시지에 답변합니다(허용 목록의 제약을 받음)."
-          },
-          "read_receipt_emoji": {
-            "label": "읽음 확인 이모지",
-            "help": "메시지 수신 즉시 추가되는 확인용 이모지(기본값 👀). 답변이 도착하면 제거됩니다."
-          },
-          "working_emoji": {
-            "label": "작업 중 이모지",
-            "help": "에이전트가 아직 작업 중일 때 추가할 이모지(기본값 🔧). 작업 중 이모지 지연 시간 후에 추가됩니다."
-          },
-          "working_emoji_delay": {
-            "label": "작업 중 이모지 지연(초)",
-            "help": "작업 중 이모지를 추가하기까지 기다릴 초 수. 빠른 답변에는 표시되지 않습니다(기본값 2.0)."
-          },
-          "streaming": {
-            "label": "스트리밍 답변",
-            "help": "최종 메시지를 한 번에 보내는 대신 하나의 Discord 메시지를 점진적으로 편집하며 답변을 스트리밍합니다."
-          },
-          "proxy": {
-            "label": "프록시 URL",
-            "help": "게이트웨이 연결과 API 호출이 거쳐 가는 선택적 HTTP 프록시(예: http://host:port)."
-          },
-          "proxy_username": {
-            "label": "프록시 사용자 이름",
-            "help": "프록시 사용자 이름(프록시 비밀번호와 함께 설정해야 하며, 한쪽만 지정하면 경고와 함께 무시됩니다). 서버 측에만 저장되며 브라우저로는 절대 반환되지 않습니다."
-          },
-          "proxy_password": {
-            "label": "프록시 비밀번호",
-            "help": "프록시 비밀번호(프록시 사용자 이름과 함께 설정해야 하며, 한쪽만 지정하면 경고와 함께 무시됩니다). 서버 측에만 저장되며 브라우저로는 절대 반환되지 않습니다."
-          }
-        }
-      },
-      "guides": {
-        "dingtalk": {
-          "title": "DingTalk 설정 가이드",
-          "intro": "DingTalk 봇은 Stream 모드를 사용하므로 공개 콜백 URL이 필요하지 않습니다.",
-          "step1": "DingTalk 개발자 콘솔(open-dev.dingtalk.com)에서 앱을 만듭니다.",
-          "step2": "앱에 봇 기능을 추가하고 Stream 모드를 사용 설정합니다.",
-          "step3": "앱의 AppKey를 Client ID에, AppSecret을 Client Secret에 붙여 넣습니다.",
-          "step4": "앱을 게시하여 조직에서 사용할 수 있게 합니다.",
-          "step5": "여기로 돌아와 '연결 테스트'를 클릭한 다음 채널을 사용 설정합니다.",
-          "docsLabel": "DingTalk 개발자 콘솔 열기"
-        },
-        "qq": {
-          "title": "QQ 설정 가이드",
-          "intro": "QQ 봇은 공식 botpy SDK를 통해 WebSocket으로 연결되므로 공개 콜백 URL이 필요하지 않습니다.",
-          "step1": "QQ 오픈 플랫폼(q.qq.com)에 등록하고 봇을 만듭니다.",
-          "step2": "봇의 개발 설정 페이지에서 AppID와 AppSecret을 복사합니다.",
-          "step3": "위의 AppID 및 AppSecret 필드에 붙여 넣습니다.",
-          "step4": "플랫폼의 샌드박스/게시 규칙에 따라 봇을 QQ 그룹에 추가하거나 개인 채팅을 시작합니다.",
-          "step5": "여기로 돌아와 '연결 테스트'를 클릭한 다음 채널을 사용 설정합니다.",
-          "docsLabel": "QQ 오픈 플랫폼 열기"
-        },
-        "email": {
-          "title": "이메일 설정 가이드",
-          "intro": "이메일 채널은 수신은 IMAP 폴링, 답장은 SMTP로 처리하므로 공개 콜백 URL이 필요 없습니다.",
-          "step1": "메일 제공업체의 IMAP/SMTP 호스트와 포트를 확인합니다(보통 imap.<제공업체>의 993, smtp.<제공업체>의 587).",
-          "step2": "메일함 설정에서 IMAP과 SMTP를 활성화하고, 제공업체가 요구하면(Gmail, QQ 메일 등 2단계 인증 사용 시) 앱 비밀번호를 만듭니다.",
-          "step3": "위의 IMAP/SMTP 자격 증명을 입력하고 보낸 사람 주소를 설정한 뒤, 본인 주소를 ‘허용 발신자’에 추가합니다.",
-          "step4": "‘연결 테스트’를 클릭합니다. IMAP 로그인, 메일함 폴더, SMTP 로그인을 차례로 점검합니다.",
-          "step5": "‘동의 승인’을 체크하고 채널을 활성화하면 DKIM/SPF 검증을 통과한 발신자에게 자동 답장이 전달됩니다.",
-          "docsLabel": "Vibe-Trading 문서 열기"
-        },
-        "websocket": {
-          "title": "WebSocket 설정 가이드",
-          "intro": "WebSocket 채널은 자체 로컬 서버를 실행하고 클라이언트가 WebSocket 주소로 직접 연결하므로 공개 콜백 URL이 필요 없습니다.",
-          "step1": "바인드 주소를 선택합니다. 로컬 전용이면 127.0.0.1을 유지하고, 외부에 노출하려면 0.0.0.0 또는 ::를 설정합니다(와일드카드 호스트에는 토큰 또는 토큰 발급 시크릿이 필수).",
-          "step2": "정적 토큰을 설정하거나, 토큰 발급 경로와 Bearer 시크릿을 설정해 클라이언트가 단기 토큰을 받도록 합니다.",
-          "step3": "클라이언트는 ws://host:port/path?client_id=...&token=... 으로 연결합니다.",
-          "step4": "채널 실행 중에 저장하면 서버가 핫 스왑됩니다. 연결된 클라이언트(이 웹 UI 채팅 포함)는 잠시 끊겼다가 자동으로 다시 연결됩니다.",
-          "step5": "‘연결 테스트’를 클릭하면 SSL 인증서/키 자료와 주소 사용 가능 여부를 로컬에서 검증합니다.",
-          "docsLabel": "Vibe-Trading 문서 열기"
-        },
-        "feishu": {
-          "title": "Feishu / Lark 봇 설정 가이드",
-          "intro": "Feishu 봇은 WebSocket 롱커넥션으로 연결되므로 공개 IP나 웹훅이 필요 없습니다.",
-          "step1": "Feishu 오픈 플랫폼(open.feishu.cn)에서 사용자 지정 앱을 만드세요. 터미널에서 vibe-trading channels login feishu 로 QR 스캔 생성을 사용하면 App ID와 App Secret이 자동 저장됩니다.",
-          "step2": "앱에 봇 기능을 추가하세요.",
-          "step3": "이벤트 구독에서 '메시지 받기 im.message.receive_v1'를 구독하고 롱커넥션 모드를 선택하세요.",
-          "step4": "'자격 증명 및 기본 정보'에서 App ID와 App Secret을 복사해 위 입력칸에 붙여넣으세요.",
-          "step5": "버전을 만들어 앱을 게시(테넌트에 따라 관리자 승인 필요)한 뒤 여기서 채널을 활성화하면 재시작 없이 즉시 적용됩니다. 국제 Lark 테넌트는 도메인을 lark로 설정하세요.",
-          "docsLabel": "Feishu 오픈 플랫폼 열기"
-        },
-        "discord": {
-          "title": "Discord 설정 가이드",
-          "intro": "Discord 봇은 봇 토큰으로 게이트웨이에 연결하므로 공개 IP나 웹훅이 필요 없습니다.",
-          "step1": "Discord 개발자 포털(discord.com/developers)에서 애플리케이션을 만드세요.",
-          "step2": "Bot 페이지를 열고 토큰을 재설정(Reset Token)한 뒤 복사하세요.",
-          "step3": "Privileged Gateway Intents에서 MESSAGE CONTENT INTENT를 활성화하세요(기본 인텐트에 필요합니다).",
-          "step4": "bot(및 applications.commands) 범위의 OAuth2 초대 URL을 생성해 봇을 서버에 추가하세요.",
-          "step5": "여기에 토큰을 붙여넣고 '연결 테스트'를 클릭한 다음 채널을 사용 설정하세요.",
-          "docsLabel": "Discord 개발자 문서 열기"
-        }
-      }
-    },
-    "generation": "생성 설정",
-    "dataSourceSettings": "데이터 소스 설정",
-    "dataSourceSettingsDesc": "백테스트와 리서치 에이전트가 사용하는 선택적 마켓 데이터 자격 증명을 구성합니다.",
-    "sourcePriority": {
-      "title": "데이터 소스 우선순위",
-      "description": "에이전트가 자동으로 데이터를 가져올 때 시장별 데이터 소스 시도 순서를 제어합니다. 명시적으로 지정한 소스에는 영향을 주지 않습니다.",
-      "marketLabel": "시장",
-      "badgeDefault": "기본",
-      "badgeCustom": "사용자 지정",
-      "customMarkets": "사용자 지정 · {{count}}",
-      "moveUp": "위로 이동",
-      "moveDown": "아래로 이동",
-      "resetToDefault": "기본값으로 재설정",
-      "invalidOverrideWarning": "{{envVar}}에 저장된 재정의가 잘못되었습니다(동일한 소스의 재배열이어야 함). 현재는 기본 순서가 적용됩니다.",
-      "noMarkets": "등록된 시장 데이터 소스가 없습니다.",
-      "howItWorksTitle": "작동 방식",
-      "howItWorks": "자동 감지된 심볼은 위에서 아래로 소스를 시도하며, 실패한 소스는 다음으로 넘어갑니다. 저장하면 재시작 없이 즉시 적용됩니다.",
-      "caliberCaveat": "데이터 소스마다 가격 조정 방식이 다를 수 있습니다. 반환된 조정·출처 정보와 실행 카드 경고를 확인하세요. 소스 순서에 따라 백테스트 결과가 달라질 수 있습니다.",
-      "markets": {
-        "a_share": "중국 A주",
-        "us_equity": "미국 주식",
-        "hk_equity": "홍콩 주식",
-        "india_equity": "인도 주식",
-        "kr_equity": "한국 주식",
-        "ca_equity": "캐나다 주식",
-        "vietnam_equity": "베트남 주식",
-        "ar_equity": "아르헨티나 주식",
-        "br_equity": "브라질 주식",
-        "uk_equity": "영국 주식",
-        "index": "지수",
-        "crypto": "암호화폐",
-        "futures": "선물",
-        "fund": "펀드",
-        "macro": "거시",
-        "forex": "외환"
-      }
-    },
-    "tushareToken": "Tushare 토큰",
-    "gildataToken": "Gildata 토큰",
-    "clearTushareToken": "저장된 Tushare 토큰 삭제",
-    "clearGildataToken": "저장된 Gildata 토큰 삭제",
-    "saveDataSourceSettings": "데이터 소스 설정 저장",
-    "baostock": "BaoStock",
-    "loadLlmSettingsFailed": "LLM 설정 로드 실패: {{message}}",
-    "loadDataSourceSettingsFailed": "데이터 소스 설정 로드 실패: {{message}}",
-    "llmSettingsSaved": "LLM 설정이 저장되었습니다",
-    "saveLlmSettingsFailed": "LLM 설정 저장 실패: {{message}}",
-    "dataSourceSettingsSaved": "데이터 소스 설정이 저장되었습니다",
-    "desktopCredentialRestarting": "자격 증명이 암호화되었습니다. 로컬 서비스를 다시 시작하는 중입니다…",
-    "saveDataSourceSettingsFailed": "데이터 소스 설정 저장 실패: {{message}}",
-    "configured": "구성됨",
-    "keepCurrentKey": "비우면 현재 키 유지",
-    "providerUsesOauth": "이 프로바이더는 OAuth를 사용합니다. 실행: {{command}}",
-    "providerUsesManagedAuth": "이 프로바이더가 인증을 관리합니다. 실행: {{command}}",
-    "noApiKeyRequired": "이 프로바이더는 API 키가 필요하지 않습니다.",
-    "keepCurrentToken": "비우면 현재 토큰 유지",
-    "iwencaiApiKey": "iWenCai API 키",
-    "fredApiKey": "FRED API 키",
-    "iwencaiDesc": "iWenCai(问财)를 통한 시맨틱 스크리닝에 사용됩니다. 무료 액세스 키가 필요합니다.",
-    "clearSavedKey": "저장된 키 삭제",
-    "fredDesc": "FRED 거시경제 데이터(CPI, GDP, 실업률 등)에 사용됩니다. fred.stlouisfed.org에서 무료 키를 받으세요.",
-    "featureFlags": "피처 플래그",
-    "featureFlagsDesc": "환경 변수에서 감지된 런타임 피처 플래그입니다.",
-    "shellTools": "셸 도구",
-    "scheduler": "스케줄러",
-    "sessionRuntime": "세션 런타임",
-    "flagsReadFrom": "플래그는 {{env_path}}의 {{env1}}, {{env2}}, {{env3}}에서 읽습니다.",
-    "unknownError": "알 수 없는 오류",
-    "providerChangeHint": "제공자를 변경하면 권장 모델과 엔드포인트가 업데이트됩니다.",
-    "oauth": "OAuth",
-    "authentication": "인증",
-    "apiKey": "API 키",
-    "tushareTokenDesc": "중국 A주·선물·펀드·거시 데이터에 사용됩니다. 설정하지 않으면 가능한 경우 AKShare로 대체됩니다.",
-    "gildataTokenDesc": "선택 사항: 헝성쥐위안(Gildata) 중국 A주 데이터 소스. 설정하면 전방 조정 일봉으로 A주 폴백 체인 끝에 추가됩니다."
-  },
-  "qveris": {
-    "title": "QVeris 도구 마켓플레이스",
-    "subtitle": "무료 공개 데이터 경로를 기본으로 두고, 필요할 때만 QVeris 유료 실행을 켭니다.",
-    "enabled": "QVeris 유료 경로 활성화",
-    "baseUrl": "기본 URL",
-    "apiKey": "API 키",
-    "apiKeyPlaceholder": "비우면 현재 키 유지",
-    "mode": "모드",
-    "modeFree": "무료 공개 데이터만 사용",
-    "modePaid": "QVeris 유료 활성화",
-    "budget": "세션당 예산 Credits",
-    "budgetHint": "이 세션 예산에 도달하면 유료 실행을 중지합니다.",
-    "balance": "남은 Credits",
-    "recentUsage": "최근 사용량",
-    "noUsage": "최근 사용량 없음",
-    "signupCta": "가입 열기",
-    "signupHint": "QVeris 계정을 만들 때 이 초대 코드를 사용하세요.",
-    "inviteCode": "초대 코드",
-    "save": "QVeris 설정 저장",
-    "saved": "QVeris 설정이 저장되었습니다",
-    "testFailed": "QVeris 요청 실패",
-    "notConfigured": "구성되지 않음"
-  },
-  "agent": {
-    "reasoningStrength": "추론 강도",
-    "unknownProvider": "알 수 없는 제공자",
-    "unknownModel": "알 수 없는 모델",
-    "connectionLostReconnect": "연결이 끊겼습니다. 재연결 중…",
-    "connectionRestored": "연결이 복원되었습니다",
-    "agentWorking": "작업을 시작하고 있습니다…",
-    "reasoning": "차근차근 검토하고 있습니다…",
-    "running": "실행 중",
-    "newMessages": "새 메시지",
-    "newResearchGoal": "새 리서치 목표",
-    "goal": "목표",
-    "criteria": "달성 기준",
-    "evidence": "증거",
-    "recentEvidence": "최근 증거",
-    "continue": "계속",
-    "edit": "편집",
-    "cancel": "취소",
-    "save": "저장",
-    "cancelGoal": "목표 취소",
-    "describeGoal": "이 세션에 첨부할 리서치 목표를 설명하세요",
-    "placeholder": "예: 000001.SZ의 단순 이동평균 전략을 2024년 구간에서 테스트",
-    "send": "보내기",
-    "messageInputLabel": "에이전트에게 보낼 메시지",
-    "inputHint": "Enter로 전송 · Shift+Enter로 줄바꿈",
-    "editGoalObjectiveLabel": "리서치 목표 편집",
-    "exportChat": "채팅 내보내기",
-    "stopGeneration": "생성 중지",
-    "runSwarmTeam": "Swarm 팀 실행",
-    "uploadFile": "파일 업로드",
-    "checkConnector": "커넥터 확인",
-    "analyzePortfolio": "커넥터 포트폴리오 분석",
-    "executionTimedOut": "실행 시간 초과로 자동 중지되었습니다",
-    "researchGoalAttached": "리서치 목표가 첨부되었습니다",
-    "failedToStartGoal": "목표 시작에 실패했습니다.",
-    "researchGoalCancelled": "리서치 목표가 취소되었습니다",
-    "failedToCancelGoal": "목표 취소에 실패했습니다.",
-    "researchGoalUpdated": "리서치 목표가 업데이트되었습니다",
-    "failedToUpdateGoal": "목표 업데이트에 실패했습니다.",
-    "failedToLoadGoal": "목표 불러오기에 실패했습니다.",
-    "cancelRequestSent": "중지하는 중…",
-    "cancelFailed": "중지하지 못했습니다. 다시 시도해 주세요.",
-    "connectorHalted": "커넥터가 정지되었습니다",
-    "failedToHaltConnector": "커넥터 정지에 실패했습니다.",
-    "cancelledFromUI": "Web UI에서 취소되었습니다.",
-    "executablesNotAllowed": "실행 파일 및 압축 파일은 업로드할 수 없습니다",
-    "fileSizeExceeds": "파일 크기가 50 MB 한도를 초과합니다",
-    "uploaded": "업로드 완료: {{filename}}",
-    "attachmentLimit": "파일을 최대 {{count}}개 첨부할 수 있습니다",
-    "dropFiles": "여기에 파일 놓기",
-    "removeAttachment": "{{filename}} 제거",
-    "uploadFailed": "업로드 실패: {{error}}",
-    "messageTooLong": "첨부 정보와 팀 지침을 포함한 메시지가 {{limit}}자를 초과합니다. 줄인 후 보내세요.",
-    "failedToSend": "메시지 전송에 실패했습니다. 다시 시도해 주세요.",
-    "failedToContinue": "목표 진행에 실패했습니다. 다시 시도해 주세요.",
-    "runtimeBadge": "거래 모니터",
-    "activeResearchGoal": "활성 리서치 목표",
-    "evidenceCollectedTitle": "이 리서치 목표를 위해 수집된 증거",
-    "evidenceCount": "{{count}}개 증거",
-    "uploading": "업로드 중...",
-    "haltConnectorTitle": "커넥터 활동을 즉시 중지",
-    "haltConnector": "커넥터 중지",
-    "moreOptions": "추가 옵션",
-    "researchGoal": "리서치 목표",
-    "agentSwarm": "에이전트 Swarm",
-    "attachmentChip": "첨부 파일",
-    "swarmModeChip": "스웜 모드",
-    "goalModeChip": "리서치 목표",
-    "continueGoalMessage": "리서치 목표 계속: {{goal}}",
-    "loadEarlier": "이전 메시지 불러오기",
-    "authRequired": "원격 API에 접근하려면 API 키가 필요합니다. 설정에서 추가하거나, 로컬에서만 사용할 경우 백엔드를 localhost에서 실행하세요.",
-    "followUpPlaceholder": "이 실행에 대해 질문하세요 — 예: 낙폭이 왜 이렇게 큰가요?",
-    "continuePrompt": "중단한 지점부터 계속하세요.",
-    "doneMarker": "실행 완료",
-    "backgroundRunComplete": "다른 세션의 실행이 완료되었습니다.",
-    "activity": {
-      "verbs": {
-        "readingMarketData": "시장 데이터 불러오는 중",
-        "writingStrategy": "전략 작성 중",
-        "runningBacktest": "백테스트 실행 중",
-        "validatingNumbers": "수치 재확인 중",
-        "working": "처리 중"
-      },
-      "done": "완료",
-      "stopped": "사용자가 중지함",
-      "timeout": "{{elapsed}} 후 대기를 중단했습니다 — 실행은 아직 마무리 중일 수 있습니다",
-      "failed": "실패",
-      "steps": "{{count}}단계",
-      "continue": "계속",
-      "reattach": "다시 연결",
-      "checkingFigures": "답변 속 수치 확인 중({{round}}차)…"
-    },
-    "resumeConnector": "커넥터 재개",
-    "resumeConnectorTitle": "킬 스위치를 해제하고 커넥터 활동을 재개",
-    "connectorResumed": "커넥터가 재개되었습니다",
-    "failedToResumeConnector": "커넥터 재개에 실패했습니다."
+    "requestTimeoutMutation": "요청 시간이 초과되었습니다. 서버에서 아직 처리 중일 수 있으니 현재 상태를 확인한 후 다시 시도하세요.",
+    "authRequired": "원격 API에 접근하려면 API 키가 필요합니다. 설정에서 추가하거나, 로컬에서만 사용할 경우 백엔드를 localhost에서 실행하세요."
   },
   "runDetail": {
     "title": "실행 상세",
@@ -1354,6 +230,16 @@
     "ddTroughToRecovery": "저점→회복",
     "ddNotRecovered": "미회복",
     "ddDays": "{{count}}일",
+    "lossPoints": "Where the loss came from",
+    "lossPointsNote": "Sells whose exit falls between the peak and the trough, with negative PnL.",
+    "lossNoTrades": "This drawdown has no losing trades. An equity curve alone cannot name the stocks.",
+    "lossWorst": "Worst trades",
+    "lossCluster": "Same-day cluster",
+    "lossCode": "Symbol",
+    "lossPnl": "PnL",
+    "lossWhen": "Exit",
+    "lossReason": "Reason",
+    "lossCount": "{{count}}",
     "dashboard": "리서치 대시보드",
     "positions": {
       "tab": "포지션",
@@ -1426,7 +312,12 @@
     "attrCumulativeTitle": "누적 수익률",
     "attrLoading": "귀인 데이터 로드 중…",
     "attrError": "귀인 데이터를 로드하지 못했습니다.",
-    "attrNoData": "이 실행에는 귀인 데이터가 없습니다."
+    "attrNoData": "이 실행에는 귀인 데이터가 없습니다.",
+    "status": {
+      "completed": "완료됨",
+      "cancelled": "취소됨",
+      "failed": "실패"
+    }
   },
   "compare": {
     "title": "전략 비교",
@@ -1765,153 +656,6 @@
     "windowReturns": "구간별 수익률",
     "tradeNumber": "거래 번호"
   },
-  "thinking": {
-    "processing": "처리 중",
-    "running": "실행 중",
-    "done": "완료",
-    "steps": "{{count}}단계"
-  },
-  "runnerStatus": {
-    "connectorRuntime": "커넥터 운영 상태",
-    "configuredProfiles": "구성된 커넥터 프로필",
-    "connected": "{{count}}개 연결됨",
-    "noConnector": "연결된 커넥터 없음",
-    "running": "실행 중",
-    "halted": "정지됨",
-    "authorized": "인증됨",
-    "sdkConnected": "연결됨",
-    "sdkReadOnlyNote": "직접 SDK 커넥터 · 읽기 전용 프로필. 실거래에는 trade 프로필과 커밋된 mandate가 필요합니다.",
-    "sdkCredentialsRequired": "이 커넥터의 API 자격 증명을 구성하세요(Runtime 참조).",
-    "sdkConnectionError": "연결 확인에 실패했습니다. Runtime에서 자격 증명을 확인하세요.",
-    "notConnected": "연결되지 않음",
-    "connectProfile": "이 프로필을 연결하여 커넥터 활성화",
-    "authorizeNote": "OAuth가 성공하고 mandate가 커밋될 때까지 커넥터 채널은 읽기 전용 상태를 유지합니다.",
-    "runner": "러너",
-    "runnerRunning": "실행 중",
-    "runnerStopped": "정지됨",
-    "lastTick": "마지막 틱",
-    "activeMandate": "활성 mandate",
-    "expiresIn": "{{time}} 후 만료",
-    "expired": "만료됨",
-    "limitsUnavailable": "한도 정보 없음",
-    "noActiveMandate": "활성 mandate가 없습니다. 에이전트에 제안을 요청한 다음, 커넥터를 시작하기 전에 커밋하세요.",
-    "haltedControlsDisabled": "정지됨 — 러너 제어 비활성화",
-    "runtimeActive": "mandate 내에서 운영 중",
-    "idle": "유휴",
-    "stopRunner": "러너 중지",
-    "startRunner": "러너 시작",
-    "never": "없음",
-    "unknown": "알 수 없음",
-    "justNow": "방금 전",
-    "loadingInstructions": "커넥터 인증 안내를 불러오는 중...",
-    "fallbackInstruction": "`vibe-trading connector list`를 실행해 브로커 프로필을 선택한 뒤, 브로커 연결을 유지할 데스크톱 세션에서 `vibe-trading connector authorize <프로필>`을 실행하세요.",
-    "secondsAgo": "{{n}}초 전",
-    "minutesAgo": "{{n}}분 전",
-    "hoursAgo": "{{n}}시간 전",
-    "daysAgo": "{{n}}일 전",
-    "runnerStartedFor": "{{broker}} 러너가 시작되었습니다",
-    "runnerStoppedFor": "{{broker}} 러너가 정지되었습니다",
-    "runnerControlFailed": "러너 제어에 실패했습니다.",
-    "startRunnerTitle": "상주 러너 시작",
-    "stopRunnerTitle": "상주 러너 중지",
-    "expiresAt": "{{time}} 만료"
-  },
-  "swarmStatus": {
-    "agents": "{{done}}/{{total}} 에이전트",
-    "layer": "{{total}}개 라운드 중 {{current}}번째",
-    "agent": "에이전트",
-    "status": "상태",
-    "tool": "도구",
-    "time": "시간",
-    "iters": "패스",
-    "output": "출력",
-    "waitingForEvents": "에이전트 이벤트 대기 중...",
-    "teamStarting": "팀을 시작하는 중입니다. 몇 초 후 첫 진행 상황이 도착합니다…",
-    "detailsUnavailable": "세부 정보 없음"
-  },
-  "mandate": {
-    "runtimeMandate": "커넥터 mandate",
-    "reauthMandate": "커넥터 mandate 재인증",
-    "universe": "유니버스",
-    "maxOrder": "주문당 최대",
-    "dailyCap": "일일 한도",
-    "leverage": "레버리지",
-    "instruments": "종목",
-    "adjust": "조정",
-    "committing": "커밋 중…",
-    "commit": "\"{{label}}\" 커밋",
-    "cancel": "취소",
-    "sendAdjustment": "조정 전송",
-    "mandateActive": "Mandate {{id}} 활성",
-    "fundedBy": "자금 출처",
-    "noBroker": "mandate를 커밋할 수 없습니다: 커넥터 브로커 정보가 누락되었습니다. 에이전트에게 제안 재생성을 요청하세요.",
-    "failedToCommit": "mandate 커밋에 실패했습니다.",
-    "noLeverage": "레버리지 없음",
-    "leverageValue": "{{value}}× 레버리지",
-    "tradesPerDay": "일 {{count}}건 거래",
-    "adjustTitle": "이 mandate 조정",
-    "adjustPlaceholder": "예: 유지하되 일일 한도를 10으로 상향",
-    "adjustInputLabel": "조정 요청 내용",
-    "confirmTitle": "mandate 커밋 확인",
-    "confirmDescription": "커밋하면 아래 한도로 에이전트에게 즉시 거래 권한이 부여됩니다.",
-    "confirmButton": "확인 후 커밋",
-    "maxPerOrder": "주문당 {{amount}} 이하",
-    "expiresOn": "{{date}} 만료",
-    "accountSummary": "{{broker}} · {{type}} 계정 · 자금 제공: {{fundedBy}}",
-    "adjustRequestMessage": "운용 권한 제안 \"{{label}}\"(옵션 {{ordinal}})에 대한 조정 요청: {{text}}",
-    "accountLoading": "브로커 계좌를 불러오는 중…",
-    "accountLoadFailed": "브로커 계좌를 불러오지 못했습니다: {{error}}",
-    "accountLabel": "이 mandate로 거래할 계좌",
-    "accountChoose": "계좌 선택",
-    "accountDefault": " · 브로커 기본값",
-    "accountDeactivated": " · 비활성화됨",
-    "accountNotAgentic": " · 에이전트 거래 허용 안 됨",
-    "accountHint": "에이전트는 이 계좌에서만 거래합니다. 자동으로 선택되지 않습니다."
-  },
-  "messageBubble": {
-    "elapsedTime": "총 응답 시간",
-    "copied": "복사됨",
-    "copy": "복사",
-    "copyFailed": "복사하지 못했습니다. 텍스트를 선택한 뒤 Ctrl+C를 누르세요.",
-    "timeoutHint": "시간이 초과되었습니다. 전략을 단순화하거나 자산 수를 줄여 주세요.",
-    "apiFailedHint": "API 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-    "executionFailedHint": "실행에 실패했습니다. 다시 시도해 주세요.",
-    "retry": "다시 시도"
-  },
-  "pineViewer": {
-    "pineScript": "Pine Script v6",
-    "copied": "복사됨",
-    "copy": "복사",
-    "docs": "문서",
-    "footer": "TradingView Pine 에디터 → 새 빈 인디케이터 → 코드 붙여넣기 → 차트에 추가"
-  },
-  "runComplete": {
-    "fullReport": "전체 리포트 →",
-    "pineScript": "Pine Script",
-    "shadowReport": "섀도우 리포트"
-  },
-  "home": {
-    "title": "AI 기반 퀀트 전략 리서치",
-    "subtitle": "자연어로 거래 전략을 설명하세요. 에이전트가 코드를 생성하고, 백테스트를 실행하고, 최적화하는 모든 과정을 실시간으로 보여줍니다.",
-    "startResearch": "리서치 시작",
-    "featureAgent": "AI 에이전트",
-    "featureAgentDesc": "ReAct 추론 기반의 자연어 전략 생성",
-    "featureBacktest": "내장 백테스트",
-    "featureBacktestDesc": "A주 퀀트 분석을 지원하는 다양한 데이터 소스",
-    "featureStreaming": "실시간 스트리밍",
-    "featureStreamingDesc": "에이전트의 사고, 도구 호출, 반복 과정을 지켜보세요",
-    "featureReplay": "전략 리플레이",
-    "featureReplayDesc": "매매 일지 분석 + 섀도우 계좌 — 규칙 추출, 백테스트, PnL 차이 귀인 분석",
-    "howItWorksTitle": "사용 방법",
-    "step1Title": "1. 전략을 설명하세요",
-    "step1Desc": "코드 없이 자연어로 테스트하고 싶은 내용을 에이전트에게 전달하세요.",
-    "step2Title": "2. 리서치와 백테스트 과정을 지켜보세요",
-    "step2Desc": "에이전트가 계획을 세우고 시장 데이터를 가져와 실시간으로 백테스트를 실행합니다.",
-    "step3Title": "3. 결과를 확인하세요",
-    "step3Desc": "성과 지표, 자산 곡선, 내보내기 가능한 Pine Script를 확인할 수 있습니다.",
-    "step4Title": "4. 준비되면 실전으로",
-    "step4Desc": "한도가 명시된 거래 mandate를 선택적으로 승인하세요 — 확인 없이는 어떤 주문도 실행되지 않습니다."
-  },
   "errorBoundary": {
     "somethingWrong": "문제가 발생했습니다. 계속하려면 페이지를 새로고침하세요."
   },
@@ -1919,40 +663,6 @@
     "noPriceData": "이 종목에는 아직 가격 데이터가 없습니다",
     "noCorrelationData": "비교할 종목을 두 개 이상 선택하세요",
     "noEquityData": "계정 가치 곡선이 아직 없습니다. 먼저 백테스트를 실행하세요"
-  },
-  "toolProgress": {
-    "step": "단계 {{step}} · {{tool}}",
-    "toolsRunning": "{{count}}개 작업을 동시에 처리 중",
-    "toolsCompleted": "{{count}}단계 완료",
-    "more": "… 외 {{count}}개",
-    "etaSeconds": "약 {{seconds}}초 남음",
-    "earlier": "이전 {{count}}개"
-  },
-  "swarm": {
-    "assemblingTeam": "팀 구성 중…",
-    "preparingLayers": "먼저 진행할 순서를 정하는 중…",
-    "agentProgress": "스웜 에이전트 진행 상황",
-    "status": {
-      "waiting": "대기 중",
-      "running": "실행 중",
-      "done": "완료",
-      "failed": "실패",
-      "blocked": "차단됨",
-      "retry": "재시도 중",
-      "cancelled": "취소됨",
-      "pending": "시작 대기",
-      "completed": "완료됨",
-      "unknown": "알 수 없음"
-    },
-    "elapsed": {
-      "seconds": "{{value}}초",
-      "minutesSeconds": "{{minutes}}분 {{seconds}}초"
-    },
-    "presets": {
-      "investment_committee": "투자 위원회 리뷰",
-      "quant_strategy_desk": "퀀트 전략 데스크",
-      "value_investing_committee": "가치 투자 위원회"
-    }
   },
   "metrics": {
     "good": "양호",
@@ -1974,93 +684,6 @@
       "final_value": "테스트 기간 종료 시점의 포트폴리오 가치입니다.",
       "avg_holding_days": "각 포지션을 유지한 평균 일수입니다."
     }
-  },
-  "tools": {
-    "add_goal_evidence": "목표에 증거 추가",
-    "alpha_bench": "알파 팩터 벤치마크",
-    "alpha_compare": "알파 팩터 비교",
-    "alpha_zoo": "알파 라이브러리 탐색",
-    "analyze_image": "이미지 분석",
-    "analyze_trade_journal": "매매 일지 분석",
-    "background_run": "백그라운드 작업 시작",
-    "backtest": "백테스트 실행",
-    "bash": "명령 실행",
-    "cancel_background": "백그라운드 작업 취소",
-    "check_background": "백그라운드 작업 확인",
-    "compact": "대화 요약",
-    "create_hypothesis": "리서치 가설 생성",
-    "delete_skill": "사용자 스킬 삭제",
-    "edit_file": "코드 편집",
-    "extract_shadow_strategy": "섀도우 전략 추출",
-    "factor_analysis": "팩터 분석",
-    "financial_rigor": "재무 분석 검증",
-    "generate_backtest_config": "백테스트 설정 생성",
-    "get_block_trades": "대량매매 조회",
-    "get_dragon_tiger": "용호방 조회",
-    "get_financial_statements": "재무제표 조회",
-    "get_fund_flow": "자금 흐름 조회",
-    "get_fundamentals": "펀더멘털 조회",
-    "get_lockup_expiry": "보호예수 해제 일정 조회",
-    "get_macro_series": "거시경제 시계열 조회",
-    "get_margin_trading": "신용거래 데이터 조회",
-    "get_market_data": "시장 데이터 조회",
-    "get_northbound_flow": "북향 자금 흐름 조회",
-    "get_options_chain": "옵션 체인 조회",
-    "get_research_goal": "리서치 목표 보기",
-    "get_research_reports": "리서치 보고서 조회",
-    "get_sec_filings": "SEC 공시 조회",
-    "get_sector_info": "섹터 데이터 조회",
-    "get_shareholder_count": "주주 수 조회",
-    "get_stock_news": "종목 뉴스 조회",
-    "get_stock_profile": "종목 정보 조회",
-    "iwencai_search": "iWenCai 검색",
-    "link_autopilot_backtest": "자동 리서치에 백테스트 연결",
-    "link_backtest": "가설에 백테스트 연결",
-    "load_skill": "전략 지식 불러오기",
-    "options_payoff": "옵션 손익 분석",
-    "options_pricing": "옵션 가격 계산",
-    "patch_skill": "사용자 스킬 업데이트",
-    "pattern": "차트 패턴 감지",
-    "portfolio_risk_xray": "포트폴리오 위험 정밀 분석",
-    "propose_mandate_profiles": "거래 운용 권한 제안",
-    "qveris_execute": "QVeris 작업 실행",
-    "qveris_inspect": "QVeris 작업 점검",
-    "qveris_search": "QVeris 검색",
-    "read_document": "문서 읽기",
-    "read_file": "파일 읽기",
-    "read_url": "웹페이지 읽기",
-    "remember": "기억에 저장",
-    "render_shadow_report": "섀도우 보고서 생성",
-    "report_audit": "리서치 보고서 감사",
-    "run_research_autopilot": "자동 리서치 실행",
-    "run_shadow_backtest": "섀도우 백테스트 실행",
-    "run_swarm": "팀 소집",
-    "save_skill": "사용자 스킬 저장",
-    "scaffold_signal_engine": "신호 엔진 구축",
-    "scan_shadow_signals": "섀도우 신호 스캔",
-    "screen_market": "시장 종목 선별",
-    "sdm_decay_scan": "전략 성능 저하 스캔",
-    "sdm_register": "전략 등록",
-    "sdm_status": "전략 상태 확인",
-    "search_hypotheses": "가설 검색",
-    "search_symbol": "종목 코드 검색",
-    "session_search": "과거 세션 검색",
-    "skill_file": "스킬 파일 읽기",
-    "start_research_goal": "리서치 목표 시작",
-    "trading_account": "브로커 계정 보기",
-    "trading_cancel_order": "브로커 주문 취소",
-    "trading_check": "브로커 연결 확인",
-    "trading_connections": "브로커 연결 목록",
-    "trading_history": "거래 내역 보기",
-    "trading_orders": "브로커 주문 보기",
-    "trading_place_order": "브로커 주문 제출",
-    "trading_positions": "브로커 포지션 보기",
-    "trading_quote": "브로커 시세 조회",
-    "trading_select_connection": "브로커 연결 선택",
-    "update_hypothesis": "리서치 가설 업데이트",
-    "update_research_goal_status": "목표 상태 업데이트",
-    "web_search": "웹 검색",
-    "write_file": "코드 생성"
   },
   "runDashboard": {
     "eyebrow": "계량 리서치 · 백테스트",
@@ -2345,5 +968,52 @@
     "selectedFactor": "선택 팩터: {{id}}. 이 팩터만 평가합니다.",
     "fundamentalsRequirement": "기본적 팩터에는 PIT 안전 SEC 재무제표와 미국 주식 유니버스(S&P 500)가 필요합니다.",
     "noEvaluableFactors": "평가 가능한 팩터가 없습니다. 기간을 늘리고 필요한 데이터 필드와 주식 유니버스를 확인하세요."
+  },
+  "workbench": {
+    "title": "Research workbench",
+    "subtitle": "Submit strategies from your code agent. Track experiments, inspect results and compare revisions.",
+    "active": "In progress",
+    "complete": "Completed",
+    "total": "Experiments",
+    "project": "Project",
+    "all": "All projects",
+    "refresh": "Refresh",
+    "loading": "Loading experiments…",
+    "empty": "No experiments yet",
+    "emptyHint": "Start the service, then submit the offline example below from your terminal or code agent.",
+    "error": "Unable to load experiments",
+    "report": "Open report",
+    "logs": "Logs & configuration",
+    "cancel": "Cancel experiment",
+    "compare": "Compare selected",
+    "select": "Select {{name}} for comparison",
+    "schema": "Artifact schema checked · accounting / out-of-sample not checked",
+    "handoff": "Connect your external code agent",
+    "handoffHint": "The service snapshots only the files explicitly listed in your manifest. Run from the repository root; see README for the artifact contract.",
+    "copy": "Copy context",
+    "copied": "Copied",
+    "noLogs": "No log output yet.",
+    "config": "Submitted configuration",
+    "snapshot": "Source & input snapshot",
+    "parent": "Parent experiment",
+    "settings": "Workbench settings",
+    "settingsHint": "Local execution and API connection. No model configuration is required.",
+    "key": "API key (optional for local development)",
+    "save": "Save connection",
+    "saved": "Connection saved",
+    "workspace": "Allowed workspace",
+    "storage": "Experiment storage",
+    "workers": "Concurrent workers",
+    "connection": "Connection",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "cancelling": "Cancelling",
+      "cancelled": "Cancelled",
+      "failed": "Failed",
+      "interrupted": "Interrupted",
+      "success": "Succeeded"
+    },
+    "appName": "Quant Workbench"
   }
 }

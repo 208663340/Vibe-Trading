@@ -1333,7 +1333,7 @@ def main(run_dir: Path) -> None:
     # import ``signal_engine.py`` from anywhere on disk; the AST scrubber
     # below blocks executable top-level statements but a method body still
     # runs on instantiation. See ``safe_run_dir`` for the policy.
-    from src.runtime.tools.path_utils import safe_run_dir
+    from src.platform.path_utils import safe_run_dir
     try:
         run_dir = safe_run_dir(str(run_dir))
     except ValueError as exc:

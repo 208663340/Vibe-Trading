@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { Reports } from "../Reports";
+import { pickSelectOption } from "@/tests/select";
 
 const apiMock = vi.hoisted(() => ({
   listRuns: vi.fn(),
@@ -19,7 +20,7 @@ describe("Reports page", () => {
     apiMock.listRuns.mockResolvedValue([]);
     render(<Reports />, { wrapper: MemoryRouter });
     expect(await screen.findByText("No reports yet")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Start with the research assistant" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Open workbench" })).toHaveAttribute("href", "/");
   });
 
   it("lists backtest reports newest first with Full Report links and skips non-report runs", async () => {
@@ -95,5 +96,23 @@ describe("Reports page", () => {
 
     expect(screen.queryByText("aapl-report")).not.toBeInTheDocument();
     expect(screen.getByText("msft-report")).toBeInTheDocument();
+  });
+
+  it("sorts and filters reports using the keyboard pickers", async () => {
+    apiMock.listRuns.mockResolvedValue([
+      { run_id: "old-report", status: "success", created_at: "2026-06-01T00:00:00Z", total_return: 0.2 },
+      { run_id: "new-report", status: "failed", created_at: "2026-06-02T00:00:00Z", total_return: 0.1 },
+    ]);
+    render(<Reports />, { wrapper: MemoryRouter });
+    await screen.findByRole("link", { name: "new-report" });
+    expect(screen.getAllByRole("link", { name: /-report$/ })[0]).toHaveTextContent("new-report");
+
+    await pickSelectOption(screen.getByRole("combobox", { name: "Sort" }), "Return high to low");
+    expect(screen.getAllByRole("link", { name: /-report$/ })[0]).toHaveTextContent("old-report");
+    await pickSelectOption(screen.getByRole("combobox", { name: "Status" }), "failed");
+    expect(screen.queryByRole("link", { name: "old-report" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "new-report" })).toBeVisible();
+    await pickSelectOption(screen.getByRole("combobox", { name: "Status" }), "All statuses");
+    expect(screen.getAllByRole("link", { name: /-report$/ })[0]).toHaveTextContent("old-report");
   });
 });

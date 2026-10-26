@@ -6,6 +6,11 @@ import "../i18n";
 
 // ── Global mocks for jsdom ───────────────────────────────────
 
+// Radix Select scrolls its focused option into view; jsdom has no layout.
+if (typeof HTMLElement !== "undefined" && !HTMLElement.prototype.scrollIntoView) {
+  HTMLElement.prototype.scrollIntoView = () => {};
+}
+
 // jsdom doesn't implement ResizeObserver (ECharts + layout components need it)
 globalThis.ResizeObserver = class {
   observe() {}

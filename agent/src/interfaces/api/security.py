@@ -17,7 +17,7 @@ from fastapi import HTTPException, Query, Request, Security, status
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from src.runtime.session.models import AuthMethod, Principal
+from src.platform.auth import AuthMethod, Principal
 
 from src.interfaces.api._compat import host_attr as _host_attr
 from src.platform.config.accessor import get_env_config

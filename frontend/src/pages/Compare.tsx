@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router";
 import i18n from '@/i18n';
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +10,8 @@ import { echarts, CHART_GROUP, connectCharts } from "@/features/charts/echarts";
 import { getChartTheme } from "@/features/charts/theme";
 import { useThemeDark } from "@/shared/theme";
 import { SkeletonChart, SkeletonMetrics } from "@/components/common/Skeleton";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MetricDef {
   key: string;
@@ -233,6 +236,8 @@ function EquityChartOverlay({ leftCurve, rightCurve, leftLabel, rightLabel, reba
 }
 
 export function Compare() {
+  const [searchParams] = useSearchParams();
+  const requestedLeft = searchParams.get("left"), requestedRight = searchParams.get("right");
   const { t } = useTranslation();
   const [runs, setRuns] = useState<RunListItem[]>([]);
   const [leftId, setLeftId] = useState("");
@@ -250,12 +255,17 @@ export function Compare() {
   useEffect(() => {
     api.listRuns().then((items) => {
       setRuns(Array.isArray(items) ? items : []);
-      if (items.length >= 2) { setLeftId(items[1].run_id); setRightId(items[0].run_id); }
-      else if (items.length === 1) { setLeftId(items[0].run_id); }
+      const ids = new Set(items.map(item => item.run_id));
+      // Explicit pairs may reference older experiments outside the report list limit.
+      if (requestedLeft && !ids.has(requestedLeft)) items.push({run_id: requestedLeft, prompt: requestedLeft, created_at: "", status: "unknown"});
+      if (requestedRight && !ids.has(requestedRight) && requestedRight !== requestedLeft) items.push({run_id: requestedRight, prompt: requestedRight, created_at: "", status: "unknown"});
+      setRuns([...items]);
+      setLeftId(requestedLeft || items[1]?.run_id || items[0]?.run_id || "");
+      setRightId(requestedRight || (items.length >= 2 ? items[0].run_id : ""));
     }).catch((error) => {
       toast.error(error instanceof Error ? error.message : i18n.t("compare.loadError"));
     });
-  }, []);
+  }, [requestedLeft, requestedRight]);
 
   useEffect(() => {
     const generation = ++leftRequestGeneration.current;
@@ -325,35 +335,43 @@ export function Compare() {
   const hasData = Boolean(leftData || rightData);
 
   return (
-    <div className="mx-auto max-w-5xl p-8 space-y-6">
+    <div className="mx-auto max-w-5xl p-5 sm:p-8 space-y-6">
       <h1 className="flex items-center gap-2 text-2xl font-semibold">
         <GitCompare className="h-5 w-5" aria-hidden="true" /> {t("compare.title")}
       </h1>
 
       {/* Selectors */}
-      <div className="flex gap-4 items-end rounded-xl border border-border/60 bg-card p-4 shadow-sm">
-        <div className="flex-1">
-          <label className="text-xs text-muted-foreground block mb-1">{i18n.t("compare.baseline")}</label>
-          <select value={leftId} onChange={(e) => setLeftId(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" title={leftRun?.prompt || leftId}>
-            <option value="">{i18n.t("compare.select")}</option>
-            {runs.map((r) => <option key={r.run_id} value={r.run_id}>{runLabel(r)} ({r.status})</option>)}
-          </select>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end rounded-xl border border-border/60 bg-card p-4 shadow-sm">
+        <div className="min-w-0 flex-1">
+          <label htmlFor="compare-baseline" className="text-xs text-muted-foreground block mb-1">{i18n.t("compare.baseline")}</label>
+          <Select dir={i18n.dir(i18n.language)} value={leftId ? `run:${leftId}` : "none"} onValueChange={value => setLeftId(value === "none" ? "" : value.slice(4))}>
+            <SelectTrigger id="compare-baseline" title={leftRun?.prompt || leftId}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{i18n.t("compare.select")}</SelectItem>
+              {runs.map((r) => <SelectItem key={r.run_id} value={`run:${r.run_id}`}>{runLabel(r)} ({r.status})</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           onClick={() => { setLeftId(rightId); setRightId(leftId); }}
           title={i18n.t("compare.swapRuns")}
-          className="mb-1 shrink-0 rounded-md border border-border/60 p-2 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+          className="shrink-0 self-center text-muted-foreground"
         >
           <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
           <span className="sr-only">{i18n.t("compare.swapRuns")}</span>
-        </button>
-        <div className="flex-1">
-          <label className="text-xs text-muted-foreground block mb-1">{i18n.t("compare.compare")}</label>
-          <select value={rightId} onChange={(e) => setRightId(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" title={rightRun?.prompt || rightId}>
-            <option value="">{i18n.t("compare.select")}</option>
-            {runs.map((r) => <option key={r.run_id} value={r.run_id}>{runLabel(r)} ({r.status})</option>)}
-          </select>
+        </Button>
+        <div className="min-w-0 flex-1">
+          <label htmlFor="compare-candidate" className="text-xs text-muted-foreground block mb-1">{i18n.t("compare.compare")}</label>
+          <Select dir={i18n.dir(i18n.language)} value={rightId ? `run:${rightId}` : "none"} onValueChange={value => setRightId(value === "none" ? "" : value.slice(4))}>
+            <SelectTrigger id="compare-candidate" title={rightRun?.prompt || rightId}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{i18n.t("compare.select")}</SelectItem>
+              {runs.map((r) => <SelectItem key={r.run_id} value={`run:${r.run_id}`}>{runLabel(r)} ({r.status})</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -380,19 +398,22 @@ export function Compare() {
                 { id: true, label: i18n.t("compare.rebasedMode") },
                 { id: false, label: i18n.t("compare.rawMode") },
               ].map((mode) => (
-                <button
+                <Button
                   key={String(mode.id)}
                   type="button"
+                  variant="outline"
+                  size="sm"
+                  aria-pressed={rebase === mode.id}
                   onClick={() => setRebase(mode.id)}
                   className={cn(
-                    "rounded-full border px-2.5 py-1 transition-colors",
+                    "h-7 rounded-full px-2.5 text-xs",
                     rebase === mode.id
                       ? "border-primary/30 bg-primary/10 font-medium text-primary"
                       : "border-border/60 text-muted-foreground hover:bg-muted/60",
                   )}
                 >
                   {mode.label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -420,8 +441,11 @@ export function Compare() {
             </thead>
             <tbody>
               {METRICS.map(({ key, label, type, higherIsBetter }) => {
-                const lv = resolveMetric(leftData, key);
-                const rv = resolveMetric(rightData, key);
+                // Normalize drawdown to loss magnitude for values, deltas and
+                // verdicts: engine/imported reports can use different signs.
+                const normalize = (value: number | undefined) => key === "max_drawdown" && value !== undefined ? Math.abs(value) : value;
+                const lv = normalize(resolveMetric(leftData, key));
+                const rv = normalize(resolveMetric(rightData, key));
                 const diff = diffClass(lv, rv, higherIsBetter);
                 // Proportional in-cell bars (colored to match the chart legend)
                 // make the winner readable at a glance without parsing numbers.

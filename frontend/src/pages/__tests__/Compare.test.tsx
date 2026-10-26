@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { Compare } from "../Compare";
 import type { RunData } from "@/lib/api";
+import { pickSelectOption } from "@/tests/select";
 
 const apiMock = vi.hoisted(() => ({
   listRuns: vi.fn(),
@@ -44,10 +46,10 @@ describe("Compare page", () => {
       return Promise.resolve({ status: "success", run_id: runId });
     });
 
-    render(<Compare />);
+    render(<MemoryRouter><Compare /></MemoryRouter>);
     const selectors = await screen.findAllByRole("combobox");
-    await waitFor(() => expect(selectors[0]).toHaveValue("old"));
-    fireEvent.change(selectors[0], { target: { value: "new" } });
+    await waitFor(() => expect(selectors[0]).toHaveTextContent("Old (success)"));
+    await pickSelectOption(selectors[0], "New (success)");
 
     await act(async () => {
       newRequest.resolve({ status: "success", run_id: "new", metrics: { total_return: 0.3 } });
@@ -73,10 +75,10 @@ describe("Compare page", () => {
       return Promise.resolve({ status: "success", run_id: runId });
     });
 
-    const { container } = render(<Compare />);
+    const { container } = render(<MemoryRouter><Compare /></MemoryRouter>);
     const selectors = await screen.findAllByRole("combobox");
-    await waitFor(() => expect(selectors[0]).toHaveValue("old"));
-    fireEvent.change(selectors[0], { target: { value: "new" } });
+    await waitFor(() => expect(selectors[0]).toHaveTextContent("Old (success)"));
+    await pickSelectOption(selectors[0], "New (success)");
 
     await act(async () => {
       oldRequest.reject(new Error("old request failed"));
@@ -103,7 +105,7 @@ describe("Compare page", () => {
         : { total_return: 0.1, volatility: 0.1 },
     }));
 
-    render(<Compare />);
+    render(<MemoryRouter><Compare /></MemoryRouter>);
 
     expect(screen.getByRole("heading", { level: 1, name: "Strategy Comparison" })).toHaveClass("text-2xl", "font-semibold");
     expect(await screen.findByText("Better:")).toHaveClass("sr-only");
@@ -112,4 +114,29 @@ describe("Compare page", () => {
     expect(screen.getByText("\u2193")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByRole("table").parentElement).toHaveClass("overflow-x-auto");
   });
+});
+
+it("honors the experiment pair supplied by the workbench", async () => {
+  apiMock.listRuns.mockResolvedValue(runs);
+  apiMock.getRun.mockResolvedValue({status: "success"});
+  render(<MemoryRouter initialEntries={["/compare?left=new&right=old"]}><Compare /></MemoryRouter>);
+  const selectors = await screen.findAllByRole("combobox");
+  await waitFor(() => { expect(selectors[0]).toHaveTextContent("New (success)"); expect(selectors[1]).toHaveTextContent("Old (success)"); });
+  fireEvent.click(screen.getByRole("button", { name: "Swap" }));
+  expect(selectors[0]).toHaveTextContent("Old (success)");
+  expect(selectors[1]).toHaveTextContent("New (success)");
+  await pickSelectOption(selectors[0], "-- Select --");
+  expect(selectors[0]).toHaveTextContent("-- Select --");
+  expect(apiMock.getRun).not.toHaveBeenCalledWith("none");
+});
+
+it.each([[-0.2, -0.1], [0.2, 0.1], [-0.2, 0.1]])("treats a smaller drawdown magnitude as better (%s → %s)", async (baseline, comparison) => {
+  apiMock.listRuns.mockResolvedValue(runs);
+  apiMock.getRun.mockImplementation((id: string) => Promise.resolve({status:"success",run_id:id,metrics:{max_drawdown: id === "right" ? comparison : baseline}}));
+  render(<MemoryRouter><Compare /></MemoryRouter>);
+  expect(await screen.findByText("Better:")).toBeInTheDocument();
+  expect(screen.queryByText("Worse:")).not.toBeInTheDocument();
+  expect(screen.getByText("20.00%")).toBeInTheDocument();
+  expect(screen.getByText("10.00%")).toBeInTheDocument();
+  expect(screen.getByText("-10.00%")).toBeInTheDocument();
 });

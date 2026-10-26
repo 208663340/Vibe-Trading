@@ -658,13 +658,7 @@ def _build_response_from_run_dir(
     chart_symbols_out: Optional[List[str]] = None,
 ):
     """Build a run response from a persisted run directory."""
-    import sys as _sys
-
-    host = _sys.modules.get("src.interfaces.api_server")
-    RunResponse = host.RunResponse
-    BacktestMetrics = host.BacktestMetrics
-    RAGSelection = host.RAGSelection
-    Artifact = host.Artifact
+    from src.interfaces.api.models import RunResponse, BacktestMetrics, RAGSelection, Artifact
 
     run_id = run_dir.name
 
@@ -674,6 +668,7 @@ def _build_response_from_run_dir(
         elapsed_seconds=elapsed,
         run_directory=str(run_dir),
     )
+    response.experiment = _load_json_file(run_dir / "experiment.json")
 
     state_data = _load_json_file(run_dir / "state.json")
     if state_data:
@@ -838,6 +833,8 @@ AuthDep = Callable[..., Awaitable[Any] | Any]
 def register_runs_routes(
     app: FastAPI,
     require_auth: AuthDep | None = None,
+    *,
+    host: Any = None,
 ) -> None:
     """Mount the runs routes onto ``app``.
 
@@ -846,7 +843,7 @@ def register_runs_routes(
     """
     import sys as _sys
 
-    host = _sys.modules.get("src.interfaces.api_server")
+    host = host or _sys.modules.get("src.interfaces.api_server")
     if host is None:
         raise RuntimeError(
             "register_runs_routes: api_server module not in sys.modules; "
@@ -858,12 +855,10 @@ def register_runs_routes(
 
     # Late-access closures for shared host symbols (monkeypatch-safe)
     def _host_validate_path_param(value: str, kind: str) -> None:
-        h = _sys.modules.get("src.interfaces.api_server")
-        return h._validate_path_param(value, kind)
+        return host._validate_path_param(value, kind)
 
     def _host_RUNS_DIR() -> Path:
-        h = _sys.modules.get("src.interfaces.api_server")
-        return h.RUNS_DIR
+        return host.RUNS_DIR
 
     # Pydantic models for response_model (resolved at registration time)
     RunResponse = host.RunResponse
@@ -883,6 +878,21 @@ def register_runs_routes(
         """
         _host_validate_path_param(run_id, "run_id")
         run_dir = _host_RUNS_DIR() / run_id / "code"
+        snapshot = run_dir.parent / "source"
+        manifest = _load_json_file(run_dir.parent / "experiment.json")
+        if manifest and snapshot.is_dir():
+            result = {}
+            total = 0
+            for item in manifest.get("files", []):
+                name = str(item.get("path", ""))
+                p = snapshot / name
+                if p.suffix != ".py" or not p.resolve().is_relative_to(snapshot.resolve()) or not p.is_file():
+                    continue
+                total += p.stat().st_size
+                if total > 2 * 1024 * 1024:
+                    raise HTTPException(status_code=413, detail="Source snapshot exceeds inline preview limit")
+                result[name] = p.read_text(encoding="utf-8")
+            return result
         if not run_dir.exists():
             raise HTTPException(status_code=404, detail=f"Code directory for run {run_id} not found")
         result = {}

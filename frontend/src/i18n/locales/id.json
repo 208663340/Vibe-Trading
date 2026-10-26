@@ -13,20 +13,19 @@
     "groups": {
       "research": "Riset sehari-hari",
       "analysis": "Analisis khusus",
-      "automation": "Otomatisasi & pengaturan"
+      "automation": "Connection"
     },
     "howTo": "Cara menggunakan {{feature}}",
-    "startResearch": "Mulai dengan asisten riset",
+    "startResearch": "Buka ruang kerja",
     "descriptions": {
-      "agent": "Ajukan pertanyaan riset atau jelaskan strategi dengan kata-kata sendiri.",
       "reports": "Lihat dan bandingkan backtest yang telah selesai.",
       "portfolio": "Lihat saldo dan posisi dari akun yang terhubung.",
       "alphaZoo": "Jelajahi sinyal pemilihan saham dan evaluasi atau bandingkan kinerja historisnya.",
       "optionsLab": "Susun strategi opsi, pelajari laba dan risiko, serta lihat rantai opsi AS.",
       "correlation": "Bandingkan hubungan pergerakan aset.",
-      "scheduled": "Ulangi tugas riset sesuai jadwal.",
-      "runtime": "Periksa koneksi broker dan status pelaksanaan perdagangan.",
-      "settings": "Atur model, sumber data, dan koneksi broker."
+      "settings": "Local execution and API connection. No model configuration is required.",
+      "workbench": "Submit strategies from your code agent. Track experiments, inspect results and compare revisions.",
+      "compare": "Compare metrics and equity curves from two experiments."
     },
     "instructions": {
       "reports": "Minta asisten melakukan backtest strategi terlebih dahulu, lalu buka hasilnya di sini. Unduh PDF dan dokumen yang dibuat di chat dari percakapan asal.",
@@ -34,20 +33,16 @@
       "alphaZoo": "Baca definisi faktor, lalu pilih pasar dan rentang tanggal untuk mengevaluasi atau membandingkan sinyal. Validasi kandidat dengan backtest.",
       "optionsLab": "Pilih preset atau tambahkan kaki opsi, lalu sesuaikan harga, jatuh tempo, dan volatilitas; hasil diperbarui otomatis. Simbol rantai opsi aktual terpisah dari masukan simulasi.",
       "correlation": "Masukkan setidaknya dua simbol aset, pilih periode, lalu klik Hitung.",
-      "scheduled": "Isi instruksi riset, pilih frekuensi, dan simpan. Penjadwal lokal harus diaktifkan agar tugas berjalan; pengiriman juga memerlukan kanal yang telah diatur.",
-      "runtime": "Atur koneksi broker di Pengaturan atau Portofolio terlebih dahulu. Tindakan perdagangan yang tersedia bergantung pada kemampuan broker dan otorisasi Anda.",
-      "settings": "Atur model untuk memulai. Tambahkan data atau koneksi broker sesuai kebutuhan; riset data pasar publik tidak memerlukan akun broker."
+      "settings": "Local execution and API connection. No model configuration is required.",
+      "workbench": "The service snapshots only the files explicitly listed in your manifest. Run from the repository root; see README for the artifact contract.",
+      "compare": "Select two completed experiments in the workbench."
     }
   },
   "layout": {
-    "home": "Beranda",
-    "agent": "Asisten riset",
-    "runtime": "Status perdagangan",
-    "scheduled": "Riset terjadwal",
     "reports": "Laporan backtest",
     "portfolio": "Posisi akun",
     "alphaZoo": "Riset faktor",
-    "settings": "Pengaturan",
+    "settings": "Workbench settings",
     "correlation": "Korelasi aset",
     "optionsLab": "Analisis opsi",
     "sessions": "Sesi",
@@ -63,217 +58,12 @@
     "collapse": "Ciutkan",
     "expand": "Perluas",
     "skipToMain": "Lewati ke konten utama",
-    "sidebar": "Sidebar Vibe-Trading",
+    "sidebar": "Sidebar Quant Workbench",
     "mainNavigation": "Navigasi utama",
     "about": "Tentang",
-    "sessionsLoadFailed": "Percakapan tidak dapat dimuat."
-  },
-  "runtime": {
-    "monitorBadge": "Monitor Runtime",
-    "title": "Status Runtime Live / Paper",
-    "subtitlePre": "Status read-only dari",
-    "subtitlePost": ". Halaman ini tidak mengotorisasi connector, menjalankan Runner, menghentikan Runner, mengirim order, membatalkan order, atau mengubah mandat.",
-    "refresh": "Segarkan",
-    "unavailableTitle": "Status runtime tidak tersedia",
-    "unavailableHint": "Anggap runtime connector tidak tersedia sampai backend memberikan snapshot status terbaru.",
-    "statusUnavailable": "Status runtime tidak tersedia.",
-    "globalHalt": "Penghentian Global",
-    "halted": "Dihentikan",
-    "clear": "Bersihkan",
-    "brokers": "Broker",
-    "authorized": "Terotorisasi",
-    "runners": "Runner",
-    "running": "{{count}} berjalan",
-    "noProfilesTitle": "Tidak ada profil runtime yang dilaporkan",
-    "noProfilesBody": "Backend tidak mengembalikan profil broker live atau paper yang dikenali.",
-    "authPresent": "auth tersedia",
-    "authMissing": "auth tidak tersedia",
-    "runnerAlive": "Runner aktif",
-    "runnerStopped": "Runner berhenti",
-    "haltedPill": "dihentikan",
-    "recognizedProfile": "Profil connector dikenali",
-    "unknownProfile": "Profil connector tidak dikenal",
-    "lastTick": "Tick terakhir",
-    "authorization": "Otorisasi",
-    "oauthToken": "Token OAuth",
-    "present": "tersedia",
-    "missing": "tidak tersedia",
-    "profileType": "Tipe profil",
-    "recognized": "dikenali",
-    "unknown": "tidak diketahui",
-    "mandate": "Mandat",
-    "account": "Akun",
-    "unrecorded": "belum tercatat",
-    "expiry": "Kedaluwarsa",
-    "expired": "kedaluwarsa",
-    "limits": "Batas",
-    "noMandate": "Tidak ada mandat aktif yang dilaporkan.",
-    "riskStateTitle": "Status Risiko Runtime",
-    "riskHalted": "risiko dihentikan",
-    "riskHaltedDesc": "Penghentian darurat aktif untuk profil ini. Anggap runtime connector berhenti sampai status kembali normal.",
-    "riskActive": "runtime aktif",
-    "riskActiveDesc": "Runner aktif dan terdapat mandat yang belum kedaluwarsa. Halaman ini tetap hanya menampilkan status read-only.",
-    "riskIdle": "siap tetapi idle",
-    "riskIdleDesc": "Otorisasi dan mandat tersedia, tetapi Runner tidak aktif.",
-    "riskDormant": "tidak aktif",
-    "riskDormantDesc": "Runtime connector belum siap untuk operasi otonom karena otorisasi, mandat, atau status aktif Runner tidak tersedia.",
-    "limitsUnavailable": "batas tidak tersedia",
-    "perOrder": "/order",
-    "exposure": "eksposur",
-    "perDay": "/hari",
-    "leverageSuffix": "x leverage",
-    "never": "tidak pernah",
-    "ago": "lalu",
-    "notConfigured": "Belum dikonfigurasi",
-    "readyToVerify": "Siap diverifikasi",
-    "connectedReadOnly": "Terhubung · Read-only",
-    "connectionFailed": "Koneksi gagal",
-    "verifyConnection": "Verifikasi koneksi",
-    "retry": "Coba lagi",
-    "credentialSource": "Sumber kredensial",
-    "sdk": "SDK",
-    "configDeclared": "Dideklarasikan di config",
-    "connectorStatusUnavailable": "Status tidak tersedia",
-    "connectedAccessUnknown": "Terhubung · Akses tidak diketahui",
-    "missingLongbridgeVariables": "Konfigurasi belum lengkap. Atur variabel berikut di agent/.env lalu buat ulang layanan:",
-    "missingEtoroVariables": "Konfigurasi belum lengkap. Atur variabel environment berikut atau buat ~/.vibe-trading/etoro.json:",
-    "missingEtoroFileHint": "Contoh file: {\"api_key\": \"YOUR_PUBLIC_API_KEY\", \"user_key\": \"YOUR_USER_KEY\", \"profile\": \"live-readonly\"}. Profil: etoro-paper-sdk, etoro-live-sdk-readonly, etoro-paper-trade, etoro-live-trade.",
-    "missingConnectorVariables": "Konfigurasi belum lengkap. Atur kredensial connector di ~/.vibe-trading/ atau agent/.env, lalu verifikasi koneksi.",
-    "pathSeparatedKeyBound": "Path demo/real terpisah (key pair bersama)",
-    "sdkConnectorProfile": "Connector SDK langsung · profil read-only",
-    "connectionDetails": "Detail koneksi",
-    "environment": "Environment",
-    "environmentIdentity": "Environment yang dideklarasikan",
-    "capabilities": "Kapabilitas",
-    "capabilityAccount": "Akun",
-    "capabilityPositions": "posisi",
-    "capabilityOpenOrders": "order terbuka",
-    "capabilityQuotes": "quote",
-    "capabilityHistory": "riwayat",
-    "readOnly": "read-only",
-    "accessUnknown": "akses tidak diketahui",
-    "diagnostics": "Diagnostik",
-    "lastChecked": "Terakhir diperiksa",
-    "errorCode": "Kode error",
-    "installed": "Terinstal",
-    "notInstalled": "Belum terinstal",
-    "connectorVerifyFailed": "Verifikasi koneksi gagal.",
-    "diagnosticCredentialsPartial": "Kredensial belum lengkap. Atur semua variabel yang diperlukan lalu buat ulang layanan.",
-    "diagnosticCredentialsConflict": "Sumber kredensial saling bertentangan. Pertahankan satu sumber yang lengkap, lalu coba lagi.",
-    "diagnosticSdkMissing": "SDK yang diperlukan broker ini belum terinstal di layanan backend.",
-    "diagnosticAuthenticationFailed": "Autentikasi gagal. Periksa kredensial yang dikonfigurasi.",
-    "diagnosticNetworkUnreachable": "Layanan broker atau gateway lokal tidak dapat dijangkau. Periksa alamat koneksi dan akses jaringan, lalu coba lagi.",
-    "diagnosticBrokerError": "Broker menolak permintaan verifikasi read-only. Coba lagi atau periksa log backend."
-  },
-  "scheduled": {
-    "title": "Riset Terjadwal",
-    "subtitle": "Jalankan riset berulang mengikuti waktu lokal Anda — pola jadwal tetap konsisten saat perubahan DST.",
-    "promptLabel": "Prompt riset",
-    "promptPlaceholder": "Contoh: Pemindaian pra-pembukaan: urutkan volume tidak biasa kemarin dan rangkum berita semalam",
-    "modeLabel": "Pola jadwal",
-    "modeTime": "Pada waktu tertentu",
-    "modeAdvanced": "Lanjutan (cron atau interval)",
-    "timeLabel": "Waktu lokal",
-    "daysLabel": "Hari",
-    "daysWeekdays": "Hari kerja (Senin-Jumat)",
-    "daysEveryDay": "Setiap hari",
-    "scheduleLabel": "Ekspresi jadwal",
-    "advancedHint": "Ekspresi cron 5 kolom yang dievaluasi dalam zona waktu yang dipilih (menit jam hari bulan hari-dalam-minggu; daftar dan rentang diperbolehkan), atau interval langsung dalam milidetik.",
-    "timezoneLabel": "Zona waktu",
-    "create": "Jadwalkan run",
-    "saveChanges": "Simpan perubahan",
-    "cancelEdit": "Batalkan pengeditan",
-    "editingHint": "Anda sedang mengedit proses terjadwal ini. Penyimpanan mempertahankan identitas dan riwayat eksekusinya.",
-    "edit": "Edit",
-    "editAria": "Edit proses terjadwal: {{prompt}}",
-    "editRunningDisabled": "Tunggu proses atau pengirimannya selesai sebelum mengedit.",
-    "deliveryInApp": "Simpan hanya di Vibe (jangan kirim)",
-    "deliveryNoChannels": "Tidak ada saluran pengiriman aktif yang dikonfigurasi. Konfigurasikan satu di Pengaturan → Saluran.",
-    "deliveryChannelsLoadFailed": "Tidak dapat memuat saluran pengiriman yang dikonfigurasi.",
-    "deliveryChannelUnavailable": "{{channel}} (saat ini tidak tersedia)",
-    "deliveryTargetKind_destination": "Tujuan",
-    "deliveryTargetKind_email_address": "Alamat email penerima",
-    "deliveryTargetKind_chat": "Chat",
-    "deliveryTargetKind_channel": "Saluran",
-    "deliveryTargetDisabled": "Pilih saluran pengiriman terlebih dahulu.",
-    "deliverySummary": "{{channel}} → {{target}}",
-    "deliveryUnknownTarget": "Tujuan yang dikonfigurasi",
-    "promptRequired": "Masukkan prompt riset sebelum menjadwalkan.",
-    "invalidTime": "Masukkan waktu yang valid dalam format HH:MM.",
-    "executorHint": "Run hanya dieksekusi jika server dijalankan dengan VIBE_TRADING_ENABLE_SCHEDULER diaktifkan.",
-    "listTitle": "Run terjadwal",
-    "loading": "Memuat run terjadwal…",
-    "retry": "Coba Lagi",
-    "empty": "Belum ada run terjadwal — buat satu di atas.",
-    "cadenceEvery": "Setiap {{interval}}",
-    "cadenceDaily": "Setiap hari pukul {{time}}",
-    "cadenceWeekly": "{{days}} pukul {{time}}",
-    "statusPending": "Menunggu",
-    "statusRunning": "Berjalan",
-    "statusCompleted": "Selesai",
-    "statusFailed": "Gagal",
-    "statusCancelled": "Dibatalkan",
-    "statusExpired": "Kedaluwarsa",
-    "noFurtherRuns": "Tidak ada run berikutnya",
-    "endsAt": "Berakhir {{when}}",
-    "proposalCreateTitle": "Konfirmasi riset terjadwal · Buat",
-    "proposalCancelTitle": "Konfirmasi riset terjadwal · Batalkan",
-    "proposalConfirmed": "Dikonfirmasi",
-    "proposalDiscarded": "Diabaikan",
-    "proposalExpired": "Kedaluwarsa",
-    "proposalCadence": "Pola jadwal",
-    "proposalTimezone": "Zona waktu",
-    "proposalEndAt": "Waktu berakhir",
-    "proposalNoEnd": "Tidak ada",
-    "proposalDelivery": "Pengiriman hasil",
-    "proposalInApp": "Hanya di aplikasi",
-    "proposalDiscard": "Abaikan",
-    "proposalConfirmCreate": "Konfirmasi pembuatan",
-    "proposalConfirmCancel": "Konfirmasi pembatalan",
-    "nextRun": "Run berikutnya: {{when}}",
-    "lastError": "Error terakhir: {{error}}",
-    "delete": "Hapus",
-    "deleteAria": "Hapus run terjadwal: {{prompt}}",
-    "confirmDelete": "Konfirmasi penghapusan",
-    "confirmDeleteAria": "Konfirmasi penghapusan run terjadwal: {{prompt}}",
-    "deliveryChannelLabel": "Kirim ke channel",
-    "deliveryChannelPlaceholder": "telegram, feishu, … (kosongkan agar hasil tetap di aplikasi)",
-    "deliveryTargetLabel": "Target channel",
-    "deliveryTargetPlaceholder": "ID chat / grup / pengguna",
-    "deliveryFormatLabel": "Email report format",
-    "deliveryFormatDefault": "Channel default (plain text)",
-    "deliveryFormatHtml": "HTML email",
-    "deliveryFormatPdf": "PDF attachment",
-    "proposalPdfProtection": "Perlindungan PDF dengan kata sandi",
-    "proposalPdfProtectionOn": "Aktif",
-    "proposalPdfProtectionOff": "Nonaktif",
-    "deliveryFormatDefaultHint": "Keeps the existing plain-text delivery behavior.",
-    "deliveryFormatHtmlHint": "Shows the full report as sanitized HTML in the email body.",
-    "deliveryFormatPdfHint": "Attaches the full report as PDF and keeps only a short notice in the body.",
-    "deliveryHint": "Nonaktif secara default. Ringkasan dikirim setelah run selesai, bukan saat dijadwalkan.",
-    "deliveryTargetRequired": "Pilih target untuk channel tersebut, atau kosongkan channel.",
-    "delivery_none": "Akan dikirim ke {{channel}} setelah run berikutnya",
-    "delivery_pending": "Ringkasan menunggu dikirim ke {{channel}}",
-    "delivery_sending": "Mengirim ringkasan ke {{channel}}",
-    "delivery_accepted": "Ringkasan diterima oleh {{channel}} (tanpa tanda terima dari provider)",
-    "delivery_sent": "Ringkasan terkirim ke {{channel}}",
-    "delivery_failed": "Tidak dapat mengirim ringkasan ke {{channel}}",
-    "verdictEmpty": "Belum ada kesimpulan",
-    "verdictUnreadable": "Kesimpulan terbaru tidak dapat dibaca",
-    "verdictNoCalls": "Tidak ada sinyal",
-    "verdictDelta": "{{was}} → {{now}}",
-    "verdictRecorded": "per {{when}}",
-    "deliveryKnownTargetLabel": "Tujuan dikenal",
-    "deliveryKnownTargetPlaceholder": "Pilih tujuan yang dikenal…",
-    "deliverySuggestionKind_private_chat": "Chat pribadi saya",
-    "deliveryTargetPlaceholder_email_address": "name@example.com",
-    "deliveryTargetPlaceholder_chat": "ID obrolan, grup, atau pengguna",
-    "deliveryTargetPlaceholder_channel": "ID kanal",
-    "deliveryTargetPlaceholder_destination": "ID chat / grup / pengguna",
-    "deliveryTargetPlaceholder_slack_destination": "#kanal, @pengguna, atau ID percakapan",
-    "deliveryTargetKind_slack_destination": "Tujuan",
-    "deliveryProtectPdf": "Lindungi PDF dengan kata sandi",
-    "deliveryProtectPdfUnavailable": "Kata sandi PDF belum diatur. Atur di Pengaturan > Kanal > Email untuk mengaktifkan perlindungan."
+    "sessionsLoadFailed": "Percakapan tidak dapat dimuat.",
+    "workbench": "Research workbench",
+    "compare": "Compare experiments"
   },
   "reports": {
     "badge": "Laporan",
@@ -302,7 +92,8 @@
     "sharpe": "Sharpe",
     "fullReport": "Laporan Lengkap",
     "compare": "Bandingkan",
-    "unknown": "Tidak diketahui"
+    "unknown": "Tidak diketahui",
+    "status": "Status"
   },
   "connection": {
     "reconnecting": "Menghubungkan kembali…",
@@ -311,923 +102,8 @@
     "retry": "Coba sambungkan lagi",
     "requestFailed": "Tidak dapat menghubungi server API. Pastikan server berjalan dan koneksi jaringan tersedia.",
     "requestTimeout": "Waktu permintaan habis. Periksa koneksi server, lalu coba lagi.",
-    "requestTimeoutMutation": "Waktu permintaan habis. Server mungkin masih memprosesnya; periksa status saat ini sebelum mencoba lagi."
-  },
-  "welcome": {
-    "tasks": {
-      "research": "Riset sebuah saham",
-      "backtest": "Uji sebuah strategi",
-      "portfolio": "Tinjau posisi saya",
-      "hint": "Contoh mengisi kotak pesan. Ubah simbol atau strategi sebelum mengirim.",
-      "researchPrompt": "Riset AAPL dengan data terkini yang tersedia: rangkum bisnis, kinerja keuangan terbaru, dan risiko utama. Cantumkan sumber, tanggal, serta informasi yang belum tersedia.",
-      "backtestPrompt": "Backtest strategi rata-rata bergerak 20/60 hari pada AAPL selama setahun terakhir. Bandingkan imbal hasil dan penurunan dengan beli dan tahan, serta perhitungkan biaya transaksi. Hanya untuk riset.",
-      "portfolioPrompt": "Rangkum akun dan posisi saya yang terhubung, konsentrasi, serta risiko portofolio. Jika belum ada akun terhubung, jelaskan cara menyiapkannya terlebih dahulu. Jangan mengirim atau mengubah order."
-    },
-    "categories": {
-      "multiMarketBacktest": "Backtest A-Share",
-      "researchAnalysis": "Riset & Analisis",
-      "swarmTeams": "Tim Analis AI",
-      "docWebResearch": "Riset Dokumen & Web",
-      "tradeJournal": "Jurnal Trading",
-      "tradingConnectors": "Connector Trading",
-      "shadowAccount": "Shadow Account",
-      "valueInvesting": "Value Investing"
-    },
-    "examples": {
-      "crossMarketPortfolio": "Seimbangkan portofolio 3 saham",
-      "crossMarketPortfolioDesc": "Bagi dana ke 3 A-share agar masing-masing memiliki risiko yang sama (risk parity), lalu bandingkan dengan bobot yang sama",
-      "crossMarketPortfolioPrompt": "Buat portofolio risk-parity dengan 000001.SZ, 600519.SH, 000858.SZ, lakukan backtest untuk sepanjang 2024, lalu bandingkan dengan benchmark equal-weighted",
-      "btcMacd": "Strategi MACD A-Share",
-      "btcMacdDesc": "Backtest strategi MACD A-share pada level menit",
-      "btcMacdPrompt": "Lakukan backtest strategi MACD pada bar 5 menit 000001.SZ: fast=12, slow=26, signal=9, 30 hari terakhir",
-      "usTechMaxDiv": "Sebarkan Risiko di Saham Blue Chip",
-      "usTechMaxDivDesc": "Atur bobot 5 saham blue chip agar tidak ada satu saham yang mendominasi risiko (optimizer max-diversification)",
-      "usTechMaxDivPrompt": "Lakukan backtest portofolio maximum diversification untuk 600519.SH, 000858.SZ, 601318.SH, 000001.SZ, 600036.SH sepanjang 2024",
-      "multiFactorAlpha": "Model Alpha Multi-Faktor",
-      "multiFactorAlphaDesc": "Gabungkan 4 sinyal pemilihan saham pada 300 saham, dengan bobot berdasarkan seberapa baik masing-masing memprediksi return (IC)",
-      "multiFactorAlphaPrompt": "Buat model alpha multi-faktor menggunakan momentum, reversal, volatilitas, dan turnover pada konstituen CSI 300 dengan sintesis faktor berbobot IC, lalu backtest 2023-2024",
-      "optionsGreeks": "Pemeriksaan risiko opsi (Greeks)",
-      "optionsGreeksDesc": "Hitung harga sebuah opsi, lalu lihat seberapa besar pergerakannya terhadap saham, waktu, dan volatilitas (Greeks)",
-      "optionsGreeksPrompt": "Hitung option Greeks menggunakan Black-Scholes: spot=100, strike=105, risk-free rate=3%, vol=25%, expiry=90 hari, analisis Delta/Gamma/Theta/Vega",
-      "valueCommittee": "Value Investing Committee",
-      "valueCommitteeDesc": "Buffett / Munger / Duan Yongping / Li Lu — debat empat master untuk satu saham",
-      "valueCommitteePrompt": "Gunakan run_swarm dengan preset value_investing_committee untuk menganalisis Tencent (00700.HK): Buffett membahas moat & price, Munger membahas inversion, Duan Yongping membahas bisnis & manajemen, Li Lu membahas kepastian 10 tahun, lalu ketua merangkum konsensus dan kontradiksi",
-      "bottleneckHunter": "Pemburu Bottleneck Supply Chain",
-      "bottleneckHunterDesc": "Temukan pemasok kecil yang sangat dibutuhkan oleh tren besar, lalu periksa apakah valuasinya masih murah",
-      "bottleneckHunterPrompt": "Gunakan skill bottleneck-hunter untuk mencari peluang bottleneck supply chain Layer 2/3 pada infrastruktur AI (optics / lasers / InP substrates), beri skor setiap choke point dan daftar perusahaan kandidat yang lolos valuation gate",
-      "thesisTracker": "Pelacak Tesis Investasi",
-      "thesisTrackerDesc": "Tuliskan alasan Anda memilikinya dalam 5 kalimat, ditambah red line yang akan membuat Anda menjual",
-      "thesisTrackerPrompt": "Gunakan skill thesis-tracker untuk membuat tesis investasi Kweichow Moutai (600519.SH): tesis inti 5 kalimat, asumsi yang dapat diuji, red line, dan anchor valuasi, lalu verifikasi dengan financial_rigor",
-      "valuationCheck": "Periksa apakah saham terlalu mahal",
-      "valuationCheckDesc": "Hitung ulang PE / PB / ROE / market cap hingga presisi sen, lalu stress-test dengan 3 skenario pertumbuhan",
-      "valuationCheckPrompt": "Gunakan tool financial_rigor untuk memverifikasi valuasi Kweichow Moutai: harga 1500, EPS 68.6, book value per share 180 — hitung PE, PB, ROE secara tepat, lalu valuasi tiga skenario (growth 12%/8%/0%, PE 22/18/14, 3 tahun)",
-      "investmentCommittee": "Beli atau jual? Biarkan komite berdebat",
-      "investmentCommitteeDesc": "Debat multi-agent: long vs short, review risiko, keputusan PM",
-      "investmentCommitteePrompt": "[Swarm Team Mode] Gunakan preset investment_committee untuk mengevaluasi apakah akan long atau short 600519.SH berdasarkan kondisi market saat ini",
-      "quantStrategyDesk": "Quant Strategy Desk",
-      "quantStrategyDeskDesc": "Screening → riset faktor → backtest → audit risiko",
-      "quantStrategyDeskPrompt": "[Swarm Team Mode] Gunakan preset quant_strategy_desk untuk mencari dan melakukan backtest strategi momentum terbaik pada konstituen CSI 300",
-      "earningsReport": "Analisis PDF Laporan Laba",
-      "earningsReportDesc": "Unggah PDF dan ajukan pertanyaan tentang data finansialnya",
-      "earningsReportPrompt": "Rangkum metrik finansial utama, risiko, dan outlook dari laporan laba yang diunggah",
-      "macroResearch": "Riset Web: Outlook Makro",
-      "macroResearchDesc": "Analisis makro dan outlook market A-share",
-      "macroResearchPrompt": "Baca laporan kebijakan moneter bank sentral terbaru dan rangkum dampaknya terhadap market A-share",
-      "analyzeBrokerExport": "Analisis Ekspor Broker Saya",
-      "analyzeBrokerExportDesc": "Baca ekspor dari Tonghuashun / Eastmoney / Futu, atau CSV apa pun — hari holding, win rate, rasio profit-to-loss, dan pola waktu dalam sehari",
-      "analyzeBrokerExportPrompt": "Analisis jurnal trading yang baru saya unggah — profil lengkap dengan statistik holding, win rate, simbol teratas, dan distribusi per jam",
-      "diagnoseBehavior": "Diagnosis Bias Perilaku Saya",
-      "diagnoseBehaviorDesc": "Disposition effect, overtrading, mengejar momentum, anchoring — tingkat keparahan + bukti numerik",
-      "diagnoseBehaviorPrompt": "Jalankan 4 diagnosis perilaku pada jurnal trading saya (disposition, overtrading, chasing, anchoring) dan beri tahu bias mana yang paling merugikan PnL saya",
-      "checkConnector": "Periksa Connector Terpilih",
-      "checkConnectorDesc": "Tampilkan profil connector dan verifikasi profil yang dipilih",
-      "checkConnectorPrompt": "Tampilkan profil connector trading saya, tunjukkan mana yang dipilih, lalu periksa connector tersebut. Jika belum siap, beri tahu secara tepat langkah setup yang masih kurang. Jangan membuat atau mengubah order.",
-      "analyzePortfolio": "Analisis Portofolio Connector",
-      "analyzePortfolioDesc": "Baca ringkasan akun dan posisi dari connector yang dipilih",
-      "analyzePortfolioPrompt": "Gunakan profil connector trading yang dipilih untuk merangkum akun, posisi, konsentrasi, kas, dan risiko portofolio saya. Jangan membuat atau mengubah order.",
-      "quoteTrend": "Quote & Tren",
-      "quoteTrendDesc": "Ambil quote dan bar harian terbaru melalui connector yang dipilih",
-      "quoteTrendPrompt": "Gunakan connector trading yang dipilih untuk mengambil quote 600519.SH dan 30 bar harian, lalu rangkum quote saat ini dibandingkan tren terbaru. Tetap read-only.",
-      "trainShadow": "Latih Shadow Saya dari Jurnal",
-      "trainShadowDesc": "Ekstrak aturan strategi Anda dari CSV broker dan simpan sebagai profil Shadow",
-      "trainShadowPrompt": "Latih shadow account saya dari jurnal trading yang baru saya unggah — tampilkan aturan yang diekstrak dan konfirmasi apakah sesuai dengan perilaku saya",
-      "shadowDelta": "Berapa Banyak Peluang yang Saya Lewatkan?",
-      "shadowDeltaDesc": "Backtest strategi shadow Anda dan atribusikan delta dibandingkan PnL aktual",
-      "shadowDeltaPrompt": "Jalankan shadow backtest untuk 90 hari terakhir dan uraikan di mana PnL saya berbeda dari shadow (pelanggaran aturan, exit terlalu cepat, sinyal terlewat)",
-      "shadowReport": "Buat Shadow Report",
-      "shadowReportDesc": "Laporan 8 bagian yang dapat dibagikan: kurva akun Anda, return yang disesuaikan terhadap risiko, dan sumber setiap keuntungan",
-      "shadowReportPrompt": "Render shadow report dan berikan URL-nya — mulai dengan delta Anda vs shadow"
-    },
-    "taskSubtitle": "Tanyakan tentang saham, strategi, atau portofolio Anda — saya akan mengambil data, menghitung angkanya, dan menampilkan setiap langkah.",
-    "quickActions": "Aksi cepat",
-    "browseAllExamples": "Lihat semua contoh",
-    "greetings": {
-      "morning1": "Selamat pagi.",
-      "morning2": "Pagi — siap saat Anda siap.",
-      "morning3": "Selamat pagi. Mari mulai.",
-      "afternoon1": "Selamat siang.",
-      "afternoon2": "Siap untuk pertanyaan berikutnya?",
-      "afternoon3": "Apa yang ingin kita eksplorasi siang ini?",
-      "evening1": "Selamat malam.",
-      "evening2": "Mari pahami market ini.",
-      "evening3": "Siap untuk riset yang lebih terarah?",
-      "night1": "Masih berpikir?",
-      "night2": "Mari kita bahas bersama.",
-      "night3": "Satu ide lagi sebelum selesai?"
-    }
-  },
-  "settings": {
-    "title": "Pengaturan",
-    "authRequired": "Autentikasi Diperlukan",
-    "authDesc": "Masukkan API auth key untuk mengakses pengaturan.",
-    "dataSources": "Sumber Data",
-    "llmBackend": "Backend LLM",
-    "save": "Simpan",
-    "saving": "Menyimpan…",
-    "saved": "Pengaturan tersimpan",
-    "saveFailed": "Gagal menyimpan",
-    "provider": "Provider",
-    "refresh": "Segarkan",
-    "modelName": "Nama Model",
-    "baseUrl": "Base URL",
-    "apiAuthKey": "API Auth Key",
-    "loading": "Memuat…",
-    "temperature": "Temperature",
-    "temperatureDesc": "Mengatur tingkat keacakan respons, bukan kecerdasan. Nilai yang lebih rendah lebih konsisten dan lebih cocok untuk analisis finansial; 0–0.2 merupakan default yang wajar.",
-    "timeoutSeconds": "Timeout (detik)",
-    "maxRetries": "Maks. Retry",
-    "reasoningEffort": "Tingkat Reasoning",
-    "providerDefault": "Provider bawaan",
-    "off": "Nonaktif",
-    "reasoningEffortNone": "Tidak ada (eksplisit)",
-    "reasoningEffortLow": "Rendah",
-    "reasoningEffortMedium": "Sedang",
-    "reasoningEffortHigh": "Tinggi",
-    "reasoningEffortXhigh": "Sangat tinggi",
-    "reasoningEffortMax": "Maksimum",
-    "reasoningEffortDesc": "Mengatur kedalaman reasoning pada model yang mendukung. Tingkat yang lebih tinggi dapat meningkatkan analisis kompleks tetapi bisa membutuhkan waktu lebih lama; provider yang tidak mendukung dapat mengabaikan pengaturan ini. Tidak ada (eksplisit) mengirim field dengan reasoning dinonaktifkan — beberapa model OpenAI memerlukannya agar dapat menggunakan tool.",
-    "reasoningEffortReset": "Model yang dipilih tidak mendukung {{level}}; dikembalikan ke Provider bawaan.",
-    "useDefaultModel": "Gunakan model default",
-    "useDefaultUrl": "Gunakan URL default",
-    "dataSourcesDesc": "Konfigurasikan sumber data eksternal untuk engine backtest.",
-    "tushareDesc": "Data historis A-share China (memerlukan env var TUSHARE_TOKEN).",
-    "baostockDesc": "Sumber data A-share alternatif melalui protokol TCP (tidak memerlukan API key).",
-    "status": "Status",
-    "installed": "Terinstal",
-    "notInstalled": "Belum terinstal",
-    "token": "Token",
-    "tokenConfigured": "Token sudah dikonfigurasi",
-    "tokenNotSet": "Env var TUSHARE_TOKEN belum diatur",
-    "apiTimeout": "Timeout permintaan API",
-    "loaderAvailable": "Loader tersedia",
-    "noProjectLoader": "Loader proyek tidak tersedia",
-    "pythonPackageInstalled": "Paket Python terinstal",
-    "pythonPackageNotInstalled": "Paket Python belum terinstal",
-    "localApiAccess": "Akses API lokal",
-    "localApiAccessDesc": "Untuk deployment Web UI jarak jauh atau privat, masukkan server API key sekali di browser ini. Penggunaan localhost dapat dibiarkan kosong.",
-    "serverApiKey": "Server API key",
-    "storedInBrowser": "Hanya disimpan di browser ini. Biarkan kosong untuk menghapusnya.",
-    "localApiKeySaved": "API key lokal tersimpan",
-    "subtitle": "Konfigurasikan kredensial model dan token sumber data pasar untuk proyek lokal ini.",
-    "unavailable": "Pengaturan tidak tersedia",
-    "llmSettings": "Pengaturan LLM",
-    "llmSettingsDesc": "Pilih model yang digunakan oleh Agent dan simpan ke file agent/.env lokal proyek.",
-    "connection": "Koneksi",
-    "model": "Model",
-    "useProviderDefaults": "Gunakan pengaturan bawaan provider",
-    "modelIdHint": "Gunakan ID model yang tepat sesuai kebutuhan provider Anda.",
-    "loadModels": "Muat model",
-    "modelsLoaded": "Berhasil memuat {{count}} model yang tersedia.",
-    "modelsLoadFailed": "Tidak dapat memuat daftar model provider.",
-    "modelOptions": "Model tersedia",
-    "modelDiscoveryOauthUnsupported": "Provider ini tidak menyediakan model discovery melalui endpoint OAuth.",
-    "modelDiscoveryApiKeyRequired": "Masukkan atau simpan API key provider ini untuk memuat model yang tersedia.",
-    "modelDiscoveryUnavailable": "Provider tidak mengembalikan daftar model. Anda tetap dapat mengetik ID model yang tepat.",
-    "modelPickerHint": "Muat pilihan dari provider atau ketik ID model kustom yang tepat.",
-    "clearApiKey": "Hapus API key tersimpan",
-    "channels": {
-      "title": "Channel IM",
-      "description": "Hubungkan adapter chat ke runtime sesi Vibe-Trading yang sama dengan yang digunakan oleh Web UI dan CLI.",
-      "runtime": "Runtime",
-      "running": "Berjalan",
-      "stopped": "Berhenti",
-      "enabled": "Aktif",
-      "disabled": "Nonaktif",
-      "loaded": "Termuat",
-      "notLoaded": "Belum termuat",
-      "unavailable": "Tidak tersedia",
-      "channel": "Channel",
-      "state": "Status",
-      "recovery": "Pemulihan",
-      "noRecovery": "Siap",
-      "refresh": "Segarkan",
-      "start": "Jalankan channel",
-      "stop": "Hentikan channel",
-      "started": "Channel IM telah dijalankan",
-      "stoppedToast": "Channel IM telah dihentikan",
-      "refreshFailed": "Gagal menyegarkan channel IM",
-      "startFailed": "Gagal menjalankan channel IM",
-      "stopFailed": "Gagal menghentikan channel IM",
-      "config": {
-        "toggleConfig": "Konfigurasi {{name}}",
-        "keepCurrent": "Pertahankan nilai saat ini ({{masked}})",
-        "secretNotSet": "Belum diatur",
-        "clearSecret": "Hapus",
-        "required": "Wajib",
-        "listPlaceholder": "Ketik nilai lalu tekan Enter",
-        "removeValue": "Hapus {{value}}",
-        "save": "Simpan konfigurasi",
-        "hotApply": "Penyimpanan langsung berlaku — tidak perlu restart.",
-        "saved": "Konfigurasi channel tersimpan",
-        "appliedInPlace": "Pengaturan disimpan tanpa menyambungkan ulang kanal.",
-        "appliedReset": "Pengaturan disimpan. Koneksi kanal telah dimulai ulang.",
-        "appliedOnStart": "Pengaturan disimpan. Perubahan akan diterapkan saat kanal dimulai.",
-        "appliedReconnect": "Pengaturan disimpan. Kanal ini telah tersambung kembali.",
-        "saveFailed": "Gagal menyimpan konfigurasi channel: {{message}}",
-        "test": "Uji koneksi",
-        "testing": "Menguji…",
-        "testOk": "Koneksi terverifikasi",
-        "testFailed": "Uji koneksi gagal: {{message}}",
-        "testCodeOk": "Provider menerima kredensial ini.",
-        "testCodeInvalidCredentials": "Provider menolak kredensial ini.",
-        "testCodeNetwork": "Provider tidak dapat dijangkau.",
-        "testCodeUnsupported": "Channel ini tidak mendukung uji koneksi.",
-        "testedSavedConfig": "Yang diuji adalah konfigurasi yang tersimpan.",
-        "testedDraftConfig": "Yang diuji adalah nilai yang saat ini ada di formulir (belum disimpan).",
-        "enable": "Aktifkan channel",
-        "enableHint": "Menonaktifkan tetap menyimpan kredensial — Anda dapat mengaktifkannya kembali kapan saja.",
-        "enabledToast": "Channel diaktifkan",
-        "disabledToast": "Channel dinonaktifkan",
-        "enableFailed": "Gagal mengaktifkan channel: {{message}}",
-        "disableFailed": "Gagal menonaktifkan channel: {{message}}",
-        "enableRejected": "Provider menolak kredensial ini, sehingga channel tidak diaktifkan.",
-        "enableRejectedDetail": "Respons provider: {{detail}}",
-        "enableAnyway": "Tetap aktifkan",
-        "enableAnywayHint": "Tetap mengaktifkan akan melewati pemeriksaan kredensial — channel mungkin gagal terhubung.",
-        "notWritable": "Konfigurasi channel disimpan dalam file YAML ({{path}}) yang tidak dapat diedit dari Web UI. Edit file tersebut secara langsung untuk mengubah kredensial.",
-        "notWritableChip": "Hanya baca (YAML)",
-        "sdkMissing": "SDK runtime belum terpasang — {{hint}}",
-        "sdkMissingNoHint": "SDK runtime belum terpasang; channel dapat dikonfigurasi tetapi mungkin tidak dapat dijalankan.",
-        "noFields": "Channel ini tidak memiliki field yang dapat dikonfigurasi.",
-        "loadFailed": "Tidak dapat memuat konfigurasi channel."
-      },
-      "fields": {
-        "dingtalk": {
-          "client_id": {
-            "label": "Client ID (AppKey)",
-            "help": "AppKey aplikasi dari halaman Credentials di konsol developer DingTalk."
-          },
-          "client_secret": {
-            "label": "Client Secret (AppSecret)",
-            "help": "AppSecret aplikasi. Disimpan di sisi server dan tidak pernah dikirim kembali ke browser."
-          },
-          "allow_from": {
-            "label": "Pengirim yang diizinkan",
-            "help": "Allowlist opsional berisi ID pengirim DingTalk yang boleh berbicara dengan agent (\"*\" mengizinkan semua orang). Pengirim yang belum dipasangkan menerima kode pairing melalui pesan langsung."
-          },
-          "allow_remote_media_redirects": {
-            "label": "Izinkan redirect media jarak jauh",
-            "help": "Ikuti redirect dari provider saat mengunduh media pesan. Nonaktif secara default."
-          },
-          "remote_media_redirect_allowed_hosts": {
-            "label": "Host redirect yang diizinkan",
-            "help": "Host yang diizinkan saat redirect media jarak jauh diaktifkan. Daftar kosong memblokir setiap redirect lintas host."
-          },
-          "group_user_isolation": {
-            "label": "Sesi grup per pengguna",
-            "help": "Beri setiap anggota grup chat sesi agent sendiri alih-alih berbagi satu sesi."
-          },
-          "force_ipv4": {
-            "label": "Paksa IPv4",
-            "help": "Paksa panggilan API DingTalk menggunakan IPv4. Berguna jika whitelist IP egress aplikasi berisi alamat IPv4 yang tetap sementara prefix IPv6 terus berganti."
-          }
-        },
-        "qq": {
-          "app_id": {
-            "label": "AppID",
-            "help": "AppID bot dari pengaturan aplikasi di QQ Open Platform (q.qq.com)."
-          },
-          "secret": {
-            "label": "AppSecret",
-            "help": "AppSecret bot. Disimpan di sisi server dan tidak pernah dikirim kembali ke browser."
-          },
-          "allow_from": {
-            "label": "Pengirim yang diizinkan",
-            "help": "Allowlist opsional berisi openid pengirim QQ yang boleh berbicara dengan agent (\"*\" mengizinkan semua orang). Pengirim yang belum dipasangkan menerima kode pairing melalui pesan langsung."
-          },
-          "msg_format": {
-            "label": "Format pesan",
-            "help": "Format balasan: plain atau markdown."
-          },
-          "ack_message": {
-            "label": "Pesan konfirmasi",
-            "help": "Pesan konfirmasi yang langsung dikirim saat pesan masuk. Kosongkan untuk menonaktifkan."
-          },
-          "media_dir": {
-            "label": "Direktori media",
-            "help": "Lokasi penyimpanan lampiran masuk. Kosong berarti ~/.vibe-trading/media/qq."
-          },
-          "download_chunk_size": {
-            "label": "Ukuran chunk unduhan",
-            "help": "Byte per chunk saat mengunduh lampiran (default 262144)."
-          },
-          "download_max_bytes": {
-            "label": "Ukuran unduhan maksimum (byte)",
-            "help": "Batas pengaman untuk satu unduhan lampiran (default 209715200 = 200 MB)."
-          }
-        },
-        "email": {
-          "consent_granted": {
-            "label": "Persetujuan diberikan",
-            "help": "Sakelar izin utama. Kanal hanya membaca dan mengirim email setelah Anda memberikan persetujuan secara eksplisit."
-          },
-          "imap_host": {
-            "label": "Host IMAP",
-            "help": "Host server email masuk, misalnya imap.gmail.com. Email masuk diambil dari server ini melalui IMAP."
-          },
-          "imap_port": {
-            "label": "Port IMAP",
-            "help": "Port masuk (default 993 dengan SSL)."
-          },
-          "imap_username": {
-            "label": "Nama pengguna IMAP",
-            "help": "Akun kotak surat untuk masuk melalui IMAP, biasanya alamat email lengkap."
-          },
-          "imap_password": {
-            "label": "Kata sandi IMAP",
-            "help": "Kata sandi kotak surat atau kata sandi aplikasi untuk IMAP. Disimpan di sisi server dan tidak pernah dikirim kembali ke browser."
-          },
-          "imap_mailbox": {
-            "label": "Kotak surat IMAP",
-            "help": "Folder yang dipantau untuk email baru (default INBOX)."
-          },
-          "imap_use_ssl": {
-            "label": "SSL IMAP",
-            "help": "Hubungkan ke IMAP melalui SSL (aktif secara default; diperlukan untuk port 993)."
-          },
-          "imap_use_tls": {
-            "label": "STARTTLS IMAP",
-            "help": "Saat SSL IMAP nonaktif, enkripsi koneksi dengan STARTTLS sebelum login (aktif secara default; lazim untuk port 143). Matikan hanya untuk server tanpa TLS di jaringan tepercaya — kata sandi akan dikirim sebagai teks biasa."
-          },
-          "smtp_host": {
-            "label": "Host SMTP",
-            "help": "Host server email keluar, misalnya smtp.gmail.com. Balasan dikirim melalui server ini."
-          },
-          "smtp_port": {
-            "label": "Port SMTP",
-            "help": "Port keluar (default 587 dengan STARTTLS; 465 untuk SSL implisit)."
-          },
-          "smtp_username": {
-            "label": "Nama pengguna SMTP",
-            "help": "Akun untuk autentikasi ke server SMTP, biasanya alamat email lengkap."
-          },
-          "smtp_password": {
-            "label": "Kata sandi SMTP",
-            "help": "Kata sandi atau kata sandi aplikasi untuk SMTP. Disimpan di sisi server dan tidak pernah dikirim kembali ke browser."
-          },
-          "smtp_use_tls": {
-            "label": "STARTTLS SMTP",
-            "help": "Enkripsi koneksi SMTP dengan STARTTLS (aktif secara default; lazim untuk port 587). Dalam praktik tidak dipakai bersama SSL SMTP."
-          },
-          "smtp_use_ssl": {
-            "label": "SSL SMTP",
-            "help": "Hubungkan ke SMTP melalui TLS implisit, misalnya port 465 (nonaktif secara default). Dalam praktik tidak dipakai bersama STARTTLS."
-          },
-          "verify_tls": {
-            "label": "Verifikasi sertifikat TLS",
-            "help": "Verifikasi sertifikat TLS dan nama host server email (disarankan). Nonaktifkan hanya untuk server dengan sertifikat self-signed atau CA internal."
-          },
-          "from_address": {
-            "label": "Alamat pengirim",
-            "help": "Alamat asal balasan dikirim. Jika kosong, memakai nama pengguna SMTP."
-          },
-          "auto_reply_enabled": {
-            "label": "Balasan otomatis",
-            "help": "Membalas email masuk secara otomatis. Pengiriman yang dimulai agen tidak terpengaruh."
-          },
-          "poll_interval_seconds": {
-            "label": "Interval pemantauan (dtk)",
-            "help": "Seberapa sering kotak IMAP diperiksa untuk email baru (default 30, minimum 5)."
-          },
-          "mark_seen": {
-            "label": "Tandai sudah dibaca",
-            "help": "Tandai email yang sudah diproses sebagai sudah dibaca di kotak surat."
-          },
-          "post_action": {
-            "label": "Tindakan setelah proses",
-            "help": "Perlakuan email yang sudah diproses: delete (hapus), move (pindahkan ke folder lain), atau kosongkan untuk menyimpannya."
-          },
-          "post_action_move_mailbox": {
-            "label": "Pindahkan ke folder",
-            "help": "Folder tujuan saat tindakan setelah proses adalah move."
-          },
-          "post_action_expunge": {
-            "label": "Hapus permanen setelah delete",
-            "help": "Hapus permanen email yang sudah dihapus (expunge), bukan sekadar menandainya."
-          },
-          "post_action_ignore_skipped": {
-            "label": "Lewati email sendiri dan tersaring",
-            "help": "Email yang dilewati (milik Anda sendiri dan pengirim yang tersaring daftar) tidak dikenai tindakan setelah proses (aktif secara default)."
-          },
-          "max_body_chars": {
-            "label": "Maks. karakter isi",
-            "help": "Potong isi setiap email pada jumlah karakter ini (default 12000)."
-          },
-          "subject_prefix": {
-            "label": "Prefiks subjek balasan",
-            "help": "Prefiks yang ditambahkan ke subjek balasan (default \"Re: \")."
-          },
-          "allow_from": {
-            "label": "Pengirim yang diizinkan",
-            "help": "Daftar alamat email yang boleh berbicara dengan agen (opsional, \"*\" mengizinkan semua). Pengirim yang belum dipasangkan menerima kode pemasangan melalui balasan."
-          },
-          "verify_dkim": {
-            "label": "Verifikasi DKIM",
-            "help": "Wajibkan header Authentication-Results dengan dkim=pass. Menonaktifkan DKIM dan SPF sekaligus akan menerima header From palsu."
-          },
-          "verify_spf": {
-            "label": "Verifikasi SPF",
-            "help": "Wajibkan header Authentication-Results dengan spf=pass. Menonaktifkan DKIM dan SPF sekaligus akan menerima header From palsu."
-          },
-          "allowed_attachment_types": {
-            "label": "Jenis lampiran yang diizinkan",
-            "help": "Daftar MIME untuk lampiran masuk, misalnya application/pdf atau image/*. Kosongkan untuk menonaktifkan lampiran."
-          },
-          "max_attachment_size": {
-            "label": "Ukuran maks. lampiran (byte)",
-            "help": "Ukuran byte terbesar untuk satu lampiran (default 2000000 = 2 MB)."
-          },
-          "max_attachments_per_email": {
-            "label": "Maks. lampiran per email",
-            "help": "Berapa banyak lampiran yang diterima dari satu email (default 5)."
-          },
-          "trusted_authserv_id": {
-            "label": "Server autentikasi tepercaya",
-            "help": "authserv-id server penerima, misalnya mx.google.com. Penyedia email harus menghapus header Authentication-Results masuk palsu yang memakai ID ini. Wajib saat verifikasi SPF atau DKIM aktif; kosong menolak email masuk."
-          },
-          "pdf_password": {
-            "label": "Kata sandi laporan PDF",
-            "help": "Kata sandi opsional untuk laporan PDF terjadwal yang secara khusus meminta perlindungan. Disimpan di server dan tidak dimasukkan ke tugas terjadwal atau dikirim kembali ke browser."
-          }
-        },
-        "websocket": {
-          "host": {
-            "label": "Host bind",
-            "help": "Alamat lokal tempat server WebSocket terikat (default 127.0.0.1, hanya lokal). Host wildcard seperti 0.0.0.0 atau :: mengekspos server di semua antarmuka dan ditolak kecuali token atau rahasia penerbitan token diatur."
-          },
-          "port": {
-            "label": "Port bind",
-            "help": "Port lokal yang didengarkan server WebSocket (default 8765). Diabaikan bila path socket Unix diatur."
-          },
-          "unix_socket_path": {
-            "label": "Path socket Unix",
-            "help": "Path absolut opsional. Bila diatur, server mendengarkan socket Unix ini alih-alih host dan port."
-          },
-          "path": {
-            "label": "Path upgrade",
-            "help": "Path upgrade WebSocket yang dihubungi klien (default /). Harus diawali \"/\"."
-          },
-          "token": {
-            "label": "Token statis",
-            "help": "Rahasia bersama yang diperiksa melalui parameter token saat handshake. Disimpan di sisi server dan tidak pernah dikirim kembali ke browser."
-          },
-          "token_issue_path": {
-            "label": "Path penerbitan token",
-            "help": "Rute HTTP GET yang menerbitkan token sekali pakai berumur pendek dalam JSON. Harus berbeda dari path upgrade."
-          },
-          "token_issue_secret": {
-            "label": "Rahasia penerbitan token",
-            "help": "Rahasia Bearer yang diminta rute penerbitan (Authorization: Bearer atau X-Vibe-Trading-Auth). Disimpan di sisi server dan tidak pernah dikirim kembali ke browser."
-          },
-          "token_ttl_s": {
-            "label": "TTL token terbitan (dtk)",
-            "help": "Masa berlaku token yang diterbitkan rute penerbitan, dalam detik (30-86400, default 300)."
-          },
-          "websocket_requires_token": {
-            "label": "Wajibkan token",
-            "help": "Tolak handshake tanpa token statis atau token terbitan yang valid (aktif secara default)."
-          },
-          "allow_from": {
-            "label": "Klien yang diizinkan",
-            "help": "Daftar ID klien yang boleh terhubung (opsional, \"*\" mengizinkan semua, default)."
-          },
-          "streaming": {
-            "label": "Streaming keluaran",
-            "help": "Kirim delta keluaran model ke klien yang terhubung saat dihasilkan."
-          },
-          "max_message_bytes": {
-            "label": "Maks. byte pesan",
-            "help": "Frame masuk terbesar yang diterima, dalam byte (default 37748736; 1024-41943040)."
-          },
-          "ping_interval_s": {
-            "label": "Interval ping (dtk)",
-            "help": "Detik antar ping keepalive (5-300, default 20)."
-          },
-          "ping_timeout_s": {
-            "label": "Timeout ping (dtk)",
-            "help": "Detik menunggu balasan ping sebelum koneksi diputus (5-300, default 20)."
-          },
-          "ssl_certfile": {
-            "label": "Path sertifikat TLS",
-            "help": "Path sertifikat PEM di server untuk WSS. Atur sertifikat dan kunci bersamaan, atau kosongkan keduanya; ini path berkas di server, bukan materi yang diunggah."
-          },
-          "ssl_keyfile": {
-            "label": "Path kunci TLS",
-            "help": "Path kunci privat PEM di server untuk WSS. Atur sertifikat dan kunci bersamaan, atau kosongkan keduanya; ini path berkas di server, bukan materi yang diunggah."
-          }
-        },
-        "feishu": {
-          "app_id": {
-            "label": "App ID",
-            "help": "App ID aplikasi dari konsol pengembang Feishu / Lark (diawali cli_)."
-          },
-          "app_secret": {
-            "label": "App Secret",
-            "help": "App Secret aplikasi. Disimpan di sisi server dan tidak pernah dikirim kembali ke peramban."
-          },
-          "encrypt_key": {
-            "label": "Encrypt Key",
-            "help": "Encrypt Key dari pengaturan langganan event; opsional untuk mode long connection."
-          },
-          "verification_token": {
-            "label": "Verification Token",
-            "help": "Verification Token dari pengaturan langganan event; opsional untuk mode long connection."
-          },
-          "allow_from": {
-            "label": "Pengirim yang diizinkan",
-            "help": "Daftar putih opsional ID pengirim Feishu yang boleh berbicara dengan agen; kosong berarti semua yang terlihat oleh bot."
-          },
-          "react_emoji": {
-            "label": "Emoji saat bekerja",
-            "help": "Emoji yang direaksikan ke pesan masuk sementara agen bekerja (bawaan THUMBSUP)."
-          },
-          "done_emoji": {
-            "label": "Emoji saat selesai",
-            "help": "Emoji yang direaksikan saat tugas selesai; kosongkan jika tidak ada."
-          },
-          "tool_hint_prefix": {
-            "label": "Prefiks petunjuk tool",
-            "help": "Prefiks yang tampil di depan petunjuk tool inline pada balasan."
-          },
-          "group_policy": {
-            "label": "Kebijakan grup",
-            "help": "\"mention\" hanya membalas saat bot disebut (@mention) di grup, \"open\" membalas semua pesan grup."
-          },
-          "reply_to_message": {
-            "label": "Kutip pesan asli",
-            "help": "Balas dengan mengutip pesan asli."
-          },
-          "streaming": {
-            "label": "Balasan streaming",
-            "help": "Mengalirkan balasan dengan penyuntingan kartu langsung melalui CardKit."
-          },
-          "domain": {
-            "label": "Domain",
-            "help": "\"feishu\" untuk Feishu China (open.feishu.cn) atau \"lark\" untuk Lark internasional (open.larksuite.com)."
-          },
-          "topic_isolation": {
-            "label": "Sesi per topik",
-            "help": "Beri setiap topik grup sesi agennya sendiri, bukan satu sesi untuk seluruh grup."
-          }
-        },
-        "slack": {
-          "bot_token": {
-            "label": "Token bot (xoxb-)",
-            "help": "Token OAuth pengguna bot Slack (diawali dengan xoxb-). Disimpan di sisi server dan tidak pernah dikirim kembali ke peramban."
-          },
-          "app_token": {
-            "label": "Token aplikasi (xapp-)",
-            "help": "Token tingkat aplikasi Slack (diawali dengan xapp-) dengan cakupan connections:write, diperlukan untuk Socket Mode. Disimpan di sisi server dan tidak pernah dikirim kembali ke peramban."
-          },
-          "user_token_read_only": {
-            "label": "Token pengguna hanya-baca",
-            "help": "Tanda perilaku, bukan kredensial: menjaga akses token pengguna tetap hanya-baca."
-          },
-          "reply_in_thread": {
-            "label": "Balas di utas",
-            "help": "Membalas di utas (thread) di bawah pesan asli alih-alih mengirim langsung ke kanal."
-          },
-          "react_emoji": {
-            "label": "Emoji saat bekerja",
-            "help": "Emoji yang direaksikan pada pesan masuk saat agen bekerja (default eyes)."
-          },
-          "done_emoji": {
-            "label": "Emoji selesai",
-            "help": "Emoji yang direaksikan saat tugas selesai (default white_check_mark). Biarkan kosong untuk tidak memakai apa pun."
-          },
-          "include_thread_context": {
-            "label": "Sertakan konteks utas",
-            "help": "Menyertakan balasan sebelumnya dari utas sebagai konteks saat bot pertama kali ditarik ke dalamnya."
-          },
-          "thread_context_limit": {
-            "label": "Batas konteks utas",
-            "help": "Jumlah maksimum pesan utas yang disertakan sebagai konteks (default 20)."
-          },
-          "allow_from": {
-            "label": "Pengirim yang diizinkan",
-            "help": "Daftar putih ID pengguna Slack yang boleh berbicara dengan agen. Akses DM dan kanal juga dikendalikan oleh kebijakan DM dan kebijakan grup."
-          },
-          "group_policy": {
-            "label": "Kebijakan grup",
-            "help": "\"mention\" hanya membalas saat bot disebut (@mention) di kanal, \"open\" membalas semua pesan kanal, \"allowlist\" hanya membalas di kanal yang tercantum di bawah."
-          },
-          "group_allow_from": {
-            "label": "Kanal yang diizinkan",
-            "help": "ID kanal tempat bot merespons saat kebijakan grup adalah \"allowlist\"."
-          },
-          "group_require_mention": {
-            "label": "Wajib sebut di kanal yang diizinkan",
-            "help": "Dengan kebijakan \"allowlist\", juga mewajibkan @mention sebelum membalas di kanal yang disetujui. Tidak berpengaruh pada \"mention\" atau \"open\"."
-          }
-        },
-        "discord": {
-          "token": {
-            "label": "Token bot",
-            "help": "Token bot dari Discord Developer Portal — bukan token pengguna atau OAuth. Disimpan di sisi server dan tidak pernah dikirim kembali ke peramban."
-          },
-          "allow_from": {
-            "label": "Pengirim yang diizinkan",
-            "help": "Daftar putih opsional ID pengguna Discord yang boleh berbicara dengan agen. Biarkan kosong untuk mengizinkan semua orang."
-          },
-          "allow_channels": {
-            "label": "Kanal yang diizinkan",
-            "help": "Daftar putih opsional ID kanal Discord tempat bot merespons. Biarkan kosong untuk mengizinkan semua kanal."
-          },
-          "intents": {
-            "label": "Gateway intent",
-            "help": "Bitfield gateway intent berupa bilangan bulat (default 37377 = GUILDS | GUILD_MESSAGES | DIRECT_MESSAGES | MESSAGE_CONTENT). MESSAGE CONTENT adalah intent istimewa yang harus diaktifkan di Developer Portal, jika tidak bot gagal terhubung."
-          },
-          "group_policy": {
-            "label": "Kebijakan grup",
-            "help": "\"mention\" hanya membalas saat bot disebut (@mention) di kanal server, \"open\" membalas semua pesan kanal (tetap tunduk pada daftar putih)."
-          },
-          "read_receipt_emoji": {
-            "label": "Emoji tanda dibaca",
-            "help": "Emoji yang direaksikan pada pesan masuk sebagai tanda terima (default 👀); dihapus setelah balasan tiba."
-          },
-          "working_emoji": {
-            "label": "Emoji saat bekerja",
-            "help": "Emoji yang direaksikan saat agen masih bekerja (default 🔧), ditambahkan setelah penundaan emoji saat bekerja."
-          },
-          "working_emoji_delay": {
-            "label": "Penundaan emoji saat bekerja (dtk)",
-            "help": "Detik sebelum emoji saat bekerja ditambahkan, sehingga balasan cepat tidak pernah menampilkannya (default 2.0)."
-          },
-          "streaming": {
-            "label": "Balasan streaming",
-            "help": "Mengalirkan balasan dengan menyunting satu pesan Discord secara bertahap, alih-alih mengirim satu pesan final."
-          },
-          "proxy": {
-            "label": "URL proksi",
-            "help": "Proksi HTTP opsional yang dilalui koneksi gateway dan panggilan API, misalnya http://host:port."
-          },
-          "proxy_username": {
-            "label": "Nama pengguna proksi",
-            "help": "Nama pengguna proksi; isi berpasangan dengan kata sandi proksi atau tidak sama sekali — pasangan yang setengah diisi diabaikan dengan peringatan. Disimpan di sisi server dan tidak pernah dikirim kembali ke peramban."
-          },
-          "proxy_password": {
-            "label": "Kata sandi proksi",
-            "help": "Kata sandi proksi; isi berpasangan dengan nama pengguna proksi atau tidak sama sekali — pasangan yang setengah diisi diabaikan dengan peringatan. Disimpan di sisi server dan tidak pernah dikirim kembali ke peramban."
-          }
-        }
-      },
-      "guides": {
-        "dingtalk": {
-          "title": "Panduan setup DingTalk",
-          "intro": "Bot DingTalk menggunakan Stream Mode, sehingga tidak memerlukan URL callback publik.",
-          "step1": "Buat aplikasi di konsol developer DingTalk (open-dev.dingtalk.com).",
-          "step2": "Tambahkan kemampuan bot ke aplikasi dan aktifkan Stream Mode untuknya.",
-          "step3": "Salin AppKey aplikasi ke Client ID dan AppSecret-nya ke Client Secret.",
-          "step4": "Publikasikan aplikasi agar tersedia untuk organisasi Anda.",
-          "step5": "Kembali ke sini, klik Uji koneksi, lalu aktifkan channel.",
-          "docsLabel": "Buka konsol developer DingTalk"
-        },
-        "qq": {
-          "title": "Panduan setup QQ",
-          "intro": "Bot QQ terhubung melalui WebSocket menggunakan SDK resmi botpy, sehingga tidak memerlukan URL callback publik.",
-          "step1": "Daftar di QQ Open Platform (q.qq.com) dan buat bot.",
-          "step2": "Salin AppID dan AppSecret dari halaman pengaturan pengembangan bot.",
-          "step3": "Tempelkan keduanya ke field AppID dan AppSecret di atas.",
-          "step4": "Tambahkan bot ke grup QQ atau chat dengannya secara pribadi, sesuai aturan sandbox/publikasi platform.",
-          "step5": "Kembali ke sini, klik Uji koneksi, lalu aktifkan channel.",
-          "docsLabel": "Buka QQ Open Platform"
-        },
-        "email": {
-          "title": "Panduan penyiapan email",
-          "intro": "Kanal email mengambil email masuk melalui IMAP dan membalas melalui SMTP, jadi tidak perlu URL callback publik.",
-          "step1": "Dapatkan host dan port IMAP serta SMTP dari penyedia email Anda (biasanya imap.<penyedia> port 993 dan smtp.<penyedia> port 587).",
-          "step2": "Aktifkan IMAP dan SMTP di pengaturan kotak surat, lalu buat kata sandi aplikasi jika penyedia mensyaratkannya (Gmail, QQ Mail, dan lain-lain dengan verifikasi dua langkah).",
-          "step3": "Isi kredensial IMAP dan SMTP di atas, atur alamat pengirim, dan tambahkan alamat Anda ke «Pengirim yang diizinkan».",
-          "step4": "Klik «Uji koneksi»; pengujian memeriksa login IMAP, folder kotak surat, dan login SMTP.",
-          "step5": "Centang «Persetujuan diberikan» lalu aktifkan kanal; balasan otomatis akan sampai ke pengirim yang lolos pemeriksaan DKIM/SPF.",
-          "docsLabel": "Buka dokumentasi Vibe-Trading"
-        },
-        "websocket": {
-          "title": "Panduan penyiapan WebSocket",
-          "intro": "Kanal WebSocket menjalankan server lokalnya sendiri yang dihubungi klien melalui URL WebSocket, jadi tidak perlu URL callback publik.",
-          "step1": "Pilih alamat bind: biarkan 127.0.0.1 untuk penggunaan lokal saja, atau atur 0.0.0.0 / :: untuk mengekspos server — host wildcard mewajibkan token atau rahasia penerbitan token.",
-          "step2": "Atur token statis, atau path penerbitan token beserta rahasia Bearer-nya agar klien bisa meminta token berumur pendek.",
-          "step3": "Hubungkan klien dengan ws://host:port/path?client_id=...&token=...",
-          "step4": "Menyimpan saat kanal berjalan akan menukar server secara panas: klien yang terhubung (termasuk obrolan Web UI ini) sempat terputus lalu tersambung kembali.",
-          "step5": "Klik «Uji koneksi»; pengujian memvalidasi materi sertifikat/kunci SSL dan ketersediaan alamat secara lokal.",
-          "docsLabel": "Buka dokumentasi Vibe-Trading"
-        },
-        "feishu": {
-          "title": "Penyiapan bot Feishu / Lark",
-          "intro": "Bot Feishu memakai long connection WebSocket, jadi tidak perlu IP publik maupun webhook.",
-          "step1": "Buat Custom App di Feishu Open Platform (open.feishu.cn), atau buat lewat pindaian QR dari terminal dengan vibe-trading channels login feishu — App ID dan App Secret tersimpan otomatis.",
-          "step2": "Tambahkan kemampuan Bot ke aplikasi.",
-          "step3": "Di Langganan Event, berlangganan «Menerima pesan im.message.receive_v1» dan pilih mode Long Connection.",
-          "step4": "Salin App ID dan App Secret dari halaman Kredensial & Info Dasar, lalu tempel di kolom di atas.",
-          "step5": "Buat versi dan publikasikan aplikasi (perlu persetujuan admin jika tenant Anda mensyaratkannya), lalu aktifkan kanal di sini — berlaku seketika tanpa restart. Untuk tenant Lark internasional, set domain ke lark.",
-          "docsLabel": "Buka Feishu Open Platform"
-        },
-        "discord": {
-          "title": "Panduan setup Discord",
-          "intro": "Bot Discord terhubung ke gateway dengan token bot, jadi tidak perlu IP publik maupun webhook.",
-          "step1": "Buat aplikasi di Discord Developer Portal (discord.com/developers).",
-          "step2": "Buka halaman Bot, atur ulang token, lalu salin.",
-          "step3": "Di Privileged Gateway Intents, aktifkan MESSAGE CONTENT INTENT — intent default membutuhkannya.",
-          "step4": "Buat URL undangan OAuth2 dengan cakupan bot (dan applications.commands), lalu tambahkan bot ke server Anda.",
-          "step5": "Tempel token di sini, klik Uji koneksi, lalu aktifkan kanal.",
-          "docsLabel": "Buka dokumentasi pengembang Discord"
-        }
-      }
-    },
-    "generation": "Generasi",
-    "dataSourceSettings": "Pengaturan Sumber Data",
-    "dataSourceSettingsDesc": "Konfigurasikan kredensial data pasar opsional yang digunakan oleh backtest dan Agent riset.",
-    "sourcePriority": {
-      "title": "Prioritas Sumber Data",
-      "description": "Atur urutan sumber data yang dicoba untuk setiap market saat Agent mengambil data secara otomatis. Sumber yang diminta secara eksplisit tidak terpengaruh.",
-      "marketLabel": "Market",
-      "badgeDefault": "Default",
-      "badgeCustom": "Custom",
-      "customMarkets": "Custom · {{count}}",
-      "moveUp": "Pindahkan ke atas",
-      "moveDown": "Pindahkan ke bawah",
-      "resetToDefault": "Reset ke default",
-      "invalidOverrideWarning": "Override yang tersimpan untuk {{envVar}} tidak valid (harus mengurutkan ulang sumber yang sama) — urutan default sedang digunakan.",
-      "noMarkets": "Belum ada sumber data market yang terdaftar.",
-      "howItWorksTitle": "Cara kerjanya",
-      "howItWorks": "Untuk simbol yang terdeteksi otomatis, sumber dicoba dari atas ke bawah; jika satu sumber gagal, sumber berikutnya akan dicoba. Perubahan langsung berlaku setelah disimpan — tidak perlu restart.",
-      "caliberCaveat": "Penyesuaian harga dapat berbeda antar sumber. Periksa informasi penyesuaian, asal data, dan peringatan laporan; mengubah urutan sumber dapat mengubah hasil backtest.",
-      "markets": {
-        "a_share": "A-Shares (China)",
-        "us_equity": "Saham AS",
-        "hk_equity": "Saham Hong Kong",
-        "india_equity": "Saham India",
-        "kr_equity": "Saham Korea",
-        "ca_equity": "Saham Kanada",
-        "vietnam_equity": "Saham Vietnam",
-        "ar_equity": "Saham Argentina",
-        "br_equity": "Saham Brasil",
-        "uk_equity": "Saham Inggris",
-        "index": "Indeks",
-        "crypto": "Crypto",
-        "futures": "Futures",
-        "fund": "Fund",
-        "macro": "Makro",
-        "forex": "Forex"
-      }
-    },
-    "tushareToken": "Token Tushare",
-    "gildataToken": "Token Gildata",
-    "clearTushareToken": "Hapus token Tushare tersimpan",
-    "clearGildataToken": "Hapus token Gildata tersimpan",
-    "saveDataSourceSettings": "Simpan pengaturan sumber data",
-    "baostock": "BaoStock",
-    "loadLlmSettingsFailed": "Gagal memuat pengaturan LLM: {{message}}",
-    "loadDataSourceSettingsFailed": "Gagal memuat pengaturan sumber data: {{message}}",
-    "llmSettingsSaved": "Pengaturan LLM tersimpan",
-    "saveLlmSettingsFailed": "Gagal menyimpan pengaturan LLM: {{message}}",
-    "dataSourceSettingsSaved": "Pengaturan sumber data tersimpan",
-    "desktopCredentialRestarting": "Kredensial telah dienkripsi. Memulai ulang layanan lokal…",
-    "saveDataSourceSettingsFailed": "Gagal menyimpan pengaturan sumber data: {{message}}",
-    "configured": "Terkonfigurasi",
-    "keepCurrentKey": "Biarkan kosong untuk mempertahankan key saat ini",
-    "providerUsesOauth": "Provider ini menggunakan OAuth. Jalankan: {{command}}",
-    "providerUsesManagedAuth": "Provider ini mengelola autentikasi. Jalankan: {{command}}",
-    "noApiKeyRequired": "Provider ini tidak memerlukan API key.",
-    "keepCurrentToken": "Biarkan kosong untuk mempertahankan token saat ini",
-    "iwencaiApiKey": "iWenCai API Key",
-    "fredApiKey": "FRED API Key",
-    "iwencaiDesc": "Digunakan untuk screening saham semantik melalui iWenCai (问财). Memerlukan access key gratis.",
-    "clearSavedKey": "Hapus key tersimpan",
-    "fredDesc": "Digunakan untuk data makroekonomi FRED (CPI, GDP, pengangguran, dll.). Key gratis tersedia dari fred.stlouisfed.org.",
-    "featureFlags": "Feature Flags",
-    "featureFlagsDesc": "Feature flag runtime yang terdeteksi dari variabel environment.",
-    "shellTools": "Shell Tools",
-    "scheduler": "Scheduler",
-    "sessionRuntime": "Runtime Sesi",
-    "flagsReadFrom": "Flag dibaca dari {{env1}}, {{env2}}, dan {{env3}} di {{env_path}}.",
-    "unknownError": "Error tidak diketahui",
-    "providerChangeHint": "Mengganti provider akan memperbarui model dan endpoint yang direkomendasikan.",
-    "oauth": "OAuth",
-    "authentication": "Autentikasi",
-    "apiKey": "API key",
-    "tushareTokenDesc": "Digunakan untuk data A-share China, futures, fund, dan makro. Jika tidak diatur, proyek akan menggunakan AKShare sebagai fallback jika tersedia.",
-    "gildataTokenDesc": "Feed Gildata (Hundsun Juyuan) opsional untuk A-share China. Jika diatur, feed ini bergabung di ujung chain fallback A-share dengan bar harian forward-adjusted."
-  },
-  "qveris": {
-    "title": "Marketplace Tool QVeris",
-    "subtitle": "Gunakan data publik gratis sebagai pilihan bawaan, atau aktifkan eksekusi QVeris berbayar untuk tool data khusus.",
-    "enabled": "Aktifkan rute QVeris berbayar",
-    "baseUrl": "URL Dasar",
-    "apiKey": "API key",
-    "apiKeyPlaceholder": "Biarkan kosong untuk mempertahankan key saat ini",
-    "mode": "Mode",
-    "modeFree": "Hanya data publik gratis",
-    "modePaid": "QVeris berbayar diaktifkan",
-    "budget": "Anggaran kredit per sesi",
-    "budgetHint": "Eksekusi berbayar berhenti saat anggaran sesi ini tercapai.",
-    "balance": "Sisa kredit",
-    "recentUsage": "Penggunaan terbaru",
-    "noUsage": "Belum ada penggunaan terbaru",
-    "signupCta": "Buka pendaftaran",
-    "signupHint": "Gunakan kode undangan ini saat membuat akun QVeris.",
-    "inviteCode": "Kode undangan",
-    "save": "Simpan pengaturan QVeris",
-    "saved": "Pengaturan QVeris tersimpan",
-    "testFailed": "Permintaan QVeris gagal",
-    "notConfigured": "Belum dikonfigurasi"
-  },
-  "agent": {
-    "reasoningStrength": "Tingkat Reasoning",
-    "unknownProvider": "Provider tidak diketahui",
-    "unknownModel": "Model tidak diketahui",
-    "connectionLostReconnect": "Koneksi terputus, menghubungkan kembali…",
-    "connectionRestored": "Koneksi pulih",
-    "agentWorking": "Mulai bekerja…",
-    "reasoning": "Sedang melakukan reasoning…",
-    "running": "berjalan",
-    "newMessages": "Pesan baru",
-    "newResearchGoal": "Tujuan Riset Baru",
-    "goal": "Tujuan",
-    "criteria": "Kriteria",
-    "evidence": "Bukti",
-    "recentEvidence": "Bukti Terbaru",
-    "continue": "Lanjutkan",
-    "edit": "Edit",
-    "cancel": "Batal",
-    "save": "Simpan",
-    "cancelGoal": "Batalkan tujuan",
-    "describeGoal": "Jelaskan tujuan riset yang ingin dikaitkan dengan sesi ini",
-    "placeholder": "mis. Uji strategi moving average sederhana pada 000001.SZ selama 2024",
-    "send": "Kirim pesan",
-    "messageInputLabel": "Pesan untuk Agent",
-    "inputHint": "Enter untuk mengirim · Shift+Enter untuk baris baru",
-    "editGoalObjectiveLabel": "Edit objektif tujuan riset",
-    "exportChat": "Ekspor chat",
-    "stopGeneration": "Hentikan respons",
-    "runSwarmTeam": "Jalankan swarm team",
-    "uploadFile": "Unggah file",
-    "checkConnector": "Periksa connector",
-    "analyzePortfolio": "Analisis portofolio connector",
-    "executionTimedOut": "Eksekusi mengalami timeout dan dihentikan otomatis",
-    "researchGoalAttached": "Tujuan riset ditambahkan",
-    "failedToStartGoal": "Gagal memulai tujuan.",
-    "researchGoalCancelled": "Tujuan riset dibatalkan",
-    "failedToCancelGoal": "Gagal membatalkan tujuan.",
-    "researchGoalUpdated": "Tujuan riset diperbarui",
-    "failedToUpdateGoal": "Gagal memperbarui tujuan.",
-    "failedToLoadGoal": "Gagal memuat tujuan.",
-    "cancelRequestSent": "Menghentikan…",
-    "cancelFailed": "Tidak dapat menghentikannya — coba lagi.",
-    "connectorHalted": "Runtime connector dihentikan",
-    "failedToHaltConnector": "Gagal menghentikan runtime connector.",
-    "cancelledFromUI": "Dibatalkan dari Web UI.",
-    "executablesNotAllowed": "File executable dan arsip tidak diizinkan",
-    "fileSizeExceeds": "Ukuran file melebihi batas 50 MB",
-    "uploaded": "Terunggah: {{filename}}",
-    "attachmentLimit": "Anda dapat melampirkan hingga {{count}} file",
-    "dropFiles": "Letakkan file di sini",
-    "removeAttachment": "Hapus {{filename}}",
-    "uploadFailed": "Gagal mengunggah: {{error}}",
-    "messageTooLong": "Pesan melebihi {{limit}} karakter, termasuk informasi lampiran dan instruksi tim. Persingkat sebelum mengirim.",
-    "failedToSend": "Gagal mengirim pesan, silakan coba lagi.",
-    "failedToContinue": "Gagal melanjutkan tujuan, silakan coba lagi.",
-    "runtimeBadge": "RUNTIME",
-    "activeResearchGoal": "Tujuan riset aktif",
-    "evidenceCollectedTitle": "Bukti yang dikumpulkan untuk tujuan riset ini",
-    "evidenceCount": "{{count}} bukti",
-    "uploading": "Mengunggah...",
-    "haltConnectorTitle": "Hentikan aktivitas runtime connector secara langsung",
-    "haltConnector": "Hentikan runtime connector",
-    "moreOptions": "Opsi lainnya",
-    "researchGoal": "Tujuan Riset",
-    "agentSwarm": "Agent Swarm",
-    "attachmentChip": "Lampiran",
-    "swarmModeChip": "Mode tim",
-    "goalModeChip": "Tujuan riset",
-    "continueGoalMessage": "Lanjutkan tujuan riset: {{goal}}",
-    "loadEarlier": "Muat pesan sebelumnya",
-    "authRequired": "Akses API remote memerlukan API key. Tambahkan di Pengaturan, atau jalankan backend di localhost untuk penggunaan lokal saja.",
-    "followUpPlaceholder": "Tanyakan tentang run ini — mis. mengapa drawdown begitu dalam?",
-    "continuePrompt": "Lanjutkan dari bagian terakhir.",
-    "doneMarker": "Run selesai",
-    "backgroundRunComplete": "Sebuah run selesai di sesi lain.",
-    "activity": {
-      "verbs": {
-        "readingMarketData": "Membaca data market",
-        "writingStrategy": "Menulis strategi",
-        "runningBacktest": "Menjalankan backtest",
-        "validatingNumbers": "Memeriksa ulang angka",
-        "working": "Bekerja"
-      },
-      "done": "Selesai",
-      "stopped": "Dihentikan oleh Anda",
-      "timeout": "Berhenti menunggu setelah {{elapsed}} — run mungkin masih dalam proses penyelesaian",
-      "failed": "Gagal",
-      "steps": "{{count}} langkah",
-      "continue": "Lanjutkan",
-      "reattach": "Lampirkan kembali",
-      "checkingFigures": "Memeriksa angka dalam jawaban ini (putaran {{round}})…"
-    },
-    "resumeConnector": "Lanjutkan connector",
-    "resumeConnectorTitle": "Nonaktifkan penghentian darurat dan aktifkan kembali aktivitas connector",
-    "connectorResumed": "Connector dilanjutkan",
-    "failedToResumeConnector": "Gagal melanjutkan connector."
+    "requestTimeoutMutation": "Waktu permintaan habis. Server mungkin masih memprosesnya; periksa status saat ini sebelum mencoba lagi.",
+    "authRequired": "Akses API remote memerlukan API key. Tambahkan di Pengaturan, atau jalankan backend di localhost untuk penggunaan lokal saja."
   },
   "runDetail": {
     "title": "Detail Run",
@@ -1359,6 +235,16 @@
     "ddTroughToRecovery": "Lembah→Pulih",
     "ddNotRecovered": "Belum pulih",
     "ddDays": "{{count}} hari",
+    "lossPoints": "Where the loss came from",
+    "lossPointsNote": "Sells whose exit falls between the peak and the trough, with negative PnL.",
+    "lossNoTrades": "This drawdown has no losing trades. An equity curve alone cannot name the stocks.",
+    "lossWorst": "Worst trades",
+    "lossCluster": "Same-day cluster",
+    "lossCode": "Symbol",
+    "lossPnl": "PnL",
+    "lossWhen": "Exit",
+    "lossReason": "Reason",
+    "lossCount": "{{count}}",
     "dashboard": "Dashboard Riset",
     "positions": {
       "tab": "Posisi",
@@ -1431,7 +317,12 @@
     "attrCumulativeTitle": "Return Kumulatif",
     "attrLoading": "Memuat atribusi…",
     "attrError": "Gagal memuat atribusi.",
-    "attrNoData": "Tidak ada data atribusi yang tersedia untuk run ini."
+    "attrNoData": "Tidak ada data atribusi yang tersedia untuk run ini.",
+    "status": {
+      "completed": "Selesai",
+      "cancelled": "Dibatalkan",
+      "failed": "Gagal"
+    }
   },
   "compare": {
     "title": "Perbandingan Strategi",
@@ -1770,189 +661,8 @@
     "windowReturns": "Return per window",
     "tradeNumber": "Trade #"
   },
-  "thinking": {
-    "processing": "Memproses",
-    "running": "Berjalan",
-    "done": "Selesai",
-    "steps": "{{count}} langkah"
-  },
-  "runnerStatus": {
-    "connectorRuntime": "Runtime connector",
-    "configuredProfiles": "Profil runtime connector yang dikonfigurasi",
-    "connected": "{{count}} terhubung",
-    "noConnector": "tidak ada connector yang terhubung",
-    "running": "berjalan",
-    "halted": "dihentikan",
-    "authorized": "Terotorisasi",
-    "sdkConnected": "Terhubung",
-    "sdkReadOnlyNote": "Connector SDK langsung · profil read-only. Live trading memerlukan profil trade dan mandat yang sudah di-commit.",
-    "sdkCredentialsRequired": "Konfigurasikan kredensial API untuk connector ini (lihat Runtime untuk setup).",
-    "sdkConnectionError": "Pemeriksaan koneksi gagal. Verifikasi kredensial di halaman Runtime.",
-    "notConnected": "Tidak terhubung",
-    "connectProfile": "Hubungkan profil ini untuk mengaktifkan runtime connector",
-    "authorizeNote": "Channel connector tetap read-only hingga OAuth berhasil dan mandat di-commit.",
-    "runner": "Runner",
-    "runnerRunning": "Berjalan",
-    "runnerStopped": "Berhenti",
-    "lastTick": "Tick terakhir",
-    "activeMandate": "Mandat aktif",
-    "expiresIn": "kedaluwarsa dalam {{time}}",
-    "expired": "kedaluwarsa",
-    "limitsUnavailable": "batas tidak tersedia",
-    "noActiveMandate": "Tidak ada mandat aktif. Minta Agent mengusulkan mandat, lalu commit sebelum menjalankan runtime connector.",
-    "haltedControlsDisabled": "Dihentikan — kontrol Runner dinonaktifkan",
-    "runtimeActive": "Runtime aktif dalam mandat",
-    "idle": "Idle",
-    "stopRunner": "Hentikan Runner",
-    "startRunner": "Jalankan Runner",
-    "never": "tidak pernah",
-    "unknown": "tidak diketahui",
-    "justNow": "baru saja",
-    "loadingInstructions": "Memuat instruksi otorisasi connector...",
-    "fallbackInstruction": "Jalankan `vibe-trading connector list`, pilih profil broker, lalu jalankan `vibe-trading connector authorize <profile>` dari sesi desktop yang akan mempertahankan koneksi broker.",
-    "secondsAgo": "{{n}} dtk lalu",
-    "minutesAgo": "{{n}} mnt lalu",
-    "hoursAgo": "{{n}} jam lalu",
-    "daysAgo": "{{n}} hari lalu",
-    "runnerStartedFor": "Runner dijalankan untuk {{broker}}",
-    "runnerStoppedFor": "Runner dihentikan untuk {{broker}}",
-    "runnerControlFailed": "Kontrol Runner gagal.",
-    "startRunnerTitle": "Jalankan Runner persisten",
-    "stopRunnerTitle": "Hentikan Runner persisten",
-    "expiresAt": "Kedaluwarsa {{time}}"
-  },
-  "swarmStatus": {
-    "agents": "{{done}}/{{total}} Agent",
-    "layer": "Putaran {{current}} dari {{total}}",
-    "agent": "Agent",
-    "status": "Status",
-    "tool": "Tool",
-    "time": "Waktu",
-    "iters": "Iterasi",
-    "output": "Output",
-    "waitingForEvents": "Menunggu event dari Agent...",
-    "teamStarting": "Tim sedang dimulai — update pertama akan muncul dalam beberapa detik…",
-    "detailsUnavailable": "detail tidak tersedia"
-  },
-  "mandate": {
-    "runtimeMandate": "Mandat runtime connector",
-    "reauthMandate": "Otorisasi ulang mandat connector",
-    "universe": "Universe",
-    "maxOrder": "Order Maksimum",
-    "dailyCap": "Batas Harian",
-    "leverage": "Leverage",
-    "instruments": "Instrumen",
-    "adjust": "Sesuaikan",
-    "committing": "Melakukan commit…",
-    "commit": "Commit \"{{label}}\"",
-    "cancel": "Batal",
-    "sendAdjustment": "Kirim penyesuaian",
-    "mandateActive": "Mandat {{id}} aktif",
-    "fundedBy": "didanai oleh",
-    "noBroker": "Tidak dapat commit mandat: broker connector tidak tersedia. Minta Agent membuat ulang proposal.",
-    "failedToCommit": "Gagal commit mandat.",
-    "noLeverage": "tanpa leverage",
-    "leverageValue": "{{value}}× leverage",
-    "tradesPerDay": "{{count}} trade/hari",
-    "adjustTitle": "Sesuaikan mandat ini",
-    "adjustPlaceholder": "mis. pertahankan ini tetapi naikkan batas harian menjadi 10",
-    "adjustInputLabel": "Permintaan penyesuaian",
-    "confirmTitle": "Konfirmasi commit mandat",
-    "confirmDescription": "Ini memberikan otorisasi trading kepada Agent sesuai batas yang ditampilkan di bawah dan langsung berlaku.",
-    "confirmButton": "Konfirmasi & commit",
-    "maxPerOrder": "≤{{amount}}/order",
-    "expiresOn": "kedaluwarsa {{date}}",
-    "accountSummary": "{{broker}} · akun {{type}} · didanai oleh {{fundedBy}}",
-    "adjustRequestMessage": "Untuk proposal mandat \"{{label}}\" (opsi {{ordinal}}): {{text}}",
-    "accountLoading": "Memuat akun broker…",
-    "accountLoadFailed": "Tidak dapat memuat akun broker: {{error}}",
-    "accountLabel": "Akun yang dapat digunakan mandat ini untuk trading",
-    "accountChoose": "Pilih akun",
-    "accountDefault": " · default broker",
-    "accountDeactivated": " · dinonaktifkan",
-    "accountNotAgentic": " · trading oleh Agent tidak diizinkan",
-    "accountHint": "Agent hanya melakukan trading pada akun ini. Tidak ada akun yang dipilih secara otomatis untuk Anda."
-  },
-  "messageBubble": {
-    "elapsedTime": "Total waktu respons",
-    "copied": "Disalin",
-    "copy": "Salin",
-    "copyFailed": "Gagal menyalin. Pilih teks lalu tekan Ctrl+C.",
-    "timeoutHint": "Timeout. Sederhanakan strategi atau gunakan lebih sedikit aset.",
-    "apiFailedHint": "Permintaan API gagal. Coba lagi beberapa saat lagi.",
-    "executionFailedHint": "Eksekusi gagal. Coba lagi.",
-    "retry": "Coba lagi"
-  },
-  "pineViewer": {
-    "pineScript": "Pine Script v6",
-    "copied": "Disalin",
-    "copy": "Salin",
-    "docs": "Dokumentasi",
-    "footer": "TradingView Pine Editor → New blank indicator → Paste code → Add to Chart"
-  },
-  "runComplete": {
-    "fullReport": "Laporan Lengkap →",
-    "pineScript": "Pine Script",
-    "shadowReport": "Laporan Shadow"
-  },
-  "home": {
-    "title": "Riset Strategi Quant Berbasis AI",
-    "subtitle": "Jelaskan strategi trading dengan bahasa alami. Agent akan membuat kode, menjalankan backtest, dan melakukan optimasi — semuanya secara real-time.",
-    "startResearch": "Mulai Riset",
-    "featureAgent": "AI Agent",
-    "featureAgentDesc": "Pembuatan strategi dari bahasa alami dengan reasoning ReAct",
-    "featureBacktest": "Backtest Bawaan",
-    "featureBacktestDesc": "Berbagai sumber data untuk analisis kuantitatif A-shares",
-    "featureStreaming": "Streaming Real-time",
-    "featureStreamingDesc": "Lihat Agent melakukan reasoning, memanggil tool, dan beriterasi",
-    "featureReplay": "Replay Strategi",
-    "featureReplayDesc": "Analisis jurnal trading + Shadow Account — ekstrak aturan Anda, lakukan backtest, dan atribusikan delta PnL",
-    "howItWorksTitle": "Cara kerjanya",
-    "step1Title": "1. Jelaskan strategi Anda",
-    "step1Desc": "Beri tahu Agent apa yang ingin Anda uji dengan bahasa sederhana — tanpa perlu kode.",
-    "step2Title": "2. Lihat proses riset dan backtest",
-    "step2Desc": "Agent menyusun rencana, mengambil data market, dan menjalankan backtest secara live sehingga Anda dapat mengikuti setiap langkah.",
-    "step3Title": "3. Tinjau hasilnya",
-    "step3Desc": "Lihat metrik performa, kurva equity, dan Pine Script strategi yang dapat diekspor.",
-    "step4Title": "4. Mulai live saat Anda siap",
-    "step4Desc": "Anda dapat menyetujui mandat trading dengan batas yang jelas — tidak ada trade yang dilakukan tanpa konfirmasi Anda."
-  },
   "errorBoundary": {
     "somethingWrong": "Terjadi kesalahan. Muat ulang halaman untuk melanjutkan."
-  },
-  "toolProgress": {
-    "step": "Langkah {{step}} · {{tool}}",
-    "toolsRunning": "Mengerjakan {{count}} hal sekaligus",
-    "toolsCompleted": "Selesai {{count}} langkah",
-    "more": "… +{{count}} lainnya",
-    "etaSeconds": "~{{seconds}} dtk tersisa",
-    "earlier": "+{{count}} sebelumnya"
-  },
-  "swarm": {
-    "assemblingTeam": "Menyusun tim…",
-    "preparingLayers": "Menentukan siapa yang mulai terlebih dahulu…",
-    "agentProgress": "Progres Agent Swarm",
-    "status": {
-      "waiting": "Menunggu",
-      "running": "Berjalan",
-      "done": "Selesai",
-      "failed": "Gagal",
-      "blocked": "Terblokir",
-      "retry": "Mencoba lagi",
-      "cancelled": "Dibatalkan",
-      "pending": "Menunggu",
-      "completed": "Selesai",
-      "unknown": "Tidak diketahui"
-    },
-    "elapsed": {
-      "seconds": "{{value}} dtk",
-      "minutesSeconds": "{{minutes}} mnt {{seconds}} dtk"
-    },
-    "presets": {
-      "investment_committee": "Tinjauan Komite Investasi",
-      "quant_strategy_desk": "Desk Strategi Quant",
-      "value_investing_committee": "Komite Value Investing"
-    }
   },
   "metrics": {
     "good": "baik",
@@ -1974,93 +684,6 @@
       "final_value": "Nilai portofolio pada akhir periode pengujian.",
       "avg_holding_days": "Rata-rata jumlah hari setiap posisi tetap terbuka."
     }
-  },
-  "tools": {
-    "add_goal_evidence": "Tambah bukti tujuan",
-    "alpha_bench": "Benchmark faktor alpha",
-    "alpha_compare": "Bandingkan faktor alpha",
-    "alpha_zoo": "Jelajahi library alpha",
-    "analyze_image": "Analisis gambar",
-    "analyze_trade_journal": "Analisis jurnal trading",
-    "background_run": "Jalankan tugas background",
-    "backtest": "Jalankan backtest",
-    "bash": "Jalankan command",
-    "cancel_background": "Batalkan tugas background",
-    "check_background": "Periksa tugas background",
-    "compact": "Rangkum percakapan",
-    "create_hypothesis": "Buat hipotesis riset",
-    "delete_skill": "Hapus skill kustom",
-    "edit_file": "Edit kode",
-    "extract_shadow_strategy": "Ekstrak strategi shadow",
-    "factor_analysis": "Analisis faktor",
-    "financial_rigor": "Verifikasi analisis finansial",
-    "generate_backtest_config": "Buat config backtest",
-    "get_block_trades": "Ambil block trade",
-    "get_dragon_tiger": "Ambil daftar dragon-tiger",
-    "get_financial_statements": "Ambil laporan keuangan",
-    "get_fund_flow": "Ambil arus dana",
-    "get_fundamentals": "Ambil data fundamental",
-    "get_lockup_expiry": "Ambil jadwal kedaluwarsa lockup",
-    "get_macro_series": "Ambil series makro",
-    "get_margin_trading": "Ambil data margin trading",
-    "get_market_data": "Ambil data market",
-    "get_northbound_flow": "Ambil northbound flow",
-    "get_options_chain": "Ambil options chain",
-    "get_research_goal": "Lihat tujuan riset",
-    "get_research_reports": "Ambil laporan riset",
-    "get_sec_filings": "Ambil filing SEC",
-    "get_sector_info": "Ambil data sektor",
-    "get_shareholder_count": "Ambil jumlah pemegang saham",
-    "get_stock_news": "Ambil berita saham",
-    "get_stock_profile": "Ambil profil saham",
-    "iwencai_search": "Cari iWenCai",
-    "link_autopilot_backtest": "Tautkan backtest autopilot",
-    "link_backtest": "Tautkan backtest hipotesis",
-    "load_skill": "Muat pengetahuan strategi",
-    "options_payoff": "Analisis payoff opsi",
-    "options_pricing": "Hitung harga opsi",
-    "patch_skill": "Perbarui skill kustom",
-    "pattern": "Deteksi pola chart",
-    "portfolio_risk_xray": "X-ray risiko portofolio",
-    "propose_mandate_profiles": "Usulkan mandat trading",
-    "qveris_execute": "Jalankan aksi QVeris",
-    "qveris_inspect": "Periksa aksi QVeris",
-    "qveris_search": "Cari QVeris",
-    "read_document": "Baca dokumen",
-    "read_file": "Baca file",
-    "read_url": "Baca halaman web",
-    "remember": "Ingat ini",
-    "render_shadow_report": "Buat shadow report",
-    "report_audit": "Audit laporan riset",
-    "run_research_autopilot": "Jalankan autopilot riset",
-    "run_shadow_backtest": "Jalankan shadow backtest",
-    "run_swarm": "Kumpulkan tim",
-    "save_skill": "Simpan skill kustom",
-    "scaffold_signal_engine": "Bangun engine sinyal",
-    "scan_shadow_signals": "Pindai sinyal shadow",
-    "screen_market": "Screen market",
-    "sdm_decay_scan": "Pindai decay strategi",
-    "sdm_register": "Daftarkan strategi",
-    "sdm_status": "Periksa status strategi",
-    "search_hypotheses": "Cari hipotesis",
-    "search_symbol": "Cari simbol",
-    "session_search": "Cari sesi sebelumnya",
-    "skill_file": "Baca file skill",
-    "start_research_goal": "Mulai tujuan riset",
-    "trading_account": "Lihat akun broker",
-    "trading_cancel_order": "Batalkan order broker",
-    "trading_check": "Periksa koneksi broker",
-    "trading_connections": "Tampilkan koneksi broker",
-    "trading_history": "Lihat riwayat trade",
-    "trading_orders": "Lihat order broker",
-    "trading_place_order": "Buat order broker",
-    "trading_positions": "Lihat posisi broker",
-    "trading_quote": "Ambil quote broker",
-    "trading_select_connection": "Pilih koneksi broker",
-    "update_hypothesis": "Perbarui hipotesis riset",
-    "update_research_goal_status": "Perbarui status tujuan",
-    "web_search": "Cari di web",
-    "write_file": "Buat kode"
   },
   "runDashboard": {
     "eyebrow": "Riset kuantitatif · Backtest",
@@ -2345,5 +968,52 @@
     "selectedFactor": "Faktor dipilih: {{id}}. Hanya faktor ini yang dievaluasi.",
     "fundamentalsRequirement": "Faktor fundamental memerlukan laporan SEC yang aman secara PIT dan semesta saham AS (S&P 500).",
     "noEvaluableFactors": "Tidak ada faktor yang dapat dievaluasi. Perpanjang riwayat dan periksa bidang data yang diperlukan serta semesta saham."
+  },
+  "workbench": {
+    "title": "Research workbench",
+    "subtitle": "Submit strategies from your code agent. Track experiments, inspect results and compare revisions.",
+    "active": "In progress",
+    "complete": "Completed",
+    "total": "Experiments",
+    "project": "Project",
+    "all": "All projects",
+    "refresh": "Refresh",
+    "loading": "Loading experiments…",
+    "empty": "No experiments yet",
+    "emptyHint": "Start the service, then submit the offline example below from your terminal or code agent.",
+    "error": "Unable to load experiments",
+    "report": "Open report",
+    "logs": "Logs & configuration",
+    "cancel": "Cancel experiment",
+    "compare": "Compare selected",
+    "select": "Select {{name}} for comparison",
+    "schema": "Artifact schema checked · accounting / out-of-sample not checked",
+    "handoff": "Connect your external code agent",
+    "handoffHint": "The service snapshots only the files explicitly listed in your manifest. Run from the repository root; see README for the artifact contract.",
+    "copy": "Copy context",
+    "copied": "Copied",
+    "noLogs": "No log output yet.",
+    "config": "Submitted configuration",
+    "snapshot": "Source & input snapshot",
+    "parent": "Parent experiment",
+    "settings": "Workbench settings",
+    "settingsHint": "Local execution and API connection. No model configuration is required.",
+    "key": "API key (optional for local development)",
+    "save": "Save connection",
+    "saved": "Connection saved",
+    "workspace": "Allowed workspace",
+    "storage": "Experiment storage",
+    "workers": "Concurrent workers",
+    "connection": "Connection",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "cancelling": "Cancelling",
+      "cancelled": "Cancelled",
+      "failed": "Failed",
+      "interrupted": "Interrupted",
+      "success": "Succeeded"
+    },
+    "appName": "Quant Workbench"
   }
 }

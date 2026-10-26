@@ -36,6 +36,8 @@ AuthDep = Callable[..., Awaitable[Any] | Any]
 def register_attribution_routes(
     app: FastAPI,
     require_auth: AuthDep | None = None,
+    *,
+    host: Any = None,
 ) -> None:
     """Mount the attribution route onto ``app``.
 
@@ -52,7 +54,7 @@ def register_attribution_routes(
     """
     import sys as _sys
 
-    host = _sys.modules.get("src.interfaces.api_server")
+    host = host or _sys.modules.get("src.interfaces.api_server")
     if host is None:
         raise RuntimeError(
             "register_attribution_routes: api_server module not in sys.modules; "
@@ -64,12 +66,10 @@ def register_attribution_routes(
 
     # Late-access closures for shared host symbols (monkeypatch-safe)
     def _host_validate_path_param(value: str, kind: str) -> None:
-        h = _sys.modules.get("src.interfaces.api_server")
-        return h._validate_path_param(value, kind)
+        return host._validate_path_param(value, kind)
 
     def _host_RUNS_DIR() -> Path:
-        h = _sys.modules.get("src.interfaces.api_server")
-        return h.RUNS_DIR
+        return host.RUNS_DIR
 
     @app.get("/runs/{run_id}/attribution", dependencies=[Depends(require_auth)])
     async def get_run_attribution(run_id: str):

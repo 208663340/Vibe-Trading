@@ -1,4 +1,6 @@
 import i18n from '@/i18n';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, useSearchParams } from "react-router";
@@ -42,8 +44,9 @@ import { AnnualReturnsChart } from "@/components/charts/AnnualReturnsChart";
 import { CandlestickChart } from "@/components/charts/CandlestickChart";
 import { EquityChart } from "@/components/charts/EquityChart";
 import { MonthlyReturnsHeatmap } from "@/components/charts/MonthlyReturnsHeatmap";
+import { LossPointsPanel } from "@/components/charts/LossPointsPanel";
 import { TopDrawdownsPanel } from "@/components/charts/TopDrawdownsPanel";
-import { MetricsCard } from "@/components/chat/MetricsCard";
+import { MetricsCard } from "@/components/run/MetricsCard";
 import { ValidationPanel } from "@/components/charts/ValidationPanel";
 import { Skeleton, SkeletonMetrics, SkeletonChart } from "@/components/common/Skeleton";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
@@ -330,31 +333,31 @@ export function RunDetail() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <Tabs value={tab} onValueChange={value => setTab(value as Tab)} dir={i18n.dir(i18n.language)} className="flex min-h-full flex-col md:h-full md:min-h-0">
       {/* Header */}
       <div className="border-b border-border/60 p-4 space-y-3">
         <div className="flex items-center gap-3">
-          <button
+          <Button variant="ghost" size="sm"
             onClick={() => navigate(-1)}
             className="p-1 rounded-md hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
             title={i18n.t("runDetail.goBack")}
           >
             <ArrowLeft className="h-4 w-4" />
-          </button>
+          </Button>
           {ok ? (
             <>
               <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
-              <span className="sr-only">{t("swarm.status.completed")}</span>
+              <span className="sr-only">{t("runDetail.status.completed")}</span>
             </>
           ) : cancelled ? (
             <>
               <CircleSlash className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-              <span className="sr-only">{t("swarm.status.cancelled")}</span>
+              <span className="sr-only">{t("runDetail.status.cancelled")}</span>
             </>
           ) : (
             <>
               <XCircle className="h-5 w-5 text-danger" aria-hidden="true" />
-              <span className="sr-only">{t("swarm.status.failed")}</span>
+              <span className="sr-only">{t("runDetail.status.failed")}</span>
             </>
           )}
           <div className="min-w-0">
@@ -368,67 +371,58 @@ export function RunDetail() {
             </div>
             <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">RUN {runId}</p>
           </div>
-          {run.elapsed_seconds && <span className="text-xs text-muted-foreground">{run.elapsed_seconds.toFixed(1)}s</span>}
+          {run.elapsed_seconds != null && <span className="text-xs text-muted-foreground">{run.elapsed_seconds.toFixed(1)}s</span>}
         </div>
         {run.prompt && (
           <div>
             <p className={cn("text-sm text-muted-foreground whitespace-pre-wrap", !promptExpanded && "line-clamp-3")}>
               {run.prompt}
             </p>
-            <button
+            <Button variant="ghost" size="sm"
               type="button"
               aria-expanded={promptExpanded}
               onClick={() => setPromptExpanded((v) => !v)}
               className="mt-1 text-xs text-primary hover:underline"
             >
               {promptExpanded ? t("runDetail.showLessPrompt") : t("runDetail.showFullPrompt")}
-            </button>
+            </Button>
           </div>
         )}
         {run.metrics && <MetricsCard metrics={run.metrics as Record<string, number>} />}
 
         <div className="flex flex-wrap items-center gap-1">
-          <div role="tablist" className="flex flex-wrap items-center gap-1">
+          <TabsList className="h-auto max-w-full flex-wrap justify-start gap-1">
             {TABS.filter(tabItem => !tabItem.hidden).map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                role="tab"
-                aria-selected={tab === id}
-                onClick={() => setTab(id)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors",
-                  tab === id ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted/60"
-                )}
-              >
+              <TabsTrigger key={id} value={id} className="gap-1.5 py-1.5">
                 <Icon className="h-3.5 w-3.5" aria-hidden="true" /> {label}
-              </button>
+              </TabsTrigger>
             ))}
-          </div>
+          </TabsList>
 
-          <div className="ml-auto flex flex-wrap gap-1">
+          <div className="ms-auto flex flex-wrap gap-1">
             {run.trade_log && run.trade_log.length > 0 && (
-              <button
+              <Button variant="ghost" size="sm"
                 onClick={() => downloadCsv(`trades_${runId}.csv`, buildTradesCsv(run.trade_log!))}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted/60 transition-colors"
                 title={i18n.t("runDetail.downloadTradesCsv")}
               >
                 <Download className="h-3.5 w-3.5" /> {i18n.t("runDetail.downloadTradesCsv")}
-              </button>
+              </Button>
             )}
             {run.metrics && (
-              <button
+              <Button variant="ghost" size="sm"
                 onClick={() => downloadCsv(`metrics_${runId}.csv`, buildMetricsCsv(run.metrics!))}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted/60 transition-colors"
                 title={i18n.t("runDetail.downloadMetricsCsv")}
               >
                 <Download className="h-3.5 w-3.5" /> {i18n.t("runDetail.downloadMetricsCsv")}
-              </button>
+              </Button>
             )}
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <TabsContent value={tab} className="m-0 min-h-0 flex-1 md:overflow-auto">
         <ErrorBoundary>
           {tab === "dashboard" && <div className="p-4"><StrategyResearchDashboard run={run} /></div>}
           {tab === "chart" && (
@@ -460,8 +454,8 @@ export function RunDetail() {
           {tab === "runCard" && run.run_card && <RunCardTab card={run.run_card} />}
           {tab === "code" && <CodeTab code={code} />}
         </ErrorBoundary>
-      </div>
-    </div>
+      </TabsContent>
+    </Tabs>
   );
 }
 
@@ -735,6 +729,9 @@ function TearsheetTab({ run }: { run: RunData }) {
           <TopDrawdownsPanel episodes={drawdowns} />
         </RunCardPanel>
       </div>
+      <RunCardPanel title={i18n.t("runDetail.lossPoints")} icon={AlertTriangle}>
+        <LossPointsPanel episodes={drawdowns} trades={run.artifacts_trades_csv} />
+      </RunCardPanel>
     </div>
   );
 }

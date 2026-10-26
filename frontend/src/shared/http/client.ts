@@ -20,7 +20,7 @@ export class ApiError extends Error {
   }
 }
 
-const AUTH_REQUIRED_MESSAGE_KEY = "agent.authRequired";
+const AUTH_REQUIRED_MESSAGE_KEY = "connection.authRequired";
 
 function getAuthRequiredMessage(): string {
   return i18n.t(AUTH_REQUIRED_MESSAGE_KEY as never);
@@ -48,13 +48,10 @@ async function errorFromResponse(res: Response): Promise<ApiError> {
     if (typeof raw === "string" && raw) {
       detail = raw;
     } else if (raw && typeof raw === "object") {
-      const structured = raw as { code?: unknown; message?: unknown; max_length?: unknown };
+      const structured = raw as { code?: unknown; message?: unknown };
       if (typeof structured.code === "string" && structured.code) code = structured.code;
       if (typeof structured.message === "string" && structured.message) detail = structured.message;
       else if (code) detail = code;
-      if (code === "message_too_long" && typeof structured.max_length === "number") {
-        detail = i18n.t("agent.messageTooLong", { limit: structured.max_length.toLocaleString() });
-      }
     }
   } catch {
     if (res.status >= 500) detail = i18n.t("connection.requestFailed");

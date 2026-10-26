@@ -236,6 +236,89 @@ export function computeTopDrawdowns(points: NormalizedEquityPoint[], n = 5): Dra
   return episodes.slice(0, n);
 }
 
+/** One losing fill inside a drawdown episode. */
+export interface LossTrade {
+  time: string;
+  code: string;
+  pnl: number;
+  reason: string;
+}
+
+/** Losing fills that share an exit calendar day. */
+export interface LossCluster {
+  date: string;
+  count: number;
+  pnl: number;
+}
+
+/** Worst trades and same-day clusters for one drawdown episode. */
+export interface LossPointReport {
+  episode: DrawdownEpisode;
+  worst: LossTrade[];
+  clusters: LossCluster[];
+  losingCount: number;
+}
+
+function rowTime(row: Record<string, unknown>): string {
+  const raw = row.timestamp ?? row.time;
+  return raw == null ? "" : String(raw).trim();
+}
+
+function calendarDay(time: string): string {
+  return time.slice(0, 10);
+}
+
+/**
+ * Losing sells whose exit falls on the decline from peak to trough.
+ * Clusters are exit days with at least `clusterMin` losing fills.
+ */
+export function attributeDrawdownLosses(
+  episodes: DrawdownEpisode[],
+  trades: Array<Record<string, string>> | undefined | null,
+  worst = 8,
+  clusterMin = 5,
+): LossPointReport[] {
+  const rows = trades ?? [];
+  return episodes.map((episode) => {
+    const peak = parseTime(episode.peakTime);
+    const trough = parseTime(episode.troughTime);
+    const losing: LossTrade[] = [];
+    if (peak && trough) {
+      for (const row of rows) {
+        const time = rowTime(row);
+        const when = parseTime(time);
+        const pnl = Number(row.pnl);
+        if (!when || !Number.isFinite(pnl) || pnl >= 0) continue;
+        if (when.getTime() < peak.getTime() || when.getTime() > trough.getTime()) continue;
+        losing.push({
+          time,
+          code: String(row.code || ""),
+          pnl,
+          reason: String(row.reason || ""),
+        });
+      }
+    }
+    losing.sort((a, b) => a.pnl - b.pnl);
+    const byDay = new Map<string, LossCluster>();
+    for (const trade of losing) {
+      const date = calendarDay(trade.time);
+      const cluster = byDay.get(date) ?? { date, count: 0, pnl: 0 };
+      cluster.count += 1;
+      cluster.pnl += trade.pnl;
+      byDay.set(date, cluster);
+    }
+    const clusters = [...byDay.values()]
+      .filter((cluster) => cluster.count >= clusterMin)
+      .sort((a, b) => a.pnl - b.pnl);
+    return {
+      episode,
+      worst: losing.slice(0, worst),
+      clusters,
+      losingCount: losing.length,
+    };
+  });
+}
+
 /** Map episodes to equity-chart zones; unrecovered episodes run to lastTime. */
 export function toDrawdownZones(episodes: DrawdownEpisode[], lastTime: string): DrawdownZone[] {
   return episodes.map((ep, i) => ({

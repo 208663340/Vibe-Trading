@@ -1,4 +1,5 @@
 import {
+  attributeDrawdownLosses,
   normalizeEquitySeries,
   computeMonthlyReturns,
   computeAnnualReturns,
@@ -303,5 +304,23 @@ describe("calendar attribution west of UTC", () => {
     expect(episodes).toHaveLength(1);
     expect(episodes[0].peakToTroughDays).toBe(10);
     expect(episodes[0].troughToRecoveryDays).toBe(10);
+  });
+});
+
+describe("attributeDrawdownLosses", () => {
+  const points = [pt("2024-03-01", 100), pt("2024-03-11", 80), pt("2024-03-21", 100)];
+
+  it("keeps losing sells between the peak and the trough and clusters that day", () => {
+    const episodes = computeTopDrawdowns(points, 1);
+    const trades = [
+      { timestamp: "2024-03-05", code: "000001", side: "sell", pnl: "-12", reason: "ma60", return_pct: "-3" },
+      { timestamp: "2024-03-05 00:00:00", code: "000002", side: "sell", pnl: "-4", reason: "ma60", return_pct: "-1" },
+      { timestamp: "2024-03-11", code: "000003", side: "sell", pnl: "6", reason: "ma60", return_pct: "2" },
+      { timestamp: "2024-03-15", code: "000004", side: "sell", pnl: "-40", reason: "ma60", return_pct: "-8" },
+    ];
+    const [report] = attributeDrawdownLosses(episodes, trades, 8, 2);
+    expect(report.losingCount).toBe(2);
+    expect(report.worst.map((trade) => trade.code)).toEqual(["000001", "000002"]);
+    expect(report.clusters).toEqual([{ date: "2024-03-05", count: 2, pnl: -16 }]);
   });
 });

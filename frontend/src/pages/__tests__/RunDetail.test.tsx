@@ -1,7 +1,9 @@
+import userEvent from "@testing-library/user-event";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { RunDetail } from "../RunDetail";
 import type { RunData } from "@/lib/api";
+import i18n from "@/i18n";
 
 const apiMock = vi.hoisted(() => ({
   getRun: vi.fn(),
@@ -137,7 +139,7 @@ describe("RunDetail page", () => {
 
     expect(screen.getByText("New run")).toBeInTheDocument();
     expect(screen.queryByText("Old run")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Code" }));
     expect(await screen.findByText("NEW_CODE")).toBeInTheDocument();
     expect(screen.queryByText("OLD_CODE")).not.toBeInTheDocument();
   });
@@ -209,7 +211,7 @@ describe("RunDetail page", () => {
 
     expect(screen.getByText("New run")).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: "OLD" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Trades" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
     expect(screen.queryByText("OLD TRADE")).not.toBeInTheDocument();
   });
 
@@ -243,7 +245,7 @@ describe("RunDetail page", () => {
     expect(chartTab).toHaveClass("font-medium");
     expect(tradesTab).toHaveAttribute("aria-selected", "false");
 
-    fireEvent.click(tradesTab);
+    await userEvent.click(tradesTab);
 
     expect(tradesTab).toHaveAttribute("aria-selected", "true");
     expect(tradesTab).toHaveClass("font-medium");
@@ -267,7 +269,7 @@ describe("RunDetail page", () => {
     renderRunDetail("/runs/card");
 
     await screen.findByText("Run card");
-    fireEvent.click(screen.getByRole("tab", { name: "Run Card" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Run Card" }));
 
     const keyCell = await screen.findByText("engine");
     expect(keyCell).toHaveClass("ps-4");
@@ -298,7 +300,7 @@ describe("RunDetail page", () => {
     renderRunDetail("/runs/structured");
 
     await screen.findByText("Structured card");
-    fireEvent.click(screen.getByRole("tab", { name: "Run Card" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Run Card" }));
 
     expect(
       await screen.findByText("unfilled_plan_rejections_by_symbol"),
@@ -322,7 +324,7 @@ describe("RunDetail page", () => {
     renderRunDetail("/runs/scalar-only");
 
     await screen.findByText("Scalar only");
-    fireEvent.click(screen.getByRole("tab", { name: "Run Card" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Run Card" }));
 
     expect(await screen.findByText("No structured metrics recorded.")).toBeInTheDocument();
   });
@@ -343,7 +345,7 @@ describe("RunDetail page", () => {
     apiMock.getRun.mockResolvedValue({ status: "success", run_id: "trust", prompt: "Evidence run", run_card: runCard });
     apiMock.getRunCode.mockResolvedValue({});
     renderRunDetail("/runs/trust");
-    fireEvent.click(await screen.findByRole("tab", { name: "Run Card" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Run Card" }));
 
     const executions = screen.getByText("Execution records").closest("section")!;
     expect(within(executions).getByText("Load data")).toBeInTheDocument();
@@ -374,7 +376,7 @@ describe("RunDetail page", () => {
     apiMock.getRun.mockResolvedValue({ status: "success", run_id: "no-evidence", prompt: "No evidence", run_card: runCard });
     apiMock.getRunCode.mockResolvedValue({});
     renderRunDetail("/runs/no-evidence");
-    fireEvent.click(await screen.findByRole("tab", { name: "Run Card" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Run Card" }));
     expect(screen.getByText("Execution records were not recorded for this run.")).toBeInTheDocument();
     expect(screen.getByText("Metric evidence was not recorded for this run.")).toBeInTheDocument();
     if (runCard.schema_version === "v0") expect(screen.getByText("1.4200")).toBeInTheDocument();
@@ -388,7 +390,7 @@ describe("RunDetail page", () => {
     });
     apiMock.getRunCode.mockResolvedValue({});
     renderRunDetail("/runs/inert");
-    fireEvent.click(await screen.findByRole("tab", { name: "Run Card" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Run Card" }));
     const evidence = screen.getByText("Metric evidence").closest("section")!;
     expect(within(evidence).getByText(unsafeReference)).toBeInTheDocument();
     expect(evidence.querySelector("a, img")).toBeNull();
@@ -423,7 +425,7 @@ describe("RunDetail page", () => {
     // The factor report is fetched lazily on tab open, never with the main run payload.
     expect(apiMock.getRunFactor).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("tab", { name: "Factor Research" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Factor Research" }));
 
     expect(await screen.findByTestId("factor-panel")).toBeInTheDocument();
     expect(apiMock.getRunFactor).toHaveBeenCalledWith("factor-run");
@@ -469,7 +471,7 @@ describe("RunDetail page", () => {
     renderRunDetail("/runs/studio-run");
 
     await screen.findByText("Studio run");
-    fireEvent.click(screen.getByRole("tab", { name: "Portfolio Studio" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Portfolio Studio" }));
 
     expect(await screen.findByText("Risk X-Ray")).toBeInTheDocument();
     expect(screen.getByText("0.520")).toBeInTheDocument();
@@ -501,7 +503,7 @@ describe("RunDetail page", () => {
     renderRunDetail("/runs/legacy-run");
 
     await screen.findByText("Legacy run");
-    fireEvent.click(screen.getByRole("tab", { name: "Portfolio Studio" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Portfolio Studio" }));
     await screen.findByText("Rebalance Notes");
 
     // old artifacts carry only rebalance_count; the fallback keeps them readable
@@ -522,3 +524,20 @@ describe("RunDetail page", () => {
     await screen.findByText("Plain run");
     expect(screen.queryByRole("tab", { name: "Portfolio Studio" })).not.toBeInTheDocument();
   });
+
+it.each([["en", "ArrowRight"], ["zh-CN", "ArrowRight"], ["ar", "ArrowLeft"]])("supports %s keyboard navigation and links the active report panel", async (language, key) => {
+  await i18n.changeLanguage(language);
+  try {
+    apiMock.getRun.mockResolvedValue({status: "success",run_id:"keyboard-run",prompt:"Keyboard navigation"});
+    apiMock.getRunCode.mockResolvedValue({});
+    renderRunDetail("/runs/keyboard-run?view=dashboard");
+    const tabs = await screen.findAllByRole("tab");
+    tabs[0].focus();
+    fireEvent.keyDown(tabs[0], {key});
+    await waitFor(() => expect(tabs[1]).toHaveFocus());
+    expect(tabs[1]).toHaveAttribute("aria-selected", "true");
+    const panel=screen.getByRole("tabpanel");
+    expect(panel).toHaveAttribute("aria-labelledby",tabs[1].id);
+    expect(tabs[1]).toHaveAttribute("aria-controls",panel.id);
+  } finally { await act(() => i18n.changeLanguage("en")); }
+});

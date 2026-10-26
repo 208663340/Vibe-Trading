@@ -2,23 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-const PROXY_PATHS = [
-  "/api",
-  "/auth",
-  "/sessions",
-  "/swarm/presets",
-  "/swarm/runs",
-  "/qveris",
-  "/settings/llm",
-  "/settings/data-sources",
-  "/channels",
-  "/mandate",
-  "/live",
-  "/upload",
-  "/shadow-reports",
-  "/scheduled-runs",
-  "/options",
-];
+const PROXY_PATHS = ["/api"];
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -48,12 +32,7 @@ export default defineConfig(({ mode }) => {
         // must keep proxying to the backend even when Accept is text/html.
         "^/runs/[^/]+/?$": apiProxyWithHtmlFallback,
         "/runs": apiProxy,
-        "/correlation": apiProxyWithHtmlFallback,
-        // /options is both the SPA Options Lab route and an API prefix
-        // (/options/payoff, /options/chain) — same dual role as /correlation.
-        // Overrides the plain PROXY_PATHS entry above.
-        "/options": apiProxyWithHtmlFallback,
-        "^/alpha(?:/|$)": apiProxy,
+
       },
     },
     build: {

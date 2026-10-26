@@ -1,14 +1,14 @@
 [project]
 name = "vibe-trading-ai"
 version = "0.1.16"
-description = "Natural-language finance research AI agent with backtesting"
+description = "Local quantitative research workbench for external code agents"
 requires-python = ">=3.11"
 license = "MIT"
 readme = "README.md"
 authors = [
     {name = "HKUDS", email = "hkuds@connect.hku.hk"},
 ]
-keywords = ["finance", "trading", "backtesting", "agent", "swarm", "quantitative"]
+keywords = ["finance", "backtesting", "research", "experiments", "quantitative"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Financial and Insurance Industry",
@@ -93,8 +93,11 @@ Repository = "https://github.com/HKUDS/Vibe-Trading"
 Issues = "https://github.com/HKUDS/Vibe-Trading/issues"
 
 [project.scripts]
-vibe-trading = "src.interfaces.cli:main"
-vibe-trading-mcp = "src.interfaces.mcp_server:main"
+quant-workbench = "src.interfaces.workbench_cli:main"
+quant-workbench-mcp = "src.interfaces.workbench_mcp:main"
+# Preserve existing automation and installed command names.
+vibe-trading = "src.interfaces.workbench_cli:main"
+vibe-trading-mcp = "src.interfaces.workbench_mcp:main"
 
 [tool.setuptools]
 package-dir = {"" = "agent"}

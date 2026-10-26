@@ -13,20 +13,19 @@
     "groups": {
       "research": "Everyday research",
       "analysis": "Specialized analysis",
-      "automation": "Automation & setup"
+      "automation": "Connection"
     },
     "howTo": "How to use {{feature}}",
-    "startResearch": "Start with the research assistant",
+    "startResearch": "Open workbench",
     "descriptions": {
-      "agent": "Ask a research question or describe a strategy in your own words.",
       "reports": "Review and compare completed backtests.",
       "portfolio": "See balances and holdings across connected accounts.",
       "alphaZoo": "Explore stock-selection signals and evaluate their historical performance.",
       "optionsLab": "Build option strategies, explore payoff and risk, and browse US option chains.",
       "correlation": "Compare how assets move together.",
-      "scheduled": "Repeat a research task on a schedule.",
-      "runtime": "Check broker connections and trading runtime status.",
-      "settings": "Configure models, data sources, and broker connections."
+      "settings": "Local execution and API connection. No model configuration is required.",
+      "workbench": "Submit strategies from your code agent. Track experiments, inspect results and compare revisions.",
+      "compare": "Compare metrics and equity curves from two experiments."
     },
     "instructions": {
       "reports": "Ask the research assistant to backtest a strategy first, then open its results here. Download PDFs and other chat-generated documents from the original conversation.",
@@ -34,20 +33,16 @@
       "alphaZoo": "Read a factor definition, then choose a market and date range to evaluate or compare signals. Validate candidates with a backtest.",
       "optionsLab": "Choose a preset or add option legs, then adjust price, expiry, and volatility; results update automatically. The stock symbol for the live chain is separate from the simulation inputs.",
       "correlation": "Enter at least two asset symbols, choose a lookback window, then select Compute.",
-      "scheduled": "Enter a research instruction, choose its cadence, and save. The local scheduler must be enabled for jobs to run; delivery also needs a configured channel.",
-      "runtime": "Configure a broker connection in Settings or Portfolio first. Available trading actions depend on that broker's capabilities and your authorization.",
-      "settings": "Configure a model to start. Add data sources or broker connections as your task needs them; public-market research does not require a broker account."
+      "settings": "Local execution and API connection. No model configuration is required.",
+      "workbench": "The service snapshots only the files explicitly listed in your manifest. Run from the repository root; see README for the artifact contract.",
+      "compare": "Select two completed experiments in the workbench."
     }
   },
   "layout": {
-    "home": "Home",
-    "agent": "Research assistant",
-    "runtime": "Trading status",
-    "scheduled": "Scheduled research",
     "reports": "Backtest reports",
     "portfolio": "Account holdings",
     "alphaZoo": "Factor research",
-    "settings": "Settings",
+    "settings": "Workbench settings",
     "correlation": "Asset correlation",
     "optionsLab": "Options analysis",
     "sessions": "Sessions",
@@ -63,217 +58,12 @@
     "collapse": "Collapse",
     "expand": "Expand",
     "skipToMain": "Skip to main content",
-    "sidebar": "Vibe-Trading sidebar",
+    "sidebar": "Quant Workbench sidebar",
     "mainNavigation": "Main navigation",
     "about": "About",
-    "sessionsLoadFailed": "Cannot load conversations."
-  },
-  "runtime": {
-    "monitorBadge": "Runtime Monitor",
-    "title": "Live / Paper Runtime Status",
-    "subtitlePre": "Read-only status from",
-    "subtitlePost": ". This page does not authorize connectors, start runners, stop runners, submit orders, cancel orders, or change mandates.",
-    "refresh": "Refresh",
-    "unavailableTitle": "Runtime status unavailable",
-    "unavailableHint": "Treat connector runtime as unavailable until the backend provides a current status snapshot.",
-    "statusUnavailable": "Runtime status unavailable.",
-    "globalHalt": "Global Halt",
-    "halted": "Halted",
-    "clear": "Clear",
-    "brokers": "Brokers",
-    "authorized": "Authorized",
-    "runners": "Runners",
-    "running": "{{count}} running",
-    "noProfilesTitle": "No runtime profiles reported",
-    "noProfilesBody": "The backend did not return any recognized live or paper broker profiles.",
-    "authPresent": "auth present",
-    "authMissing": "auth missing",
-    "runnerAlive": "runner alive",
-    "runnerStopped": "runner stopped",
-    "haltedPill": "halted",
-    "recognizedProfile": "Recognized connector profile",
-    "unknownProfile": "Unknown connector profile",
-    "lastTick": "Last tick",
-    "authorization": "Authorization",
-    "oauthToken": "OAuth token",
-    "present": "present",
-    "missing": "missing",
-    "profileType": "Profile type",
-    "recognized": "recognized",
-    "unknown": "unknown",
-    "mandate": "Mandate",
-    "account": "Account",
-    "unrecorded": "unrecorded",
-    "expiry": "Expiry",
-    "expired": "expired",
-    "limits": "Limits",
-    "noMandate": "No active mandate reported.",
-    "riskStateTitle": "Runtime Risk State",
-    "riskHalted": "risk halted",
-    "riskHaltedDesc": "The kill switch is tripped for this profile. Treat connector runtime as stopped until status clears.",
-    "riskActive": "runtime active",
-    "riskActiveDesc": "Runner is alive and an unexpired mandate is present. This page is still read-only status only.",
-    "riskIdle": "ready but idle",
-    "riskIdleDesc": "Authorization and mandate are present, but the runner is not alive.",
-    "riskDormant": "dormant",
-    "riskDormantDesc": "Connector runtime is not ready for autonomous operation because authorization, mandate, or runner liveness is missing.",
-    "limitsUnavailable": "limits unavailable",
-    "perOrder": "/order",
-    "exposure": "exposure",
-    "perDay": "/day",
-    "leverageSuffix": "x leverage",
-    "never": "never",
-    "ago": "ago",
-    "notConfigured": "Not configured",
-    "readyToVerify": "Ready to verify",
-    "connectedReadOnly": "Connected · Read-only",
-    "connectionFailed": "Connection failed",
-    "verifyConnection": "Verify connection",
-    "retry": "Retry",
-    "credentialSource": "Credential source",
-    "sdk": "SDK",
-    "configDeclared": "Config-declared",
-    "connectorStatusUnavailable": "Status unavailable",
-    "connectedAccessUnknown": "Connected · Access unknown",
-    "missingLongbridgeVariables": "Missing configuration. Configure these variables in agent/.env and recreate the service:",
-    "missingEtoroVariables": "Missing configuration. Set these environment variables or create ~/.vibe-trading/etoro.json:",
-    "missingEtoroFileHint": "Example file: {\"api_key\": \"YOUR_PUBLIC_API_KEY\", \"user_key\": \"YOUR_USER_KEY\", \"profile\": \"live-readonly\"}. Profiles: etoro-paper-sdk, etoro-live-sdk-readonly, etoro-paper-trade, etoro-live-trade.",
-    "missingConnectorVariables": "Missing configuration. Configure connector credentials in ~/.vibe-trading/ or agent/.env, then verify the connection.",
-    "pathSeparatedKeyBound": "Demo/real path-separated (shared key pair)",
-    "sdkConnectorProfile": "Direct SDK connector · read-only profile",
-    "connectionDetails": "Connection details",
-    "environment": "Environment",
-    "environmentIdentity": "Declared environment",
-    "capabilities": "Capabilities",
-    "capabilityAccount": "Account",
-    "capabilityPositions": "positions",
-    "capabilityOpenOrders": "open orders",
-    "capabilityQuotes": "quotes",
-    "capabilityHistory": "history",
-    "readOnly": "read-only",
-    "accessUnknown": "access unknown",
-    "diagnostics": "Diagnostics",
-    "lastChecked": "Last checked",
-    "errorCode": "Error code",
-    "installed": "Installed",
-    "notInstalled": "Not installed",
-    "connectorVerifyFailed": "Connection verification failed.",
-    "diagnosticCredentialsPartial": "Credentials are incomplete. Configure all required variables and recreate the service.",
-    "diagnosticCredentialsConflict": "Credential sources conflict. Keep one complete source, then retry.",
-    "diagnosticSdkMissing": "The SDK required by this broker is not installed in the backend service.",
-    "diagnosticAuthenticationFailed": "Authentication failed. Check the configured credentials.",
-    "diagnosticNetworkUnreachable": "The broker service or local gateway is unreachable. Check the connection address and network access, then retry.",
-    "diagnosticBrokerError": "The broker rejected the read-only verification request. Retry or check backend logs."
-  },
-  "scheduled": {
-    "title": "Scheduled Research",
-    "subtitle": "Recurring research runs on your local wall clock — cadences hold across DST changes.",
-    "promptLabel": "Research prompt",
-    "promptPlaceholder": "e.g. Pre-open scan: rank yesterday's unusual volume and summarize overnight news",
-    "modeLabel": "Cadence",
-    "modeTime": "At a time of day",
-    "modeAdvanced": "Advanced (cron or interval)",
-    "timeLabel": "Local time",
-    "daysLabel": "Days",
-    "daysWeekdays": "Weekdays (Mon–Fri)",
-    "daysEveryDay": "Every day",
-    "scheduleLabel": "Schedule expression",
-    "advancedHint": "A 5-field cron expression evaluated in the selected timezone (minute hour day month weekday; lists and ranges allowed), or a bare interval in milliseconds.",
-    "timezoneLabel": "Timezone",
-    "create": "Schedule run",
-    "saveChanges": "Save changes",
-    "cancelEdit": "Cancel editing",
-    "editingHint": "Editing this scheduled run. Saving keeps its identity and execution history.",
-    "promptRequired": "Enter a research prompt before scheduling.",
-    "invalidTime": "Enter a valid time as HH:MM.",
-    "executorHint": "Runs execute only when the server is started with VIBE_TRADING_ENABLE_SCHEDULER enabled.",
-    "listTitle": "Scheduled runs",
-    "loading": "Loading scheduled runs…",
-    "retry": "Retry",
-    "empty": "No scheduled runs yet — create one above.",
-    "cadenceEvery": "Every {{interval}}",
-    "cadenceDaily": "Daily at {{time}}",
-    "cadenceWeekly": "{{days}} at {{time}}",
-    "statusPending": "Pending",
-    "statusRunning": "Running",
-    "statusCompleted": "Completed",
-    "statusFailed": "Failed",
-    "statusCancelled": "Cancelled",
-    "statusExpired": "Expired",
-    "noFurtherRuns": "No further runs",
-    "endsAt": "Ends {{when}}",
-    "proposalCreateTitle": "Scheduled research confirmation · Create",
-    "proposalCancelTitle": "Scheduled research confirmation · Cancel",
-    "proposalConfirmed": "Confirmed",
-    "proposalDiscarded": "Discarded",
-    "proposalExpired": "Expired",
-    "proposalCadence": "Cadence",
-    "proposalTimezone": "Timezone",
-    "proposalEndAt": "End time",
-    "proposalNoEnd": "None",
-    "proposalDelivery": "Result delivery",
-    "proposalInApp": "In app only",
-    "proposalDiscard": "Discard",
-    "proposalConfirmCreate": "Confirm creation",
-    "proposalConfirmCancel": "Confirm cancellation",
-    "nextRun": "Next run: {{when}}",
-    "lastError": "Last error: {{error}}",
-    "edit": "Edit",
-    "editAria": "Edit scheduled run: {{prompt}}",
-    "editRunningDisabled": "Wait for this run or its delivery to finish before editing it.",
-    "delete": "Delete",
-    "deleteAria": "Delete scheduled run: {{prompt}}",
-    "confirmDelete": "Confirm delete",
-    "confirmDeleteAria": "Confirm deleting scheduled run: {{prompt}}",
-    "deliveryChannelLabel": "Delivery channel",
-    "deliveryChannelPlaceholder": "Choose a configured channel",
-    "deliveryInApp": "Keep in Vibe only (do not send)",
-    "deliveryNoChannels": "No enabled delivery channels are configured. Configure one in Settings → Channels.",
-    "deliveryChannelsLoadFailed": "Could not load configured delivery channels.",
-    "deliveryChannelUnavailable": "{{channel}} (currently unavailable)",
-    "deliveryTargetLabel": "Destination",
-    "deliveryTargetKind_destination": "Destination",
-    "deliveryTargetKind_email_address": "Recipient email address",
-    "deliveryTargetKind_chat": "Chat",
-    "deliveryTargetKind_channel": "Channel",
-    "deliveryTargetPlaceholder": "Chat, group, user, address, or channel ID",
-    "deliveryTargetDisabled": "Choose a delivery channel first.",
-    "deliveryHint": "A briefing is pushed once the run finishes, not when it is scheduled.",
-    "deliveryTargetRequired": "Choose a target for that channel, or keep delivery in Vibe only.",
-    "deliverySummary": "{{channel}} → {{target}}",
-    "deliveryUnknownTarget": "Configured destination",
-    "deliveryFormatLabel": "Email report format",
-    "deliveryFormatDefault": "Channel default (plain text)",
-    "deliveryFormatHtml": "HTML email",
-    "deliveryFormatPdf": "PDF attachment",
-    "proposalPdfProtection": "PDF password protection",
-    "proposalPdfProtectionOn": "On",
-    "proposalPdfProtectionOff": "Off",
-    "deliveryFormatDefaultHint": "Keeps the existing plain-text delivery behavior.",
-    "deliveryFormatHtmlHint": "Shows the full report as sanitized HTML in the email body.",
-    "deliveryFormatPdfHint": "Attaches the full report as PDF and keeps only a short notice in the body.",
-    "delivery_none": "Delivering to {{channel}} after the next run",
-    "delivery_pending": "Briefing owed to {{channel}}",
-    "delivery_sending": "Sending the briefing to {{channel}}",
-    "delivery_accepted": "Briefing accepted by {{channel}} (no provider receipt)",
-    "delivery_sent": "Briefing delivered to {{channel}}",
-    "delivery_failed": "Could not deliver to {{channel}}",
-    "verdictEmpty": "No verdict yet",
-    "verdictUnreadable": "Latest verdict unreadable",
-    "verdictNoCalls": "No calls",
-    "verdictDelta": "{{was}} → {{now}}",
-    "verdictRecorded": "as of {{when}}",
-    "deliveryKnownTargetLabel": "Known destination",
-    "deliveryKnownTargetPlaceholder": "Choose a known destination…",
-    "deliverySuggestionKind_private_chat": "Private chat",
-    "deliveryTargetPlaceholder_email_address": "name@example.com",
-    "deliveryTargetPlaceholder_chat": "Chat, group, or user ID",
-    "deliveryTargetPlaceholder_channel": "Channel ID",
-    "deliveryTargetPlaceholder_destination": "Chat, group, user, address, or channel ID",
-    "deliveryTargetPlaceholder_slack_destination": "#channel, @user, or conversation ID",
-    "deliveryTargetKind_slack_destination": "Destination",
-    "deliveryProtectPdf": "Protect PDF with password",
-    "deliveryProtectPdfUnavailable": "No PDF password is configured. Set one in Settings > Channels > Email to enable protection."
+    "sessionsLoadFailed": "Cannot load conversations.",
+    "workbench": "Research workbench",
+    "compare": "Compare experiments"
   },
   "reports": {
     "badge": "Reports",
@@ -302,7 +92,8 @@
     "sharpe": "Sharpe",
     "fullReport": "Full Report",
     "compare": "Compare",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "status": "Status"
   },
   "connection": {
     "reconnecting": "Reconnecting…",
@@ -311,923 +102,8 @@
     "retry": "Retry connection",
     "requestFailed": "Cannot reach the API server. Check that it is running and that your network connection is available.",
     "requestTimeout": "The request timed out. Check the server connection, then try again.",
-    "requestTimeoutMutation": "The request timed out. The server may still be processing it; check the current state before trying again."
-  },
-  "welcome": {
-    "tasks": {
-      "research": "Research a stock",
-      "backtest": "Test a strategy",
-      "portfolio": "Review my holdings",
-      "hint": "Examples fill the message box. Edit the symbol or strategy before sending.",
-      "researchPrompt": "Research AAPL: summarize its business, recent financial performance, and key risks using current data. State the sources and dates, and flag missing information.",
-      "backtestPrompt": "Backtest a 20/60-day moving-average strategy on AAPL over the past year. Compare returns and drawdowns with buy-and-hold, and include trading costs. Keep this research-only.",
-      "portfolioPrompt": "Summarize my connected accounts and holdings, including concentration and portfolio risks. If no account is connected, explain how to set one up first. Do not place or modify orders."
-    },
-    "categories": {
-      "multiMarketBacktest": "A-Share Backtest",
-      "researchAnalysis": "Research & Analysis",
-      "swarmTeams": "AI Analyst Teams",
-      "docWebResearch": "Document & Web Research",
-      "tradeJournal": "Trade Journal",
-      "tradingConnectors": "Trading Connectors",
-      "shadowAccount": "Shadow Account",
-      "valueInvesting": "Value Investing"
-    },
-    "examples": {
-      "crossMarketPortfolio": "Balance a 3-stock portfolio",
-      "crossMarketPortfolioDesc": "Split money across 3 A-shares so each carries equal risk (risk parity), then compare to equal weights",
-      "crossMarketPortfolioPrompt": "Build a risk-parity portfolio with 000001.SZ, 600519.SH, 000858.SZ, backtest for the full year of 2024, and compare with equal-weighted benchmark",
-      "btcMacd": "A-Share MACD Strategy",
-      "btcMacdDesc": "Minute-level A-share MACD strategy backtest",
-      "btcMacdPrompt": "Backtest MACD strategy on 000001.SZ 5-minute bars: fast=12, slow=26, signal=9, last 30 days",
-      "usTechMaxDiv": "Spread Risk Across Blue Chips",
-      "usTechMaxDivDesc": "Weights 5 blue chips so no single name dominates the risk (max-diversification optimizer)",
-      "usTechMaxDivPrompt": "Backtest the maximum diversification portfolio for 600519.SH, 000858.SZ, 601318.SH, 000001.SZ, 600036.SH for the full year of 2024",
-      "multiFactorAlpha": "Multi-Factor Alpha Model",
-      "multiFactorAlphaDesc": "Blend 4 stock-picking signals across 300 stocks, weighted by how well each predicted returns (IC)",
-      "multiFactorAlphaPrompt": "Build a multi-factor alpha model using momentum, reversal, volatility, and turnover on CSI 300 constituents with IC-weighted factor synthesis, backtest 2023-2024",
-      "optionsGreeks": "Options risk check (Greeks)",
-      "optionsGreeksDesc": "Price an option, then see how much it moves with the stock, with time, and with volatility (the Greeks)",
-      "optionsGreeksPrompt": "Calculate option Greeks using Black-Scholes: spot=100, strike=105, risk-free rate=3%, vol=25%, expiry=90 days, analyze Delta/Gamma/Theta/Vega",
-      "valueCommittee": "Value Investing Committee",
-      "valueCommitteeDesc": "Buffett / Munger / Duan Yongping / Li Lu — four-master debate on one stock",
-      "valueCommitteePrompt": "Use run_swarm with the value_investing_committee preset to analyze Tencent (00700.HK): Buffett on moat & price, Munger on inversion, Duan Yongping on business & management, Li Lu on 10-year certainty, then the chair synthesizes consensus and contradictions",
-      "bottleneckHunter": "Supply-Chain Bottleneck Hunter",
-      "bottleneckHunterDesc": "Find the small suppliers a big trend can't run without, then check if they're still cheap",
-      "bottleneckHunterPrompt": "Use the bottleneck-hunter skill to find Layer 2/3 supply-chain bottleneck opportunities in AI infrastructure (optics / lasers / InP substrates), score each choke point and list candidate companies that pass the valuation gate",
-      "thesisTracker": "Investment Thesis Tracker",
-      "thesisTrackerDesc": "Write down why you own it in 5 sentences, plus the red lines that would make you sell",
-      "thesisTrackerPrompt": "Use the thesis-tracker skill to build an investment thesis for Kweichow Moutai (600519.SH): 5-sentence core thesis, falsifiable assumptions, red lines, and valuation anchors, verified with financial_rigor",
-      "valuationCheck": "Check if a stock is expensive",
-      "valuationCheckDesc": "Recompute PE / PB / ROE / market cap to the cent, then stress it under 3 growth scenarios",
-      "valuationCheckPrompt": "Use the financial_rigor tool to verify Kweichow Moutai's valuation: price 1500, EPS 68.6, book value per share 180 — compute PE, PB, ROE exactly, then a three-scenario valuation (growth 12%/8%/0%, PE 22/18/14, 3 years)",
-      "investmentCommittee": "Buy or sell? Let a committee debate",
-      "investmentCommitteeDesc": "Multi-agent debate: long vs short, risk review, PM decision",
-      "investmentCommitteePrompt": "[Swarm Team Mode] Use the investment_committee preset to evaluate whether to go long or short on 600519.SH given current market conditions",
-      "quantStrategyDesk": "Quant Strategy Desk",
-      "quantStrategyDeskDesc": "Screening → factor research → backtest → risk audit pipeline",
-      "quantStrategyDeskPrompt": "[Swarm Team Mode] Use the quant_strategy_desk preset to find and backtest the best momentum strategy on CSI 300 constituents",
-      "earningsReport": "Analyze an Earnings Report PDF",
-      "earningsReportDesc": "Upload a PDF and ask questions about the financials",
-      "earningsReportPrompt": "Summarize the key financial metrics, risks, and outlook from the uploaded earnings report",
-      "macroResearch": "Web Research: Macro Outlook",
-      "macroResearchDesc": "Macro analysis and A-share market outlook",
-      "macroResearchPrompt": "Read the latest central bank monetary policy report and summarize its impact on the A-share market",
-      "analyzeBrokerExport": "Analyze My Broker Export",
-      "analyzeBrokerExportDesc": "Reads exports from Tonghuashun / Eastmoney / Futu, or any CSV — holding days, win rate, profit-to-loss ratio, time-of-day pattern",
-      "analyzeBrokerExportPrompt": "Analyze the trade journal I just uploaded — full profile with holding stats, win rate, top symbols, and hourly distribution",
-      "diagnoseBehavior": "Diagnose My Behavior Biases",
-      "diagnoseBehaviorDesc": "Disposition effect, overtrading, chasing momentum, anchoring — severity + numeric evidence",
-      "diagnoseBehaviorPrompt": "Run the 4 behavior diagnostics on my trade journal (disposition, overtrading, chasing, anchoring) and tell me which bias hurts my PnL most",
-      "checkConnector": "Check Selected Connector",
-      "checkConnectorDesc": "List connector profiles and verify the selected one",
-      "checkConnectorPrompt": "List my trading connector profiles, show which one is selected, then check that selected connector. If it is not ready, tell me exactly what setup step is missing. Do not place or modify orders.",
-      "analyzePortfolio": "Analyze Connector Portfolio",
-      "analyzePortfolioDesc": "Read account summary and positions from the selected connector",
-      "analyzePortfolioPrompt": "Use the selected trading connector profile to summarize my account, positions, concentration, cash, and portfolio risk. Do not place or modify orders.",
-      "quoteTrend": "Quote & Trend",
-      "quoteTrendDesc": "Fetch a quote plus recent daily bars through the selected connector",
-      "quoteTrendPrompt": "Use the selected trading connector to fetch a 600519.SH quote and 30 daily bars, then summarize the current quote versus the recent trend. Keep it read-only.",
-      "trainShadow": "Train My Shadow from Journal",
-      "trainShadowDesc": "Extract your strategy rules from a broker CSV and persist a Shadow profile",
-      "trainShadowPrompt": "Train my shadow account from the trading journal I just uploaded — show the extracted rules and confirm they look like my behavior",
-      "shadowDelta": "How Much Am I Leaving on the Table?",
-      "shadowDeltaDesc": "Backtest your shadow strategy and attribute delta vs. your actual PnL",
-      "shadowDeltaPrompt": "Run a shadow backtest for the last 90 days and break down where my PnL diverged from the shadow (rule violations, early exits, missed signals)",
-      "shadowReport": "Generate Shadow Report",
-      "shadowReportDesc": "A shareable 8-part report: your account curve, risk-adjusted return, and where each gain came from",
-      "shadowReportPrompt": "Render the shadow report and give me the URL — lead with the you-vs-shadow delta"
-    },
-    "taskSubtitle": "Ask about a stock, a strategy, or your portfolio — I'll pull the data, run the numbers, and show every step.",
-    "quickActions": "Quick actions",
-    "browseAllExamples": "Browse all examples",
-    "greetings": {
-      "morning1": "Good morning.",
-      "morning2": "Morning — ready when you are.",
-      "morning3": "Good morning. Let's get started.",
-      "afternoon1": "Good afternoon.",
-      "afternoon2": "Ready for the next question?",
-      "afternoon3": "What are we exploring this afternoon?",
-      "evening1": "Good evening.",
-      "evening2": "Let's make sense of the market.",
-      "evening3": "Ready for some focused research?",
-      "night1": "Still thinking?",
-      "night2": "Let's work through it.",
-      "night3": "One more idea before you wrap up?"
-    }
-  },
-  "settings": {
-    "title": "Settings",
-    "authRequired": "Authentication Required",
-    "authDesc": "Enter the API auth key to unlock settings.",
-    "dataSources": "Data Sources",
-    "llmBackend": "LLM Backend",
-    "save": "Save",
-    "saving": "Saving…",
-    "saved": "Settings saved",
-    "saveFailed": "Failed to save",
-    "provider": "Provider",
-    "refresh": "Refresh",
-    "modelName": "Model Name",
-    "baseUrl": "Base URL",
-    "apiAuthKey": "API Auth Key",
-    "loading": "Loading…",
-    "temperature": "Temperature",
-    "temperatureDesc": "Controls response randomness, not intelligence. Lower values are steadier and better suited to financial analysis; 0–0.2 is a sensible default.",
-    "timeoutSeconds": "Timeout (seconds)",
-    "maxRetries": "Max Retries",
-    "reasoningEffort": "Reasoning Effort",
-    "providerDefault": "Provider default",
-    "off": "Off",
-    "reasoningEffortNone": "None (explicit)",
-    "reasoningEffortLow": "Low",
-    "reasoningEffortMedium": "Medium",
-    "reasoningEffortHigh": "High",
-    "reasoningEffortXhigh": "Extra high",
-    "reasoningEffortMax": "Max",
-    "reasoningEffortDesc": "Controls reasoning depth on supported models. Higher levels may improve complex analysis but can take longer; unsupported providers may ignore this setting. None (explicit) sends the field with reasoning disabled — some OpenAI models need that to use tools.",
-    "reasoningEffortReset": "The selected model does not support {{level}}; reset to provider default.",
-    "useDefaultModel": "Use default model",
-    "useDefaultUrl": "Use default URL",
-    "dataSourcesDesc": "Configure external data sources for the backtesting engine.",
-    "tushareDesc": "China A-share historical data (requires TUSHARE_TOKEN env var).",
-    "baostockDesc": "Alternative A-share data via TCP protocol (no API key needed).",
-    "status": "Status",
-    "installed": "Installed",
-    "notInstalled": "Not installed",
-    "token": "Token",
-    "tokenConfigured": "Token configured",
-    "tokenNotSet": "TUSHARE_TOKEN env var not set",
-    "apiTimeout": "API request timeout",
-    "loaderAvailable": "Loader available",
-    "noProjectLoader": "No project loader",
-    "pythonPackageInstalled": "Python package installed",
-    "pythonPackageNotInstalled": "Python package not installed",
-    "localApiAccess": "Local API access",
-    "localApiAccessDesc": "For remote or private Web UI deployments, enter the server API key once in this browser. Localhost use can stay blank.",
-    "serverApiKey": "Server API key",
-    "storedInBrowser": "Stored only in this browser. Leave blank to clear it.",
-    "localApiKeySaved": "Local API key saved",
-    "subtitle": "Configure model credentials and market data source tokens for this local project.",
-    "unavailable": "Settings are unavailable",
-    "llmSettings": "LLM Settings",
-    "llmSettingsDesc": "Choose the model used by the agent and save it to the project-local agent/.env file.",
-    "connection": "Connection",
-    "model": "Model",
-    "useProviderDefaults": "Use provider defaults",
-    "modelIdHint": "Use the exact model id required by your provider.",
-    "loadModels": "Load models",
-    "modelsLoaded": "Loaded {{count}} available models.",
-    "modelsLoadFailed": "Could not load the provider model list.",
-    "modelOptions": "Available models",
-    "modelDiscoveryOauthUnsupported": "This provider does not expose model discovery through its OAuth endpoint.",
-    "modelDiscoveryApiKeyRequired": "Enter or save this provider's API key to load its available models.",
-    "modelDiscoveryUnavailable": "The provider did not return a model list. You can still type an exact model ID.",
-    "modelPickerHint": "Load provider choices or type an exact custom model ID.",
-    "clearApiKey": "Clear saved API key",
-    "channels": {
-      "title": "IM Channels",
-      "description": "Connect chat adapters to the same Vibe-Trading session runtime used by the Web UI and CLI.",
-      "runtime": "Runtime",
-      "running": "Running",
-      "stopped": "Stopped",
-      "enabled": "Enabled",
-      "disabled": "Disabled",
-      "loaded": "Loaded",
-      "notLoaded": "Not loaded",
-      "unavailable": "Unavailable",
-      "channel": "Channel",
-      "state": "State",
-      "recovery": "Recovery",
-      "noRecovery": "Ready",
-      "refresh": "Refresh",
-      "start": "Start channels",
-      "stop": "Stop channels",
-      "started": "IM channels started",
-      "stoppedToast": "IM channels stopped",
-      "refreshFailed": "Failed to refresh IM channels",
-      "startFailed": "Failed to start IM channels",
-      "stopFailed": "Failed to stop IM channels",
-      "config": {
-        "toggleConfig": "Configure {{name}}",
-        "keepCurrent": "Keep current ({{masked}})",
-        "secretNotSet": "Not set",
-        "clearSecret": "Clear",
-        "required": "Required",
-        "listPlaceholder": "Type a value and press Enter",
-        "removeValue": "Remove {{value}}",
-        "save": "Save configuration",
-        "hotApply": "Saving applies immediately — no restart needed.",
-        "saved": "Channel configuration saved",
-        "appliedInPlace": "Settings saved without reconnecting the channel.",
-        "appliedReset": "Settings saved. Channel connections were restarted.",
-        "appliedOnStart": "Settings saved. Changes will apply when channels start.",
-        "appliedReconnect": "Settings saved. This channel was reconnected.",
-        "saveFailed": "Failed to save the channel configuration: {{message}}",
-        "test": "Test connection",
-        "testing": "Testing…",
-        "testOk": "Connection verified",
-        "testFailed": "Connection test failed: {{message}}",
-        "testCodeOk": "The provider accepted these credentials.",
-        "testCodeInvalidCredentials": "The provider rejected these credentials.",
-        "testCodeNetwork": "The provider could not be reached.",
-        "testCodeUnsupported": "This channel does not support connection tests.",
-        "testedSavedConfig": "Tested the saved configuration.",
-        "testedDraftConfig": "Tested the values currently in the form (not saved yet).",
-        "enable": "Enable channel",
-        "enableHint": "Disabling keeps the stored credentials — you can re-enable at any time.",
-        "enabledToast": "Channel enabled",
-        "disabledToast": "Channel disabled",
-        "enableFailed": "Failed to enable the channel: {{message}}",
-        "disableFailed": "Failed to disable the channel: {{message}}",
-        "enableRejected": "The provider rejected these credentials, so the channel was not enabled.",
-        "enableRejectedDetail": "Provider response: {{detail}}",
-        "enableAnyway": "Enable anyway",
-        "enableAnywayHint": "Enabling anyway skips the credential check — the channel may fail to connect.",
-        "notWritable": "Channel configuration is stored in a YAML file ({{path}}), which the web UI cannot edit. Edit that file directly to change credentials.",
-        "notWritableChip": "Read-only (YAML)",
-        "sdkMissing": "Runtime SDK not installed — {{hint}}",
-        "sdkMissingNoHint": "Runtime SDK not installed; the channel can be configured but may not start.",
-        "noFields": "This channel has no configurable fields.",
-        "loadFailed": "Could not load channel configuration."
-      },
-      "fields": {
-        "dingtalk": {
-          "client_id": {
-            "label": "Client ID (AppKey)",
-            "help": "The app's AppKey from the Credentials page of the DingTalk developer console."
-          },
-          "client_secret": {
-            "label": "Client Secret (AppSecret)",
-            "help": "The app's AppSecret. Stored server-side and never sent back to the browser."
-          },
-          "allow_from": {
-            "label": "Allowed senders",
-            "help": "Optional allowlist of DingTalk sender IDs that may talk to the agent (\"*\" allows everyone). Unpaired senders receive a pairing code in a direct message."
-          },
-          "allow_remote_media_redirects": {
-            "label": "Allow remote media redirects",
-            "help": "Follow provider redirects when downloading message media. Off by default."
-          },
-          "remote_media_redirect_allowed_hosts": {
-            "label": "Allowed redirect hosts",
-            "help": "Hosts allowed when remote media redirects are enabled. An empty list blocks every cross-host redirect."
-          },
-          "group_user_isolation": {
-            "label": "Per-user group sessions",
-            "help": "Give each member of a group chat their own agent session instead of sharing one."
-          },
-          "force_ipv4": {
-            "label": "Force IPv4",
-            "help": "Bind DingTalk API calls to IPv4. Useful when the app's egress-IP whitelist holds a stable IPv4 address while the IPv6 prefix keeps rotating."
-          }
-        },
-        "qq": {
-          "app_id": {
-            "label": "AppID",
-            "help": "The bot's AppID from the QQ Open Platform (q.qq.com) app settings."
-          },
-          "secret": {
-            "label": "AppSecret",
-            "help": "The bot's AppSecret. Stored server-side and never sent back to the browser."
-          },
-          "allow_from": {
-            "label": "Allowed senders",
-            "help": "Optional allowlist of QQ sender openids that may talk to the agent (\"*\" allows everyone). Unpaired senders receive a pairing code in a direct message."
-          },
-          "msg_format": {
-            "label": "Message format",
-            "help": "Reply format: plain or markdown."
-          },
-          "ack_message": {
-            "label": "Ack message",
-            "help": "Immediate acknowledgement sent when a message arrives. Leave empty to disable."
-          },
-          "media_dir": {
-            "label": "Media directory",
-            "help": "Where inbound attachments are saved. Empty uses ~/.vibe-trading/media/qq."
-          },
-          "download_chunk_size": {
-            "label": "Download chunk size",
-            "help": "Bytes per chunk when downloading attachments (default 262144)."
-          },
-          "download_max_bytes": {
-            "label": "Max download size (bytes)",
-            "help": "Safety cap for a single attachment download (default 209715200 = 200 MB)."
-          }
-        },
-        "email": {
-          "consent_granted": {
-            "label": "Consent granted",
-            "help": "Master permission switch. The channel reads and sends email only after you explicitly grant consent here."
-          },
-          "imap_host": {
-            "label": "IMAP host",
-            "help": "Inbound mail server host, e.g. imap.gmail.com. Incoming mail is polled from this server."
-          },
-          "imap_port": {
-            "label": "IMAP port",
-            "help": "Inbound port (default 993 with SSL)."
-          },
-          "imap_username": {
-            "label": "IMAP username",
-            "help": "Mailbox account used to sign in over IMAP, usually the full email address."
-          },
-          "imap_password": {
-            "label": "IMAP password",
-            "help": "Mailbox password or app password for IMAP. Stored server-side and never sent back to the browser."
-          },
-          "imap_mailbox": {
-            "label": "IMAP mailbox",
-            "help": "Mailbox folder polled for new mail (default INBOX)."
-          },
-          "imap_use_ssl": {
-            "label": "IMAP SSL",
-            "help": "Connect to IMAP over SSL (on by default; required for port 993)."
-          },
-          "imap_use_tls": {
-            "label": "IMAP STARTTLS",
-            "help": "When IMAP SSL is off, upgrade the connection with STARTTLS before logging in (on by default; typical for port 143). Turn it off only for a server that offers no TLS on a network you trust — the password is then sent in plain text."
-          },
-          "smtp_host": {
-            "label": "SMTP host",
-            "help": "Outbound mail server host, e.g. smtp.gmail.com. Replies are sent through this server."
-          },
-          "smtp_port": {
-            "label": "SMTP port",
-            "help": "Outbound port (default 587 with STARTTLS; use 465 for implicit SSL)."
-          },
-          "smtp_username": {
-            "label": "SMTP username",
-            "help": "Account used to authenticate with the SMTP server, usually the full email address."
-          },
-          "smtp_password": {
-            "label": "SMTP password",
-            "help": "Password or app password for SMTP. Stored server-side and never sent back to the browser."
-          },
-          "smtp_use_tls": {
-            "label": "SMTP STARTTLS",
-            "help": "Upgrade the SMTP connection with STARTTLS (on by default; typical for port 587). In practice this is mutually exclusive with SMTP SSL."
-          },
-          "smtp_use_ssl": {
-            "label": "SMTP SSL",
-            "help": "Connect to SMTP over implicit TLS, e.g. port 465 (off by default). In practice this is mutually exclusive with STARTTLS."
-          },
-          "verify_tls": {
-            "label": "Verify TLS certificate",
-            "help": "Verify the mail server's TLS certificate and hostname (recommended). Disable only for self-signed or internal-CA servers."
-          },
-          "from_address": {
-            "label": "From address",
-            "help": "Address replies are sent from. Empty reuses the SMTP username."
-          },
-          "auto_reply_enabled": {
-            "label": "Automatic replies",
-            "help": "Reply automatically to inbound email. Proactive sends started by the agent are unaffected."
-          },
-          "poll_interval_seconds": {
-            "label": "Poll interval (seconds)",
-            "help": "How often the IMAP mailbox is checked for new mail (default 30, floor 5)."
-          },
-          "mark_seen": {
-            "label": "Mark as seen",
-            "help": "Mark processed emails as read in the mailbox."
-          },
-          "post_action": {
-            "label": "After processing",
-            "help": "What happens to processed emails: delete, move them to another mailbox, or leave empty to keep them."
-          },
-          "post_action_move_mailbox": {
-            "label": "Move to mailbox",
-            "help": "Target mailbox used when After processing is set to move."
-          },
-          "post_action_expunge": {
-            "label": "Expunge after delete",
-            "help": "Permanently expunge deleted emails instead of leaving them flagged in the mailbox."
-          },
-          "post_action_ignore_skipped": {
-            "label": "Skip self and filtered mail",
-            "help": "Leave skipped emails (your own messages and senders filtered by the allowlist) untouched by the post-action (on by default)."
-          },
-          "max_body_chars": {
-            "label": "Max body chars",
-            "help": "Truncate each email body to this many characters (default 12000)."
-          },
-          "subject_prefix": {
-            "label": "Reply subject prefix",
-            "help": "Prefix added to reply subjects (default \"Re: \")."
-          },
-          "allow_from": {
-            "label": "Allowed senders",
-            "help": "Optional allowlist of email addresses that may talk to the agent (\"*\" allows everyone). Unpaired senders receive a pairing code in a reply."
-          },
-          "verify_dkim": {
-            "label": "Verify DKIM",
-            "help": "Require an Authentication-Results header with dkim=pass. Disabling both DKIM and SPF accepts spoofed From headers."
-          },
-          "verify_spf": {
-            "label": "Verify SPF",
-            "help": "Require an Authentication-Results header with spf=pass. Disabling both DKIM and SPF accepts spoofed From headers."
-          },
-          "allowed_attachment_types": {
-            "label": "Allowed attachment types",
-            "help": "MIME allowlist for inbound attachments, e.g. application/pdf or image/*. Leave empty to disable attachments."
-          },
-          "max_attachment_size": {
-            "label": "Max attachment size (bytes)",
-            "help": "Largest single attachment accepted, in bytes (default 2000000 = 2 MB)."
-          },
-          "max_attachments_per_email": {
-            "label": "Max attachments per email",
-            "help": "How many attachments are accepted from one email (default 5)."
-          },
-          "trusted_authserv_id": {
-            "label": "Trusted authentication server",
-            "help": "Receiver authserv-id, e.g. mx.google.com. Your mail provider must strip incoming forged Authentication-Results headers bearing this ID. Required when SPF or DKIM verification is enabled; blank rejects inbound mail."
-          },
-          "pdf_password": {
-            "label": "PDF report password",
-            "help": "Optional password for scheduled PDF reports that explicitly request protection. Stored server-side and never included in scheduled jobs or returned to the browser."
-          }
-        },
-        "websocket": {
-          "host": {
-            "label": "Bind host",
-            "help": "Local address the WebSocket server binds to (default 127.0.0.1, local-only). A wildcard host such as 0.0.0.0 or :: exposes the server on every interface and is rejected unless a token or token-issue secret is set."
-          },
-          "port": {
-            "label": "Bind port",
-            "help": "Local port the WebSocket server listens on (default 8765). Ignored when a Unix socket path is set."
-          },
-          "unix_socket_path": {
-            "label": "Unix socket path",
-            "help": "Optional absolute path. When set, the server listens on this Unix socket instead of the host and port."
-          },
-          "path": {
-            "label": "Upgrade path",
-            "help": "WebSocket upgrade path clients connect to (default /). Must start with \"/\"."
-          },
-          "token": {
-            "label": "Static token",
-            "help": "Shared secret checked as the token query parameter during the handshake. Stored server-side and never sent back to the browser."
-          },
-          "token_issue_path": {
-            "label": "Token issue path",
-            "help": "HTTP GET route that hands out short-lived one-time tokens as JSON. Must differ from the upgrade path."
-          },
-          "token_issue_secret": {
-            "label": "Token issue secret",
-            "help": "Bearer secret the token-issue route requires (Authorization: Bearer or X-Vibe-Trading-Auth). Stored server-side and never sent back to the browser."
-          },
-          "token_ttl_s": {
-            "label": "Issued token TTL (s)",
-            "help": "Lifetime of a token handed out by the token-issue route, in seconds (30-86400, default 300)."
-          },
-          "websocket_requires_token": {
-            "label": "Require token",
-            "help": "Reject handshakes that do not present a valid static or issued token (on by default)."
-          },
-          "allow_from": {
-            "label": "Allowed clients",
-            "help": "Optional allowlist of client IDs that may connect (\"*\" allows everyone, the default)."
-          },
-          "streaming": {
-            "label": "Stream output",
-            "help": "Stream model output deltas to connected clients as they are generated."
-          },
-          "max_message_bytes": {
-            "label": "Max message bytes",
-            "help": "Largest inbound frame accepted, in bytes (default 37748736; range 1024-41943040)."
-          },
-          "ping_interval_s": {
-            "label": "Ping interval (s)",
-            "help": "Seconds between keepalive pings (5-300, default 20)."
-          },
-          "ping_timeout_s": {
-            "label": "Ping timeout (s)",
-            "help": "Seconds to wait for a ping reply before dropping the connection (5-300, default 20)."
-          },
-          "ssl_certfile": {
-            "label": "TLS certificate path",
-            "help": "PEM certificate path on the server for WSS. Set both certificate and key, or neither; these are file paths on the server, not uploaded material."
-          },
-          "ssl_keyfile": {
-            "label": "TLS key path",
-            "help": "PEM private key path on the server for WSS. Set both certificate and key, or neither; these are file paths on the server, not uploaded material."
-          }
-        },
-        "feishu": {
-          "app_id": {
-            "label": "App ID",
-            "help": "The app's App ID from the Feishu / Lark developer console (starts with cli_)."
-          },
-          "app_secret": {
-            "label": "App Secret",
-            "help": "The app's App Secret. Stored server-side and never sent back to the browser."
-          },
-          "encrypt_key": {
-            "label": "Encrypt Key",
-            "help": "The Encrypt Key from the Event Subscription settings. Optional for long-connection mode."
-          },
-          "verification_token": {
-            "label": "Verification Token",
-            "help": "The Verification Token from the Event Subscription settings. Optional for long-connection mode."
-          },
-          "allow_from": {
-            "label": "Allowed senders",
-            "help": "Optional allowlist of Feishu sender IDs that may talk to the agent. Leave empty to allow everyone the bot can see."
-          },
-          "react_emoji": {
-            "label": "Working emoji",
-            "help": "Emoji reacted on an incoming message while the agent works (default THUMBSUP)."
-          },
-          "done_emoji": {
-            "label": "Done emoji",
-            "help": "Emoji reacted when the task completes. Leave empty for none."
-          },
-          "tool_hint_prefix": {
-            "label": "Tool hint prefix",
-            "help": "Prefix shown before inline tool hints in the reply."
-          },
-          "group_policy": {
-            "label": "Group policy",
-            "help": "\"mention\" replies only when the bot is @mentioned in groups, \"open\" replies to all group messages."
-          },
-          "reply_to_message": {
-            "label": "Quote the original message",
-            "help": "Quote-reply to the original message when answering."
-          },
-          "streaming": {
-            "label": "Streaming replies",
-            "help": "Stream the reply with CardKit live card edits."
-          },
-          "domain": {
-            "label": "Domain",
-            "help": "\"feishu\" for Feishu China (open.feishu.cn), \"lark\" for international Lark (open.larksuite.com)."
-          },
-          "topic_isolation": {
-            "label": "Per-topic sessions",
-            "help": "Give each group topic its own agent session instead of sharing one session per group."
-          }
-        },
-        "slack": {
-          "bot_token": {
-            "label": "Bot token (xoxb-)",
-            "help": "The Slack bot user OAuth token (starts with xoxb-). Stored server-side and never sent back to the browser."
-          },
-          "app_token": {
-            "label": "App token (xapp-)",
-            "help": "The Slack app-level token (starts with xapp-) with the connections:write scope, required for Socket Mode. Stored server-side and never sent back to the browser."
-          },
-          "user_token_read_only": {
-            "label": "User token read-only",
-            "help": "A behavior flag, not a credential: keeps user-token access read-only."
-          },
-          "reply_in_thread": {
-            "label": "Reply in thread",
-            "help": "Reply in a thread under the original message instead of posting directly to the channel."
-          },
-          "react_emoji": {
-            "label": "Working emoji",
-            "help": "Emoji reacted on an incoming message while the agent works (default eyes)."
-          },
-          "done_emoji": {
-            "label": "Done emoji",
-            "help": "Emoji reacted when the task completes (default white_check_mark). Leave empty for none."
-          },
-          "include_thread_context": {
-            "label": "Include thread context",
-            "help": "Prepend earlier replies from the thread as context the first time the bot is pulled into it."
-          },
-          "thread_context_limit": {
-            "label": "Thread context limit",
-            "help": "Maximum number of thread messages included as context (default 20)."
-          },
-          "allow_from": {
-            "label": "Allowed senders",
-            "help": "Allowlist of Slack user IDs permitted to talk to the agent. DM and channel access are further controlled by the DM policy and the group policy."
-          },
-          "group_policy": {
-            "label": "Group policy",
-            "help": "\"mention\" replies only when the bot is @mentioned in a channel, \"open\" replies to all channel messages, \"allowlist\" replies only in the channels listed below."
-          },
-          "group_allow_from": {
-            "label": "Allowed channels",
-            "help": "Channel IDs the bot responds in when the group policy is \"allowlist\"."
-          },
-          "group_require_mention": {
-            "label": "Require mention in allowed channels",
-            "help": "With the \"allowlist\" policy, also require an @mention before replying in approved channels. No effect for \"mention\" or \"open\"."
-          }
-        },
-        "discord": {
-          "token": {
-            "label": "Bot token",
-            "help": "The bot token from the Discord Developer Portal — not a user or OAuth token. Stored server-side and never sent back to the browser."
-          },
-          "allow_from": {
-            "label": "Allowed senders",
-            "help": "Optional allowlist of Discord user IDs that may talk to the agent. Leave empty to allow everyone."
-          },
-          "allow_channels": {
-            "label": "Allowed channels",
-            "help": "Optional allowlist of Discord channel IDs the bot responds in. Leave empty to allow every channel."
-          },
-          "intents": {
-            "label": "Gateway intents",
-            "help": "Gateway intent bitfield as an integer (default 37377 = GUILDS | GUILD_MESSAGES | DIRECT_MESSAGES | MESSAGE_CONTENT). MESSAGE CONTENT is a privileged intent that must be enabled in the Developer Portal or the bot fails to connect."
-          },
-          "group_policy": {
-            "label": "Group policy",
-            "help": "\"mention\" replies only when the bot is @mentioned in a server channel, \"open\" replies to all channel messages (still subject to the allowlists)."
-          },
-          "read_receipt_emoji": {
-            "label": "Read receipt emoji",
-            "help": "Emoji reacted on an incoming message right away to acknowledge it (default 👀); removed once the reply arrives."
-          },
-          "working_emoji": {
-            "label": "Working emoji",
-            "help": "Emoji reacted while the agent is still working (default 🔧), added after the working emoji delay."
-          },
-          "working_emoji_delay": {
-            "label": "Working emoji delay (s)",
-            "help": "Seconds to wait before adding the working emoji, so quick replies never show it (default 2.0)."
-          },
-          "streaming": {
-            "label": "Streaming replies",
-            "help": "Stream the reply by progressively editing one Discord message instead of sending a single final message."
-          },
-          "proxy": {
-            "label": "Proxy URL",
-            "help": "Optional HTTP proxy the gateway connection and API calls go through, e.g. http://host:port."
-          },
-          "proxy_username": {
-            "label": "Proxy username",
-            "help": "Username for the proxy; set it together with the proxy password or not at all — a half-specified pair is ignored with a warning. Stored server-side and never sent back to the browser."
-          },
-          "proxy_password": {
-            "label": "Proxy password",
-            "help": "Password for the proxy; set it together with the proxy username or not at all — a half-specified pair is ignored with a warning. Stored server-side and never sent back to the browser."
-          }
-        }
-      },
-      "guides": {
-        "dingtalk": {
-          "title": "DingTalk setup guide",
-          "intro": "DingTalk bots use Stream Mode, so no public callback URL is needed.",
-          "step1": "Create an app in the DingTalk developer console (open-dev.dingtalk.com).",
-          "step2": "Add the bot capability to the app and enable Stream Mode for it.",
-          "step3": "Copy the app's AppKey into Client ID and its AppSecret into Client Secret.",
-          "step4": "Publish the app so it is available to your organization.",
-          "step5": "Return here, click Test connection, then enable the channel.",
-          "docsLabel": "Open the DingTalk developer console"
-        },
-        "qq": {
-          "title": "QQ setup guide",
-          "intro": "QQ bots connect over WebSocket via the official botpy SDK, so no public callback URL is needed.",
-          "step1": "Register on the QQ Open Platform (q.qq.com) and create a bot.",
-          "step2": "Copy the AppID and AppSecret from the bot's development settings page.",
-          "step3": "Paste them into the AppID and AppSecret fields above.",
-          "step4": "Add the bot to a QQ group or chat with it privately, following the platform's sandbox/publish rules.",
-          "step5": "Return here, click Test connection, then enable the channel.",
-          "docsLabel": "Open the QQ Open Platform"
-        },
-        "email": {
-          "title": "Email setup guide",
-          "intro": "The email channel polls a mailbox over IMAP for incoming mail and replies over SMTP, so no public callback URL is needed.",
-          "step1": "Get the IMAP and SMTP host names and ports from your mail provider (usually imap.<provider> on 993 and smtp.<provider> on 587).",
-          "step2": "Enable IMAP and SMTP access in your mailbox settings and, if the provider requires one (Gmail, QQ Mail and other 2FA providers), create an app password.",
-          "step3": "Fill in the IMAP and SMTP credentials above, set From address, and add your own address to Allowed senders.",
-          "step4": "Click Test connection — it probes the IMAP login, the mailbox folder, and the SMTP login.",
-          "step5": "Tick Consent granted, then enable the channel; automatic replies then reach senders whose mail passes the DKIM/SPF checks.",
-          "docsLabel": "Open the Vibe-Trading docs"
-        },
-        "websocket": {
-          "title": "WebSocket setup guide",
-          "intro": "The WebSocket channel runs its own local server that clients connect to directly over a WebSocket URL, so no public callback URL is needed.",
-          "step1": "Choose a bind address: keep 127.0.0.1 for local-only use, or set 0.0.0.0 / :: to expose the server — a wildcard host requires a token or a token-issue secret.",
-          "step2": "Set a static token, or a token-issue path plus its bearer secret so clients can request short-lived tokens.",
-          "step3": "Connect clients with ws://host:port/path?client_id=...&token=...",
-          "step4": "Saving while the channel is running hot-swaps the server: connected clients (including this Web UI chat) briefly disconnect and reconnect.",
-          "step5": "Click Test connection — it validates the SSL certificate/key material and the address availability locally.",
-          "docsLabel": "Open the Vibe-Trading docs"
-        },
-        "feishu": {
-          "title": "Feishu / Lark bot setup",
-          "intro": "Feishu bots connect over a WebSocket long connection, so no public IP or webhook URL is needed.",
-          "step1": "Create a Custom App on the Feishu Open Platform (open.feishu.cn), or scan-to-create it from the terminal with vibe-trading channels login feishu, which saves the App ID and App Secret automatically.",
-          "step2": "Add the Bot capability to the app.",
-          "step3": "Under Event Subscription, subscribe to receiving messages (im.message.receive_v1) and choose Long Connection mode.",
-          "step4": "Copy the App ID and App Secret from Credentials & Basic Info and paste them into the fields above.",
-          "step5": "Create a version and publish the app (admin approval if your tenant requires it), then enable the channel here — it hot-applies with no restart. For international Lark tenants, set domain to \"lark\".",
-          "docsLabel": "Open the Feishu Open Platform"
-        },
-        "discord": {
-          "title": "Discord setup guide",
-          "intro": "Discord bots connect over the gateway with a bot token, so no public IP or webhook URL is needed.",
-          "step1": "Create an application in the Discord Developer Portal (discord.com/developers).",
-          "step2": "Open the Bot page, reset the token, and copy it.",
-          "step3": "Under Privileged Gateway Intents, enable MESSAGE CONTENT INTENT — the default intents require it.",
-          "step4": "Generate an OAuth2 invite URL with the bot (and applications.commands) scope and add the bot to your server.",
-          "step5": "Paste the token here, click Test connection, then enable the channel.",
-          "docsLabel": "Open the Discord developer documentation"
-        }
-      }
-    },
-    "generation": "Generation",
-    "dataSourceSettings": "Data Source Settings",
-    "dataSourceSettingsDesc": "Configure optional market data credentials used by backtests and research agents.",
-    "sourcePriority": {
-      "title": "Data Source Priority",
-      "description": "Control the order data sources are tried per market when the agent fetches data automatically. Explicitly requested sources are unaffected.",
-      "marketLabel": "Market",
-      "badgeDefault": "Default",
-      "badgeCustom": "Custom",
-      "customMarkets": "Custom · {{count}}",
-      "moveUp": "Move up",
-      "moveDown": "Move down",
-      "resetToDefault": "Reset to default",
-      "invalidOverrideWarning": "The saved override for {{envVar}} is invalid (it must reorder the same sources) — the default order is in effect.",
-      "noMarkets": "No market data sources are registered.",
-      "howItWorksTitle": "How it works",
-      "howItWorks": "For auto-detected symbols, sources are tried top to bottom; a source that fails falls through to the next one. Saving applies immediately — no restart needed.",
-      "caliberCaveat": "Sources can use different price adjustments. Check the returned adjustment/provenance and run-card warnings; changing source order can change backtest results.",
-      "markets": {
-        "a_share": "A-Shares (China)",
-        "us_equity": "US Equities",
-        "hk_equity": "HK Equities",
-        "india_equity": "India Equities",
-        "kr_equity": "Korea Equities",
-        "ca_equity": "Canada Equities",
-        "vietnam_equity": "Vietnam Equities",
-        "ar_equity": "Argentina Equities",
-        "br_equity": "Brazil Equities",
-        "uk_equity": "UK Equities",
-        "index": "Indices",
-        "crypto": "Crypto",
-        "futures": "Futures",
-        "fund": "Funds",
-        "macro": "Macro",
-        "forex": "Forex"
-      }
-    },
-    "tushareToken": "Tushare token",
-    "gildataToken": "Gildata token",
-    "clearTushareToken": "Clear saved Tushare token",
-    "clearGildataToken": "Clear saved Gildata token",
-    "saveDataSourceSettings": "Save data source settings",
-    "baostock": "BaoStock",
-    "loadLlmSettingsFailed": "Failed to load LLM settings: {{message}}",
-    "loadDataSourceSettingsFailed": "Failed to load data source settings: {{message}}",
-    "llmSettingsSaved": "LLM settings saved",
-    "saveLlmSettingsFailed": "Failed to save LLM settings: {{message}}",
-    "dataSourceSettingsSaved": "Data source settings saved",
-    "desktopCredentialRestarting": "Credential encrypted. Restarting the local service…",
-    "saveDataSourceSettingsFailed": "Failed to save data source settings: {{message}}",
-    "configured": "Configured",
-    "keepCurrentKey": "Leave blank to keep the current key",
-    "providerUsesOauth": "This provider uses OAuth. Run: {{command}}",
-    "providerUsesManagedAuth": "This provider manages authentication. Run: {{command}}",
-    "noApiKeyRequired": "This provider does not require an API key.",
-    "keepCurrentToken": "Leave blank to keep the current token",
-    "iwencaiApiKey": "iWenCai API Key",
-    "fredApiKey": "FRED API Key",
-    "iwencaiDesc": "Used for semantic stock screening via iWenCai (问财). Free access key required.",
-    "clearSavedKey": "Clear saved key",
-    "fredDesc": "Used for FRED macroeconomic data (CPI, GDP, unemployment, etc.). Free key from fred.stlouisfed.org.",
-    "featureFlags": "Feature Flags",
-    "featureFlagsDesc": "Runtime feature flags detected from environment variables.",
-    "shellTools": "Shell Tools",
-    "scheduler": "Scheduler",
-    "sessionRuntime": "Session Runtime",
-    "flagsReadFrom": "Flags are read from {{env1}}, {{env2}}, and {{env3}} in {{env_path}}.",
-    "unknownError": "Unknown error",
-    "providerChangeHint": "Changing providers updates the recommended model and endpoint.",
-    "oauth": "OAuth",
-    "authentication": "Authentication",
-    "apiKey": "API key",
-    "tushareTokenDesc": "Used for China A-share, futures, fund, and macro data. If unset, the project falls back to AKShare where available.",
-    "gildataTokenDesc": "Optional Gildata (Hundsun Juyuan) feed for China A-shares. When set, it joins the tail of the A-share fallback chain with forward-adjusted daily bars."
-  },
-  "qveris": {
-    "title": "QVeris Tool Marketplace",
-    "subtitle": "Keep free public data as the default, or enable paid QVeris execution for specialized data tools.",
-    "enabled": "Enable paid QVeris route",
-    "baseUrl": "Base URL",
-    "apiKey": "API key",
-    "apiKeyPlaceholder": "Leave blank to keep the current key",
-    "mode": "Mode",
-    "modeFree": "Free public data only",
-    "modePaid": "Paid QVeris enabled",
-    "budget": "Budget credits per session",
-    "budgetHint": "Paid execution stops when this session budget is reached.",
-    "balance": "Remaining credits",
-    "recentUsage": "Recent usage",
-    "noUsage": "No recent usage",
-    "signupCta": "Open signup",
-    "signupHint": "Use this invitation code when creating your QVeris account.",
-    "inviteCode": "Invitation code",
-    "save": "Save QVeris settings",
-    "saved": "QVeris settings saved",
-    "testFailed": "QVeris request failed",
-    "notConfigured": "Not configured"
-  },
-  "agent": {
-    "reasoningStrength": "Reasoning Effort",
-    "unknownProvider": "Unknown provider",
-    "unknownModel": "Unknown model",
-    "connectionLostReconnect": "Connection lost, reconnecting…",
-    "connectionRestored": "Connection restored",
-    "agentWorking": "Getting to work…",
-    "reasoning": "Thinking it through…",
-    "running": "running",
-    "newMessages": "New messages",
-    "newResearchGoal": "New Research Goal",
-    "goal": "Goal",
-    "criteria": "Criteria",
-    "evidence": "Evidence",
-    "recentEvidence": "Recent Evidence",
-    "continue": "Continue",
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "save": "Save",
-    "cancelGoal": "Cancel goal",
-    "describeGoal": "Describe the research goal to attach to this session",
-    "placeholder": "e.g. Test a simple moving-average strategy on 000001.SZ over 2024",
-    "send": "Send message",
-    "messageInputLabel": "Message to the agent",
-    "inputHint": "Enter to send · Shift+Enter for a new line",
-    "editGoalObjectiveLabel": "Edit research goal objective",
-    "exportChat": "Export chat",
-    "stopGeneration": "Stop generation",
-    "runSwarmTeam": "Run swarm team",
-    "uploadFile": "Upload file",
-    "checkConnector": "Check connector",
-    "analyzePortfolio": "Analyze connector portfolio",
-    "executionTimedOut": "Execution timed out, automatically stopped",
-    "researchGoalAttached": "Research goal attached",
-    "failedToStartGoal": "Failed to start goal.",
-    "researchGoalCancelled": "Research goal cancelled",
-    "failedToCancelGoal": "Failed to cancel goal.",
-    "researchGoalUpdated": "Research goal updated",
-    "failedToUpdateGoal": "Failed to update goal.",
-    "failedToLoadGoal": "Failed to load goal.",
-    "cancelRequestSent": "Stopping…",
-    "cancelFailed": "Couldn't stop it — try again.",
-    "connectorHalted": "Connector runtime halted",
-    "failedToHaltConnector": "Failed to halt connector runtime.",
-    "cancelledFromUI": "Cancelled from Web UI.",
-    "executablesNotAllowed": "Executables and archives are not allowed",
-    "fileSizeExceeds": "File size exceeds 50 MB limit",
-    "uploaded": "Uploaded: {{filename}}",
-    "attachmentLimit": "You can attach up to {{count}} files",
-    "dropFiles": "Drop files here",
-    "removeAttachment": "Remove {{filename}}",
-    "uploadFailed": "Upload failed: {{error}}",
-    "messageTooLong": "Message exceeds {{limit}} characters including attachments and team instructions. Shorten it before sending.",
-    "failedToSend": "Failed to send message, please retry.",
-    "failedToContinue": "Failed to continue goal, please retry.",
-    "runtimeBadge": "RUNTIME",
-    "activeResearchGoal": "Active research goal",
-    "evidenceCollectedTitle": "Evidence collected toward this research goal",
-    "evidenceCount": "{{count}} evidence",
-    "uploading": "Uploading...",
-    "haltConnectorTitle": "Instantly halt connector runtime activity",
-    "haltConnector": "Halt connector runtime",
-    "moreOptions": "More options",
-    "researchGoal": "Research Goal",
-    "agentSwarm": "Agent Swarm",
-    "attachmentChip": "Attachment",
-    "swarmModeChip": "Team mode",
-    "goalModeChip": "Research goal",
-    "continueGoalMessage": "Continue research goal: {{goal}}",
-    "loadEarlier": "Load earlier messages",
-    "authRequired": "Remote API access requires an API key. Add it in Settings, or run the backend on localhost for local-only use.",
-    "followUpPlaceholder": "Ask about this run — e.g. why is the drawdown so deep?",
-    "continuePrompt": "Continue from where you stopped.",
-    "doneMarker": "Run complete",
-    "backgroundRunComplete": "A run finished in another session.",
-    "activity": {
-      "verbs": {
-        "readingMarketData": "Reading the market data",
-        "writingStrategy": "Writing the strategy",
-        "runningBacktest": "Running the backtest",
-        "validatingNumbers": "Double-checking the numbers",
-        "working": "Working"
-      },
-      "done": "Done",
-      "stopped": "Stopped by you",
-      "timeout": "Stopped waiting after {{elapsed}} — the run may still be finishing",
-      "failed": "Failed",
-      "steps": "{{count}} steps",
-      "continue": "Continue",
-      "reattach": "Re-attach",
-      "checkingFigures": "Checking the figures in this answer (round {{round}})…"
-    },
-    "resumeConnector": "Resume connector",
-    "resumeConnectorTitle": "Clear the kill switch and re-enable connector activity",
-    "connectorResumed": "Connector resumed",
-    "failedToResumeConnector": "Failed to resume connector."
+    "requestTimeoutMutation": "The request timed out. The server may still be processing it; check the current state before trying again.",
+    "authRequired": "Remote API access requires an API key. Add it in Settings, or run the backend on localhost for local-only use."
   },
   "runDetail": {
     "title": "Run Detail",
@@ -1359,6 +235,16 @@
     "ddTroughToRecovery": "Trough→Rec.",
     "ddNotRecovered": "Not recovered",
     "ddDays": "{{count}} d",
+    "lossPoints": "Where the loss came from",
+    "lossPointsNote": "Sells whose exit falls between the peak and the trough, with negative PnL.",
+    "lossNoTrades": "This drawdown has no losing trades. An equity curve alone cannot name the stocks.",
+    "lossWorst": "Worst trades",
+    "lossCluster": "Same-day cluster",
+    "lossCode": "Symbol",
+    "lossPnl": "PnL",
+    "lossWhen": "Exit",
+    "lossReason": "Reason",
+    "lossCount": "{{count}}",
     "dashboard": "Research dashboard",
     "positions": {
       "tab": "Positions",
@@ -1431,7 +317,12 @@
     "attrCumulativeTitle": "Cumulative Returns",
     "attrLoading": "Loading attribution…",
     "attrError": "Failed to load attribution.",
-    "attrNoData": "No attribution data is available for this run."
+    "attrNoData": "No attribution data is available for this run.",
+    "status": {
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "failed": "Failed"
+    }
   },
   "compare": {
     "title": "Strategy Comparison",
@@ -1770,189 +661,8 @@
     "windowReturns": "Per-window return",
     "tradeNumber": "Trade #"
   },
-  "thinking": {
-    "processing": "Processing",
-    "running": "Running",
-    "done": "Done",
-    "steps": "{{count}} steps"
-  },
-  "runnerStatus": {
-    "connectorRuntime": "Connector runtime",
-    "configuredProfiles": "Configured connector runtime profiles",
-    "connected": "{{count}} connected",
-    "noConnector": "no connector connected",
-    "running": "running",
-    "halted": "halted",
-    "authorized": "Authorized",
-    "sdkConnected": "Connected",
-    "sdkReadOnlyNote": "Direct SDK connector · read-only profile. Live trading requires the trade profile and a committed mandate.",
-    "sdkCredentialsRequired": "Configure API credentials for this connector (see Runtime for setup).",
-    "sdkConnectionError": "Connection check failed. Verify credentials on the Runtime page.",
-    "notConnected": "Not connected",
-    "connectProfile": "Connect this profile to enable connector runtime",
-    "authorizeNote": "The connector channel stays read-only until OAuth succeeds and a mandate is committed.",
-    "runner": "Runner",
-    "runnerRunning": "Running",
-    "runnerStopped": "Stopped",
-    "lastTick": "Last tick",
-    "activeMandate": "Active mandate",
-    "expiresIn": "expires in {{time}}",
-    "expired": "expired",
-    "limitsUnavailable": "limits unavailable",
-    "noActiveMandate": "No active mandate. Ask the agent to propose one, then commit it before starting the connector runtime.",
-    "haltedControlsDisabled": "Halted — runner controls disabled",
-    "runtimeActive": "Runtime active inside mandate",
-    "idle": "Idle",
-    "stopRunner": "Stop runner",
-    "startRunner": "Start runner",
-    "never": "never",
-    "unknown": "unknown",
-    "justNow": "just now",
-    "loadingInstructions": "Loading connector authorization instructions...",
-    "fallbackInstruction": "Run `vibe-trading connector list`, choose the broker profile, then run `vibe-trading connector authorize <profile>` from the desktop session that will hold the broker connection.",
-    "secondsAgo": "{{n}}s ago",
-    "minutesAgo": "{{n}}m ago",
-    "hoursAgo": "{{n}}h ago",
-    "daysAgo": "{{n}}d ago",
-    "runnerStartedFor": "Runner started for {{broker}}",
-    "runnerStoppedFor": "Runner stopped for {{broker}}",
-    "runnerControlFailed": "Runner control failed.",
-    "startRunnerTitle": "Start the persistent runner",
-    "stopRunnerTitle": "Stop the persistent runner",
-    "expiresAt": "Expires {{time}}"
-  },
-  "swarmStatus": {
-    "agents": "{{done}}/{{total}} agents",
-    "layer": "Round {{current}} of {{total}}",
-    "agent": "Agent",
-    "status": "Status",
-    "tool": "Tool",
-    "time": "Time",
-    "iters": "Passes",
-    "output": "Output",
-    "waitingForEvents": "Waiting for agent events...",
-    "teamStarting": "The team is spinning up — first updates in a few seconds…",
-    "detailsUnavailable": "details unavailable"
-  },
-  "mandate": {
-    "runtimeMandate": "Connector runtime mandate",
-    "reauthMandate": "Re-authorize connector mandate",
-    "universe": "Universe",
-    "maxOrder": "Max order",
-    "dailyCap": "Daily cap",
-    "leverage": "Leverage",
-    "instruments": "Instruments",
-    "adjust": "Adjust",
-    "committing": "Committing…",
-    "commit": "Commit \"{{label}}\"",
-    "cancel": "Cancel",
-    "sendAdjustment": "Send adjustment",
-    "mandateActive": "Mandate {{id}} active",
-    "fundedBy": "funded by",
-    "noBroker": "Cannot commit mandate: connector broker is missing. Ask the agent to regenerate the proposal.",
-    "failedToCommit": "Failed to commit mandate.",
-    "noLeverage": "no leverage",
-    "leverageValue": "{{value}}× leverage",
-    "tradesPerDay": "{{count}} trades/day",
-    "adjustTitle": "Adjust this mandate",
-    "adjustPlaceholder": "e.g. keep this but raise the daily cap to 10",
-    "adjustInputLabel": "Adjustment request",
-    "confirmTitle": "Confirm mandate commit",
-    "confirmDescription": "This grants the agent trading authorization under the limits shown below and takes effect immediately.",
-    "confirmButton": "Confirm & commit",
-    "maxPerOrder": "≤{{amount}}/order",
-    "expiresOn": "expires {{date}}",
-    "accountSummary": "{{broker}} · {{type}} account · funded by {{fundedBy}}",
-    "adjustRequestMessage": "For mandate proposal \"{{label}}\" (option {{ordinal}}): {{text}}",
-    "accountLoading": "Loading the broker's accounts…",
-    "accountLoadFailed": "Could not load the broker's accounts: {{error}}",
-    "accountLabel": "Account this mandate may trade",
-    "accountChoose": "Choose an account",
-    "accountDefault": " · broker default",
-    "accountDeactivated": " · deactivated",
-    "accountNotAgentic": " · agentic trading not allowed",
-    "accountHint": "The agent trades only this account. Nothing is chosen for you."
-  },
-  "messageBubble": {
-    "elapsedTime": "Total response time",
-    "copied": "Copied",
-    "copy": "Copy",
-    "copyFailed": "Copy failed. Select the text and press Ctrl+C.",
-    "timeoutHint": "Timed out. Simplify the strategy or use fewer assets.",
-    "apiFailedHint": "API request failed. Try again shortly.",
-    "executionFailedHint": "Execution failed. Try again.",
-    "retry": "Try again"
-  },
-  "pineViewer": {
-    "pineScript": "Pine Script v6",
-    "copied": "Copied",
-    "copy": "Copy",
-    "docs": "Docs",
-    "footer": "TradingView Pine Editor → New blank indicator → Paste code → Add to Chart"
-  },
-  "runComplete": {
-    "fullReport": "Full Report →",
-    "pineScript": "Pine Script",
-    "shadowReport": "Shadow Report"
-  },
-  "home": {
-    "title": "AI-Powered Quant Strategy Research",
-    "subtitle": "Describe a trading strategy in natural language. The agent generates code, runs backtests, and optimizes — all in real time.",
-    "startResearch": "Start Research",
-    "featureAgent": "AI Agent",
-    "featureAgentDesc": "Natural language strategy generation with ReAct reasoning",
-    "featureBacktest": "Built-in Backtest",
-    "featureBacktestDesc": "Multiple data sources covering A-shares quantitative analysis",
-    "featureStreaming": "Real-time Streaming",
-    "featureStreamingDesc": "Watch the agent think, call tools, and iterate",
-    "featureReplay": "Strategy Replay",
-    "featureReplayDesc": "Trade journal analyzer + Shadow Account — extract your rules, backtest them, attribute PnL delta",
-    "howItWorksTitle": "How it works",
-    "step1Title": "1. Describe your strategy",
-    "step1Desc": "Tell the agent what you want to test, in plain language — no code required.",
-    "step2Title": "2. Watch it research and backtest",
-    "step2Desc": "The agent plans, pulls market data, and runs the backtest live, so you can follow every step.",
-    "step3Title": "3. Review the results",
-    "step3Desc": "See performance metrics, the equity curve, and exportable Pine Script for the strategy.",
-    "step4Title": "4. Go live when you're ready",
-    "step4Desc": "Optionally approve a trading mandate with explicit limits — nothing trades without your confirmation."
-  },
   "errorBoundary": {
     "somethingWrong": "Something went wrong. Reload the page to continue."
-  },
-  "toolProgress": {
-    "step": "Step {{step}} · {{tool}}",
-    "toolsRunning": "Working on {{count}} things at once",
-    "toolsCompleted": "Finished {{count}} steps",
-    "more": "… +{{count}} more",
-    "etaSeconds": "~{{seconds}}s left",
-    "earlier": "+{{count}} earlier"
-  },
-  "swarm": {
-    "assemblingTeam": "Assembling team…",
-    "preparingLayers": "Working out who goes first…",
-    "agentProgress": "Swarm agent progress",
-    "status": {
-      "waiting": "Waiting",
-      "running": "Running",
-      "done": "Done",
-      "failed": "Failed",
-      "blocked": "Blocked",
-      "retry": "Retrying",
-      "cancelled": "Cancelled",
-      "pending": "Pending",
-      "completed": "Completed",
-      "unknown": "Unknown"
-    },
-    "elapsed": {
-      "seconds": "{{value}}s",
-      "minutesSeconds": "{{minutes}}m {{seconds}}s"
-    },
-    "presets": {
-      "investment_committee": "Investment Committee Review",
-      "quant_strategy_desk": "Quant Strategy Desk",
-      "value_investing_committee": "Value Investing Committee"
-    }
   },
   "metrics": {
     "good": "good",
@@ -1974,93 +684,6 @@
       "final_value": "The portfolio value at the end of the test period.",
       "avg_holding_days": "The average number of days each position stayed open."
     }
-  },
-  "tools": {
-    "add_goal_evidence": "Add goal evidence",
-    "alpha_bench": "Benchmark alpha factors",
-    "alpha_compare": "Compare alpha factors",
-    "alpha_zoo": "Browse alpha library",
-    "analyze_image": "Analyze the image",
-    "analyze_trade_journal": "Analyze trade journal",
-    "background_run": "Start background task",
-    "backtest": "Run the backtest",
-    "bash": "Run command",
-    "cancel_background": "Cancel background task",
-    "check_background": "Check background task",
-    "compact": "Summarize conversation",
-    "create_hypothesis": "Create research hypothesis",
-    "delete_skill": "Delete custom skill",
-    "edit_file": "Edit code",
-    "extract_shadow_strategy": "Extract shadow strategy",
-    "factor_analysis": "Analyze factors",
-    "financial_rigor": "Verify financial analysis",
-    "generate_backtest_config": "Generate backtest config",
-    "get_block_trades": "Fetch block trades",
-    "get_dragon_tiger": "Fetch dragon-tiger list",
-    "get_financial_statements": "Fetch financial statements",
-    "get_fund_flow": "Fetch fund flow",
-    "get_fundamentals": "Fetch fundamentals",
-    "get_lockup_expiry": "Fetch lockup expiries",
-    "get_macro_series": "Fetch macro series",
-    "get_margin_trading": "Fetch margin trading",
-    "get_market_data": "Fetch market data",
-    "get_northbound_flow": "Fetch northbound flow",
-    "get_options_chain": "Fetch options chain",
-    "get_research_goal": "View research goal",
-    "get_research_reports": "Fetch research reports",
-    "get_sec_filings": "Fetch SEC filings",
-    "get_sector_info": "Fetch sector data",
-    "get_shareholder_count": "Fetch shareholder count",
-    "get_stock_news": "Fetch stock news",
-    "get_stock_profile": "Fetch stock profile",
-    "iwencai_search": "Search iWenCai",
-    "link_autopilot_backtest": "Link autopilot backtest",
-    "link_backtest": "Link hypothesis backtest",
-    "load_skill": "Load strategy knowledge",
-    "options_payoff": "Analyze options payoff",
-    "options_pricing": "Price options",
-    "patch_skill": "Update custom skill",
-    "pattern": "Detect chart patterns",
-    "portfolio_risk_xray": "X-ray portfolio risk",
-    "propose_mandate_profiles": "Propose trading mandates",
-    "qveris_execute": "Execute QVeris action",
-    "qveris_inspect": "Inspect QVeris action",
-    "qveris_search": "Search QVeris",
-    "read_document": "Read document",
-    "read_file": "Read file",
-    "read_url": "Read webpage",
-    "remember": "Remember this",
-    "render_shadow_report": "Create shadow report",
-    "report_audit": "Audit research report",
-    "run_research_autopilot": "Run research autopilot",
-    "run_shadow_backtest": "Run shadow backtest",
-    "run_swarm": "Convene the team",
-    "save_skill": "Save custom skill",
-    "scaffold_signal_engine": "Build signal engine",
-    "scan_shadow_signals": "Scan shadow signals",
-    "screen_market": "Screen market",
-    "sdm_decay_scan": "Scan strategy decay",
-    "sdm_register": "Register strategy",
-    "sdm_status": "Check strategy status",
-    "search_hypotheses": "Search hypotheses",
-    "search_symbol": "Search symbols",
-    "session_search": "Search past sessions",
-    "skill_file": "Read skill file",
-    "start_research_goal": "Start research goal",
-    "trading_account": "View broker account",
-    "trading_cancel_order": "Cancel broker order",
-    "trading_check": "Check broker connection",
-    "trading_connections": "List broker connections",
-    "trading_history": "View trade history",
-    "trading_orders": "View broker orders",
-    "trading_place_order": "Place broker order",
-    "trading_positions": "View broker positions",
-    "trading_quote": "Fetch broker quote",
-    "trading_select_connection": "Select broker connection",
-    "update_hypothesis": "Update research hypothesis",
-    "update_research_goal_status": "Update goal status",
-    "web_search": "Search the web",
-    "write_file": "Generate code"
   },
   "runDashboard": {
     "eyebrow": "Quantitative research · Backtest",
@@ -2345,5 +968,52 @@
     "selectedFactor": "Selected factor: {{id}}. Only this factor will be evaluated.",
     "fundamentalsRequirement": "Fundamental factors need PIT SEC financial statements and a US stock universe (S&P 500).",
     "noEvaluableFactors": "No factors could be evaluated. Try a longer history and check the factor’s required fields and stock universe."
+  },
+  "workbench": {
+    "title": "Research workbench",
+    "subtitle": "Submit strategies from your code agent. Track experiments, inspect results and compare revisions.",
+    "active": "In progress",
+    "complete": "Completed",
+    "total": "Experiments",
+    "project": "Project",
+    "all": "All projects",
+    "refresh": "Refresh",
+    "loading": "Loading experiments…",
+    "empty": "No experiments yet",
+    "emptyHint": "Start the service, then submit the offline example below from your terminal or code agent.",
+    "error": "Unable to load experiments",
+    "report": "Open report",
+    "logs": "Logs & configuration",
+    "cancel": "Cancel experiment",
+    "compare": "Compare selected",
+    "select": "Select {{name}} for comparison",
+    "schema": "Artifact schema checked · accounting / out-of-sample not checked",
+    "handoff": "Connect your external code agent",
+    "handoffHint": "The service snapshots only the files explicitly listed in your manifest. Run from the repository root; see README for the artifact contract.",
+    "copy": "Copy context",
+    "copied": "Copied",
+    "noLogs": "No log output yet.",
+    "config": "Submitted configuration",
+    "snapshot": "Source & input snapshot",
+    "parent": "Parent experiment",
+    "settings": "Workbench settings",
+    "settingsHint": "Local execution and API connection. No model configuration is required.",
+    "key": "API key (optional for local development)",
+    "save": "Save connection",
+    "saved": "Connection saved",
+    "workspace": "Allowed workspace",
+    "storage": "Experiment storage",
+    "workers": "Concurrent workers",
+    "connection": "Connection",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "cancelling": "Cancelling",
+      "cancelled": "Cancelled",
+      "failed": "Failed",
+      "interrupted": "Interrupted",
+      "success": "Succeeded"
+    },
+    "appName": "Quant Workbench"
   }
 }

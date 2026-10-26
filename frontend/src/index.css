@@ -27,6 +27,13 @@
     --destructive-foreground: 0 0% 100%;
     --border: 220 14% 87%;
     --radius: 0.5rem;
+    /* Shared shadcn controls inherit the workbench palette in both themes. */
+    --input: var(--border);
+    --ring: var(--primary);
+    --secondary: var(--muted);
+    --secondary-foreground: var(--foreground);
+    --accent: var(--muted);
+    --accent-foreground: var(--foreground);
 
     /* Semantic colors */
     --success: 142 71% 45%;
@@ -62,6 +69,12 @@
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 14% 24%;          /* surface-3 */
+    --input: var(--border);
+    --ring: var(--primary);
+    --secondary: var(--muted);
+    --secondary-foreground: var(--foreground);
+    --accent: var(--muted);
+    --accent-foreground: var(--foreground);
 
     /* Semantic colors */
     --success: 142 71% 45%;
@@ -90,32 +103,6 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
-}
-
-/* Streaming pulse-slide animation for the "running" bar */
-@keyframes pulse-slide {
-  0%   { transform: translateX(-100%); }
-  50%  { transform: translateX(200%); }
-  100% { transform: translateX(-100%); }
-}
-
-.chat-scroll-container[data-streaming="true"] {
-  overflow-anchor: none;
-}
-
-.katex-display {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-/* Message/hero entrance — one subtle rise per mount; removed under reduced motion */
-@keyframes msg-enter {
-  from { opacity: 0; transform: translateY(10px); }
-}
-.msg-enter { animation: msg-enter 300ms cubic-bezier(0.16, 1, 0.3, 1) both; }
-@media (prefers-reduced-motion: reduce) {
-  .msg-enter { animation: none; }
 }
 
 /* RTL: mirror directional icons (chevrons, arrows) automatically */

@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 
 from src.backtest.loaders.registry import VALID_SOURCES
+from src.backtest.program_contract import load_program_metrics, program_args, resolve_entrypoint
+from src.backtest.run_card import write_run_card
 from src.runtime.agent.progress import emit_progress
 from src.runtime.agent.tools import BaseTool
 from src.platform.config.accessor import get_env_config
@@ -90,6 +92,12 @@ def run_backtest(run_dir: str) -> str:
         config = json.loads(config_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as e:
         return json.dumps({"status": "error", "error": f"config.json parse error: {e}"}, ensure_ascii=False)
+
+    if not isinstance(config, dict):
+        return json.dumps({"status": "error", "error": "config.json must contain an object"}, ensure_ascii=False)
+
+    if str(config.get("mode", "")).strip().lower() == "program":
+        return _run_program(run_path, config, run_dir)
 
     if "source" not in config:
         return json.dumps({"status": "error", "error": "config.json missing 'source' field (tushare/okx/yfinance)"}, ensure_ascii=False)
@@ -175,6 +183,74 @@ def run_backtest(run_dir: str) -> str:
     return _serialize_result(envelope)
 
 
+def _run_program(run_path: Path, config: dict, run_dir: str) -> str:
+    """Execute a workspace Python file and require the report-page CSVs."""
+    try:
+        entry_script = resolve_entrypoint(config)
+        cli_args = program_args(config)
+    except ValueError as exc:
+        return json.dumps({"status": "error", "error": str(exc)}, ensure_ascii=False)
+
+    emit_progress("simulate", message=f"running program {entry_script.name}")
+    runner = Runner(timeout=_backtest_timeout_seconds())
+    try:
+        result = runner.execute(
+            entry_script,
+            run_path,
+            cwd=entry_script.parent,
+            cli_args=cli_args,
+        )
+    except subprocess.TimeoutExpired as exc:
+        timeout_output = _persist_timeout_output(run_path, exc)
+        timeout_label = f"{runner.timeout}s" if runner.timeout is not None else "the configured limit"
+        reason = f"program timed out after {timeout_label}"
+        RunStateStore().mark_failure(run_path, reason)
+        response = {"status": "error", "error": reason, "run_dir": run_dir}
+        if timeout_output["stdout"]:
+            response["stdout"] = timeout_output["stdout"][-2000:]
+        if timeout_output["stderr"]:
+            response["stderr"] = timeout_output["stderr"][-2000:]
+        return json.dumps(response, ensure_ascii=False)
+
+    state_store = RunStateStore()
+    if not result.success:
+        state_store.mark_failure(run_path, f"program exited with code {result.exit_code}")
+        return _serialize_result(
+            {
+                "status": "error",
+                "exit_code": result.exit_code,
+                "stdout": result.stdout[-2000:],
+                "stderr": result.stderr[-2000:],
+                "run_dir": run_dir,
+            }
+        )
+
+    try:
+        metrics = load_program_metrics(run_path)
+    except ValueError as exc:
+        state_store.mark_failure(run_path, str(exc))
+        return json.dumps({"status": "error", "error": str(exc), "run_dir": run_dir}, ensure_ascii=False)
+
+    card_config = dict(config)
+    card_config.setdefault("engine", "program")
+    card_config.setdefault("source", "local")
+    write_run_card(run_path, card_config, metrics, data_sources=[str(card_config.get("source"))], strategy_path=entry_script)
+    state_store.mark_success(run_path)
+    emit_progress("finalize", message="collecting artifacts")
+    summary = try_build_backtest_summary(run_path)
+    envelope: dict[str, Any] = {
+        "status": "ok",
+        "exit_code": 0,
+        "stdout": result.stdout[-2000:],
+        "stderr": result.stderr[-2000:],
+        "run_dir": run_dir,
+        "entrypoint": str(entry_script),
+    }
+    if summary is not None:
+        envelope["summary"] = summary
+    return _serialize_result(envelope)
+
+
 def _serialize_result(envelope: dict[str, Any]) -> str:
     """Keep structured results usable through the agent's delivery cap."""
     def encode() -> str:
@@ -206,7 +282,11 @@ class BacktestTool(BaseTool):
     """Backtest execution tool."""
 
     name = "backtest"
-    description = "Run backtest: validate config.json + signal_engine.py, invoke built-in engine."
+    description = (
+        "Run a backtest. Default mode validates config.json + signal_engine.py and "
+        "invokes the built-in engine. mode=program runs config.entrypoint and "
+        "requires artifacts/equity.csv, trades.csv, and metrics.csv."
+    )
     parameters = {
         "type": "object",
         "properties": {

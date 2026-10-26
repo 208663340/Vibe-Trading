@@ -61,6 +61,7 @@ class RunResponse(BaseModel):
     elapsed_seconds: float = Field(..., description="Execution time in seconds")
     reason: Optional[str] = Field(None, description="Failure reason when available")
     prompt: Optional[str] = Field(None, description="Original natural-language request")
+    experiment: Optional[Dict[str, Any]] = Field(None, description="Captured external-agent experiment inputs and execution state")
 
     planner_output: Optional[Dict[str, Any]] = Field(None, description="Planner output")
     strategy_spec: Optional[Dict[str, Any]] = Field(None, description="Strategy specification")

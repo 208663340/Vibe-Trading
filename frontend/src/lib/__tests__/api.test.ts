@@ -6,32 +6,14 @@ async function loadApiModule() {
   return import("../api");
 }
 
-describe("generated report download", () => {
-  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
-  it("downloads PDF bytes with bearer authentication and keeps the key out of the URL", async () => {
-    vi.stubGlobal("localStorage", { getItem: vi.fn((key) => key === "vibe_trading_api_auth_key" ? "report-test-key" : "en"), setItem: vi.fn(), removeItem: vi.fn() });
-    const fetch = vi.fn().mockResolvedValue(new Response("%PDF-contents", { headers: { "content-type": "application/pdf" } }));
-    vi.stubGlobal("fetch", fetch);
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-    vi.stubGlobal("URL", class extends URL {
-      static createObjectURL = vi.fn(() => "blob:report");
-      static revokeObjectURL = vi.fn();
-    });
-    const { downloadGeneratedReport } = await loadApiModule();
-    await downloadGeneratedReport("a".repeat(32), "研究报告.pdf");
-    expect(fetch).toHaveBeenCalledWith(`/api/reports/${"a".repeat(32)}`, expect.objectContaining({ headers: { Authorization: "Bearer report-test-key" } }));
-    expect(click).toHaveBeenCalledOnce();
-  });
-});
-
 describe("api request helper", () => {
-  it("translates the server's message-size error into a recovery instruction", async () => {
+  it("preserves structured server errors for a missing report", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      detail: { code: "message_too_long", max_length: 100_000, message: "Shorten input" },
+      detail: { code: "report_not_found", message: "Report is unavailable" },
     }), { status: 422, headers: { "content-type": "application/json" } })));
     const { api } = await loadApiModule();
-    await expect(api.sendMessage("session", "oversized")).rejects.toMatchObject({
-      status: 422, code: "message_too_long", message: expect.stringContaining("Shorten it"),
+    await expect(api.getRun("missing")).rejects.toMatchObject({
+      status: 422, code: "report_not_found", message: "Report is unavailable",
     });
   });
   beforeEach(() => {
@@ -60,14 +42,14 @@ describe("api request helper", () => {
 
     const { api } = await loadApiModule();
 
-    await expect(api.getChannelStatus()).rejects.toMatchObject({
+    await expect(api.listRuns()).rejects.toMatchObject({
       name: "ApiError",
       status: 200,
-      message: expect.stringContaining("Expected JSON from /channels/status, got text/html"),
+      message: expect.stringContaining("Expected JSON from /runs, got text/html"),
     } satisfies Partial<ApiError>);
   });
 
-  it("posts an authenticated connector verification request with an encoded profile id", async () => {
+  it("posts an authenticated connection check with an encoded id", async () => {
     vi.stubGlobal("localStorage", {
       getItem: vi.fn(() => "remote-test-key"),
       setItem: vi.fn(),
@@ -83,9 +65,9 @@ describe("api request helper", () => {
 
     const { api } = await loadApiModule();
 
-    await expect(api.verifyConnector("longbridge/live sdk")).resolves.toMatchObject({ status: "ok" });
+    await expect(api.checkConnection("connection/read only")).resolves.toMatchObject({ status: "ok" });
     expect(fetchMock).toHaveBeenCalledWith(
-      "/live/connectors/longbridge%2Flive%20sdk/verify?force=true",
+      "/api/connections/connection%2Fread%20only/check",
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({ Authorization: "Bearer remote-test-key" }),
@@ -171,7 +153,7 @@ describe("api request helper", () => {
     i18n.addResource(
       "en",
       "translation",
-      "agent.authRequired",
+      "connection.authRequired",
       "Add an API key in Settings.",
     );
     await i18n.changeLanguage("en");
@@ -202,10 +184,10 @@ describe("API failure recovery", () => {
     });
   }
 
-  it("bounds a stalled conversation-list request and clears its timer", async () => {
+  it("bounds a stalled report-list request and clears its timer", async () => {
     vi.stubGlobal("fetch", vi.fn((_url, init) => hangUntilAbort(init.signal)));
     const { api } = await loadApiModule();
-    const pending = expect(api.listSessions()).rejects.toMatchObject({
+    const pending = expect(api.listRuns()).rejects.toMatchObject({
       code: "request_timeout", message: expect.stringContaining("timed out"),
     });
     await vi.advanceTimersByTimeAsync(1000);
@@ -219,7 +201,7 @@ describe("API failure recovery", () => {
       text: () => hangUntilAbort(init.signal),
     })));
     const { api } = await loadApiModule();
-    const pending = expect(api.listSessions()).rejects.toMatchObject({ code: "request_timeout" });
+    const pending = expect(api.listRuns()).rejects.toMatchObject({ code: "request_timeout" });
     await vi.advanceTimersByTimeAsync(1000);
     await pending;
   });
@@ -227,7 +209,7 @@ describe("API failure recovery", () => {
   it("explains a failed server connection in the active locale", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
     const { api } = await loadApiModule();
-    await expect(api.listSessions()).rejects.toMatchObject({
+    await expect(api.listRuns()).rejects.toMatchObject({
       code: "network_error", message: expect.stringContaining("Check that it is running"),
     });
   });
@@ -236,7 +218,7 @@ describe("API failure recovery", () => {
     const fetch = vi.fn((_url, init) => hangUntilAbort(init.signal));
     vi.stubGlobal("fetch", fetch);
     const { api } = await loadApiModule();
-    const pending = expect(api.renameSession("session", "new title")).rejects.toMatchObject({
+    const pending = expect(api.refreshPortfolio()).rejects.toMatchObject({
       code: "request_timeout", message: expect.stringContaining("check the current state"),
     });
     await vi.advanceTimersByTimeAsync(1000);

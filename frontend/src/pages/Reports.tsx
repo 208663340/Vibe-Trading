@@ -14,14 +14,17 @@ import {
 } from "lucide-react";
 import { api, type RunListItem } from "@/lib/api";
 import { formatMetricVal } from "@/shared/format";
-import { cn } from "@/shared/cn";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const REPORT_SCAN_LIMIT = 100;
 
 type SortMode = "created_desc" | "created_asc" | "return_desc" | "sharpe_desc";
 
 export function Reports() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [runs, setRuns] = useState<RunListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -95,65 +98,67 @@ export function Reports() {
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("reports.subtitle")}</p>
             </div>
           </div>
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => void loadReports("refresh")}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-muted disabled:opacity-50"
           >
             {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             {t("reports.refresh")}
-          </button>
+          </Button>
         </section>
 
         <section className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_160px_150px_150px_170px]">
           <label className="relative block">
             <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
+            <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t("reports.searchPlaceholder")}
               aria-label={t("alphaZoo.search")}
-              className="w-full rounded-md border bg-background py-2 ps-9 pe-3 text-sm outline-none transition focus:border-primary"
+              className="ps-9"
             />
           </label>
-          <select
+          <Select
+            dir={i18n.dir(i18n.language)}
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className="rounded-md border bg-background px-3 py-2 text-sm"
-            aria-label={t("settings.status")}
+            onValueChange={setStatusFilter}
           >
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status === "all" ? t("reports.allStatuses") : status}
-              </option>
-            ))}
-          </select>
-          <input
+            <SelectTrigger aria-label={t("reports.status")}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status === "all" ? t("reports.allStatuses") : status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
             type="date"
             value={startDate}
             onChange={(event) => setStartDate(event.target.value)}
-            className="rounded-md border bg-background px-3 py-2 text-sm"
             aria-label={t("reports.startDate")}
           />
-          <input
+          <Input
             type="date"
             value={endDate}
             onChange={(event) => setEndDate(event.target.value)}
-            className="rounded-md border bg-background px-3 py-2 text-sm"
             aria-label={t("reports.endDate")}
           />
-          <select
+          <Select
+            dir={i18n.dir(i18n.language)}
             value={sortMode}
-            onChange={(event) => setSortMode(event.target.value as SortMode)}
-            className="rounded-md border bg-background px-3 py-2 text-sm"
-            aria-label={t("reports.sort")}
+            onValueChange={(value) => setSortMode(value as SortMode)}
           >
-            <option value="created_desc">{t("reports.sortNewest")}</option>
-            <option value="created_asc">{t("reports.sortOldest")}</option>
-            <option value="return_desc">{t("reports.sortReturn")}</option>
-            <option value="sharpe_desc">{t("reports.sortSharpe")}</option>
-          </select>
+            <SelectTrigger aria-label={t("reports.sort")}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="created_desc">{t("reports.sortNewest")}</SelectItem>
+              <SelectItem value="created_asc">{t("reports.sortOldest")}</SelectItem>
+              <SelectItem value="return_desc">{t("reports.sortReturn")}</SelectItem>
+              <SelectItem value="sharpe_desc">{t("reports.sortSharpe")}</SelectItem>
+            </SelectContent>
+          </Select>
         </section>
 
         <div className="text-sm text-muted-foreground">
@@ -185,7 +190,7 @@ export function Reports() {
             <p className="mt-1 text-sm text-muted-foreground">
               {runs.length === 0 ? t("reports.emptyBody") : t("reports.noMatchesBody")}
             </p>
-            {runs.length === 0 && <Link to="/" className="mt-5 inline-flex rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">{t("navigation.startResearch")}</Link>}
+            {runs.length === 0 && <Button asChild className="mt-5"><Link to="/">{t("navigation.startResearch")}</Link></Button>}
           </section>
         ) : null}
 
@@ -237,19 +242,13 @@ function ReportRow({ run }: { run: RunListItem }) {
             <MetricPill label={t("reports.sharpe")} value={formatOptionalMetric("sharpe", run.sharpe)} />
           </div>
           <div className="flex flex-wrap gap-2 lg:justify-end">
-            <Link
-              to={`/runs/${run.run_id}`}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:opacity-90"
-            >
+            <Button asChild size="sm"><Link to={`/runs/${run.run_id}`}>
               {t("reports.fullReport")} <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <Link
-              to="/compare"
-              className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition hover:bg-muted"
-            >
+            </Link></Button>
+            <Button asChild variant="outline" size="sm"><Link to="/compare">
               <GitCompare className="h-3.5 w-3.5" />
               {t("reports.compare")}
-            </Link>
+            </Link></Button>
           </div>
         </div>
       </div>
@@ -262,15 +261,10 @@ function StatusBadge({ status }: { status: string }) {
   const normalized = status.toLowerCase();
   const ok = ["success", "done", "completed", "complete"].includes(normalized);
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium",
-        ok ? "bg-success/10 text-success" : "bg-muted text-muted-foreground",
-      )}
-    >
+    <Badge variant={ok ? "success" : "secondary"} className="gap-1">
       {ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
       {status || t("reports.unknown", { defaultValue: "Unknown" })}
-    </span>
+    </Badge>
   );
 }
 

@@ -7,7 +7,7 @@ export function PageHelp() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const item = NAVIGATION_GROUPS.flatMap<NavigationItem>((group) => [...group.items]).find((entry) => isNavigationActive(entry.to, pathname));
-  if (!item || item.id === "agent") return null;
+  if (!item || item.id === "workbench") return null;
   return (
     <details key={item.id} className="group border-b border-border/60 bg-card/50 px-4 py-2">
       <summary className="flex cursor-pointer list-none items-center gap-2 text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 [&::-webkit-details-marker]:hidden">

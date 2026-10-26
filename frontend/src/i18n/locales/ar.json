@@ -8,20 +8,19 @@
     "groups": {
       "research": "البحث اليومي",
       "analysis": "تحليل متخصص",
-      "automation": "الأتمتة والإعداد"
+      "automation": "Connection"
     },
     "howTo": "كيفية استخدام {{feature}}",
-    "startResearch": "ابدأ بمساعد البحث",
+    "startResearch": "فتح مساحة العمل",
     "descriptions": {
-      "agent": "اطرح سؤالاً بحثياً أو صف استراتيجية بكلماتك.",
       "reports": "راجع الاختبارات التاريخية المكتملة وقارنها.",
       "portfolio": "اطلع على الأرصدة والمراكز في الحسابات المتصلة.",
       "alphaZoo": "استكشف إشارات اختيار الأسهم وقيّم أداءها التاريخي أو قارنه.",
       "optionsLab": "ابنِ استراتيجيات خيارات واستكشف الأرباح والمخاطر وسلاسل الخيارات الأمريكية.",
       "correlation": "قارن العلاقة بين تحركات الأصول.",
-      "scheduled": "كرر مهمة بحثية وفق جدول زمني.",
-      "runtime": "تحقق من اتصالات الوسطاء وحالة تشغيل التداول.",
-      "settings": "اضبط النماذج ومصادر البيانات واتصالات الوسطاء."
+      "settings": "Local execution and API connection. No model configuration is required.",
+      "workbench": "Submit strategies from your code agent. Track experiments, inspect results and compare revisions.",
+      "compare": "Compare metrics and equity curves from two experiments."
     },
     "instructions": {
       "reports": "اطلب أولاً من المساعد اختبار استراتيجية تاريخياً، ثم افتح نتائجها هنا. نزّل ملفات PDF والمستندات المنشأة في الدردشة من المحادثة الأصلية.",
@@ -29,20 +28,16 @@
       "alphaZoo": "اقرأ تعريف العامل، ثم اختر السوق والفترة لتقييم الإشارات أو مقارنتها. تحقّق من الإشارات المرشحة باختبار تاريخي.",
       "optionsLab": "اختر نموذجاً جاهزاً أو أضف أرجل خيارات، ثم عدّل السعر والأجل والتقلب؛ تتحدث النتائج تلقائياً. رمز سهم السلسلة الفعلية منفصل عن مدخلات المحاكاة.",
       "correlation": "أدخل رمزين على الأقل للأصول، واختر الفترة، ثم اضغط حساب.",
-      "scheduled": "أدخل تعليمات البحث وتكراره واحفظها. يلزم تفعيل المجدول المحلي لتشغيل المهام، وإعداد قناة لإرسال النتائج.",
-      "runtime": "اضبط اتصال الوسيط أولاً في الإعدادات أو صفحة المحفظة. تعتمد عمليات التداول المتاحة على قدرات الوسيط والتفويض الذي تمنحه.",
-      "settings": "اضبط نموذجاً للبدء. أضف مصادر بيانات أو اتصالات وسطاء حسب المهمة؛ لا يحتاج بحث بيانات السوق العامة إلى حساب وسيط."
+      "settings": "Local execution and API connection. No model configuration is required.",
+      "workbench": "The service snapshots only the files explicitly listed in your manifest. Run from the repository root; see README for the artifact contract.",
+      "compare": "Select two completed experiments in the workbench."
     }
   },
   "layout": {
-    "home": "الرئيسية",
-    "agent": "مساعد البحث",
-    "runtime": "حالة التداول",
-    "scheduled": "البحث المجدول",
     "reports": "تقارير الاختبار التاريخي",
     "portfolio": "مراكز الحسابات",
     "alphaZoo": "بحث العوامل",
-    "settings": "الإعدادات",
+    "settings": "Workbench settings",
     "correlation": "ارتباط الأصول",
     "optionsLab": "تحليل الخيارات",
     "sessions": "الجلسات",
@@ -58,217 +53,12 @@
     "collapse": "طي",
     "expand": "توسيع",
     "skipToMain": "تخطَّ إلى المحتوى الرئيسي",
-    "sidebar": "الشريط الجانبي لـ Vibe-Trading",
+    "sidebar": "الشريط الجانبي لـ Quant Workbench",
     "mainNavigation": "التنقل الرئيسي",
     "about": "حول",
-    "sessionsLoadFailed": "تعذر تحميل المحادثات."
-  },
-  "runtime": {
-    "monitorBadge": "مراقبة التداول",
-    "title": "حالة التشغيل الحي / الورقي",
-    "subtitlePre": "حالة للقراءة فقط من",
-    "subtitlePost": ". لا تُصرح هذه الصفحة للموصلات، ولا تُشغّل المُشغّلات أو تُوقفها، ولا تُرسل أوامر أو تلغيها، ولا تُغيّر التفويض.",
-    "refresh": "تحديث",
-    "unavailableTitle": "حالة التشغيل غير متاحة",
-    "unavailableHint": "اعتبر وقت تشغيل الموصل غير متاح حتى يوفّر الخادم لقطة حالة حالية.",
-    "statusUnavailable": "حالة التشغيل غير متاحة.",
-    "globalHalt": "إيقاف شامل",
-    "halted": "موقوف",
-    "clear": "مسح",
-    "brokers": "الوسطاء",
-    "authorized": "مُصادَق",
-    "runners": "المُشغّلات",
-    "running": "{{count}} قيد التشغيل",
-    "noProfilesTitle": "لم يتم الإبلاغ عن أي ملفات تعريف للموصلات",
-    "noProfilesBody": "لم يُرجع الخادم أي ملفات تعريف وسيط حي أو ورقي معروفة.",
-    "authPresent": "المصادقة موجودة",
-    "authMissing": "المصادقة مفقودة",
-    "runnerAlive": "المُشغّل نشط",
-    "runnerStopped": "المُشغّل متوقف",
-    "haltedPill": "موقوف",
-    "recognizedProfile": "ملف تعريف الموصل المعروف",
-    "unknownProfile": "ملف تعريف موصل غير معروف",
-    "lastTick": "آخر تحديث",
-    "authorization": "التفويض",
-    "oauthToken": "رمز OAuth",
-    "present": "موجود",
-    "missing": "مفقود",
-    "profileType": "نوع ملف التعريف",
-    "recognized": "معروف",
-    "unknown": "غير معروف",
-    "mandate": "التفويض",
-    "account": "الحساب",
-    "unrecorded": "غير مسجّل",
-    "expiry": "تاريخ الانتهاء",
-    "expired": "منتهي الصلاحية",
-    "limits": "الحدود",
-    "noMandate": "لم يتم الإبلاغ عن أي تفويض نشط.",
-    "riskStateTitle": "حالة مخاطر التشغيل",
-    "riskHalted": "المخاطر موقوفة",
-    "riskHaltedDesc": "تم تشغيل قاطع الخطر لملف التعريف هذا. اعتبر وقت تشغيل الموصل متوقفًا حتى تُمسح الحالة.",
-    "riskActive": "قيد التشغيل",
-    "riskActiveDesc": "المُشغّل نشط ويوجد تفويض غير منتهي الصلاحية. تظل هذه الصفحة للقراءة فقط.",
-    "riskIdle": "جاهز لكن خامل",
-    "riskIdleDesc": "التفويض والصلاحية موجودان، لكن المُشغّل ليس نشطًا.",
-    "riskDormant": "خامل",
-    "riskDormantDesc": "وقت تشغيل الموصل ليس جاهزًا للعمل المستقل بسبب نقص التفويض أو الصلاحية أو نشاط المُشغّل.",
-    "limitsUnavailable": "الحدود غير متاحة",
-    "perOrder": "/أمر",
-    "exposure": "التعرّض",
-    "perDay": "/يوم",
-    "leverageSuffix": "ضعف الرافعة",
-    "never": "أبدًا",
-    "ago": "منذ",
-    "notConfigured": "غير مُعَدّ",
-    "readyToVerify": "جاهز للتحقق",
-    "connectedReadOnly": "متصل · للقراءة فقط",
-    "connectionFailed": "فشل الاتصال",
-    "verifyConnection": "التحقق من الاتصال",
-    "retry": "إعادة المحاولة",
-    "credentialSource": "مصدر بيانات الاعتماد",
-    "sdk": "SDK",
-    "configDeclared": "مُعلَن في الإعدادات",
-    "connectorStatusUnavailable": "الحالة غير متاحة",
-    "connectedAccessUnknown": "متصل · صلاحية الوصول غير معروفة",
-    "missingLongbridgeVariables": "الإعدادات ناقصة. اضبط المتغيرات التالية في agent/.env، ثم أعد إنشاء الخدمة:",
-    "missingEtoroVariables": "الإعدادات ناقصة. اضبط متغيرات البيئة التالية أو أنشئ ~/.vibe-trading/etoro.json:",
-    "missingEtoroFileHint": "مثال: {\"api_key\": \"YOUR_PUBLIC_API_KEY\", \"user_key\": \"YOUR_USER_KEY\", \"profile\": \"live-readonly\"}. الملفات: etoro-paper-sdk، etoro-live-sdk-readonly، etoro-paper-trade، etoro-live-trade.",
-    "missingConnectorVariables": "الإعدادات ناقصة. اضبط بيانات اعتماد الموصل في ~/.vibe-trading/ أو agent/.env ثم تحقق من الاتصال.",
-    "pathSeparatedKeyBound": "مسارات منفصلة للتجريبي/الحقيقي (مفتاح مشترك)",
-    "sdkConnectorProfile": "اتصال مباشر عبر SDK · ملف تعريف للقراءة فقط",
-    "connectionDetails": "تفاصيل الاتصال",
-    "environment": "البيئة",
-    "environmentIdentity": "البيئة المُعلنة",
-    "capabilities": "الإمكانات",
-    "capabilityAccount": "الحساب",
-    "capabilityPositions": "المراكز",
-    "capabilityOpenOrders": "الأوامر المفتوحة",
-    "capabilityQuotes": "الأسعار",
-    "capabilityHistory": "السجل",
-    "readOnly": "للقراءة فقط",
-    "accessUnknown": "صلاحية الوصول غير معروفة",
-    "diagnostics": "التشخيصات",
-    "lastChecked": "آخر تحقق",
-    "errorCode": "رمز الخطأ",
-    "installed": "مثبّت",
-    "notInstalled": "غير مثبّت",
-    "connectorVerifyFailed": "فشل التحقق من الاتصال.",
-    "diagnosticCredentialsPartial": "بيانات الاعتماد غير مكتملة. اضبط جميع المتغيرات المطلوبة، ثم أعد إنشاء الخدمة.",
-    "diagnosticCredentialsConflict": "تتعارض مصادر بيانات الاعتماد. احتفظ بمصدر واحد مكتمل، ثم أعد المحاولة.",
-    "diagnosticSdkMissing": "حزمة SDK المطلوبة لهذا الوسيط غير مثبّتة في خدمة الخادم.",
-    "diagnosticAuthenticationFailed": "فشلت المصادقة. تحقق من بيانات الاعتماد المضبوطة.",
-    "diagnosticNetworkUnreachable": "يتعذر الوصول إلى خدمة الوسيط أو البوابة المحلية. تحقق من عنوان الاتصال واتصال الشبكة، ثم أعد المحاولة.",
-    "diagnosticBrokerError": "رفض الوسيط طلب التحقق المخصص للقراءة فقط. أعد المحاولة أو راجع سجلات الخادم."
-  },
-  "scheduled": {
-    "title": "الأبحاث المجدولة",
-    "subtitle": "تشغيل دوري وفق توقيتك المحلي — يبقى الإيقاع ثابتًا عبر تغييرات التوقيت الصيفي.",
-    "promptLabel": "موجّه البحث",
-    "promptPlaceholder": "مثال: مسح ما قبل الافتتاح: رتّب أحجام التداول غير المعتادة أمس ولخّص أخبار الليل",
-    "modeLabel": "إيقاع التشغيل",
-    "modeTime": "في وقت محدد يوميًا",
-    "modeAdvanced": "متقدم (cron أو فاصل زمني)",
-    "timeLabel": "الوقت المحلي",
-    "daysLabel": "الأيام",
-    "daysWeekdays": "أيام العمل (الاثنين–الجمعة)",
-    "daysEveryDay": "كل يوم",
-    "scheduleLabel": "تعبير الجدولة",
-    "advancedHint": "تعبير cron من 5 حقول يُقيّم في المنطقة الزمنية المحددة (دقيقة ساعة يوم شهر يوم-أسبوع؛ تُدعم القوائم والنطاقات)، أو فاصل زمني بالمللي ثانية.",
-    "timezoneLabel": "المنطقة الزمنية",
-    "create": "إنشاء جدولة",
-    "saveChanges": "حفظ التغييرات",
-    "cancelEdit": "إلغاء التعديل",
-    "editingHint": "أنت تعدّل هذا التشغيل المجدول. يحافظ الحفظ على هويته وسجل التنفيذ.",
-    "edit": "تعديل",
-    "editAria": "تعديل التشغيل المجدول: {{prompt}}",
-    "editRunningDisabled": "انتظر انتهاء التشغيل أو التسليم قبل التعديل.",
-    "deliveryInApp": "الاحتفاظ في Vibe فقط (عدم الإرسال)",
-    "deliveryNoChannels": "لا توجد قنوات تسليم مفعّلة ومهيأة. هيّئ واحدة في الإعدادات > القنوات.",
-    "deliveryChannelsLoadFailed": "تعذّر تحميل قنوات التسليم المهيأة.",
-    "deliveryChannelUnavailable": "{{channel}} (غير متاح حاليًا)",
-    "deliveryTargetKind_destination": "الوجهة",
-    "deliveryTargetKind_email_address": "عنوان البريد الإلكتروني للمستلم",
-    "deliveryTargetKind_chat": "المحادثة",
-    "deliveryTargetKind_channel": "القناة",
-    "deliveryTargetDisabled": "اختر قناة تسليم أولًا.",
-    "deliverySummary": "{{channel}} → {{target}}",
-    "deliveryUnknownTarget": "وجهة مهيأة",
-    "promptRequired": "أدخل موجّه البحث قبل إنشاء الجدولة.",
-    "invalidTime": "أدخل وقتًا صالحًا بصيغة HH:MM.",
-    "executorHint": "تُنفّذ المهام فقط عندما يعمل الخادم مع تفعيل VIBE_TRADING_ENABLE_SCHEDULER.",
-    "listTitle": "المهام المجدولة",
-    "loading": "جارٍ تحميل المهام المجدولة…",
-    "retry": "إعادة المحاولة",
-    "empty": "لا توجد مهام مجدولة بعد — أنشئ واحدة أعلاه.",
-    "cadenceEvery": "كل {{interval}}",
-    "cadenceDaily": "يوميًا في {{time}}",
-    "cadenceWeekly": "{{days}} في {{time}}",
-    "statusPending": "قيد الانتظار",
-    "statusRunning": "قيد التشغيل",
-    "statusCompleted": "مكتمل",
-    "statusFailed": "فشل",
-    "statusCancelled": "أُلغي",
-    "statusExpired": "منتهي الصلاحية",
-    "noFurtherRuns": "لا توجد عمليات تشغيل أخرى",
-    "endsAt": "ينتهي في {{when}}",
-    "proposalCreateTitle": "تأكيد البحث المجدول · إنشاء",
-    "proposalCancelTitle": "تأكيد البحث المجدول · إلغاء",
-    "proposalConfirmed": "تم التأكيد",
-    "proposalDiscarded": "تم التجاهل",
-    "proposalExpired": "منتهي الصلاحية",
-    "proposalCadence": "وتيرة التشغيل",
-    "proposalTimezone": "المنطقة الزمنية",
-    "proposalEndAt": "وقت الانتهاء",
-    "proposalNoEnd": "لا يوجد",
-    "proposalDelivery": "تسليم النتيجة",
-    "proposalInApp": "داخل التطبيق فقط",
-    "proposalDiscard": "تجاهل",
-    "proposalConfirmCreate": "تأكيد الإنشاء",
-    "proposalConfirmCancel": "تأكيد الإلغاء",
-    "nextRun": "التشغيل التالي: {{when}}",
-    "lastError": "آخر خطأ: {{error}}",
-    "delete": "حذف",
-    "deleteAria": "حذف المهمة المجدولة: {{prompt}}",
-    "confirmDelete": "تأكيد الحذف",
-    "confirmDeleteAria": "تأكيد حذف المهمة المجدولة: {{prompt}}",
-    "deliveryChannelLabel": "الإرسال إلى قناة",
-    "deliveryChannelPlaceholder": "telegram أو feishu … (اتركه فارغًا لإبقاء النتائج داخل التطبيق)",
-    "deliveryTargetLabel": "وجهة القناة",
-    "deliveryTargetPlaceholder": "معرّف محادثة / مجموعة / مستخدم",
-    "deliveryFormatLabel": "Email report format",
-    "deliveryFormatDefault": "Channel default (plain text)",
-    "deliveryFormatHtml": "HTML email",
-    "deliveryFormatPdf": "PDF attachment",
-    "proposalPdfProtection": "حماية PDF بكلمة مرور",
-    "proposalPdfProtectionOn": "مفعّلة",
-    "proposalPdfProtectionOff": "غير مفعّلة",
-    "deliveryFormatDefaultHint": "Keeps the existing plain-text delivery behavior.",
-    "deliveryFormatHtmlHint": "Shows the full report as sanitized HTML in the email body.",
-    "deliveryFormatPdfHint": "Attaches the full report as PDF and keeps only a short notice in the body.",
-    "deliveryHint": "مُعطّل افتراضيًا. يُرسل الملخص **بعد انتهاء** التشغيل، لا عند جدولته.",
-    "deliveryTargetRequired": "حدّد وجهة لهذه القناة أو أفرغ حقل القناة.",
-    "delivery_none": "سيُرسل إلى {{channel}} بعد التشغيل القادم",
-    "delivery_pending": "الملخص بانتظار الإرسال إلى {{channel}}",
-    "delivery_sending": "جارٍ الإرسال إلى {{channel}}",
-    "delivery_accepted": "قَبِلَت {{channel}} الإرسال (من دون إيصال من المزوّد)",
-    "delivery_sent": "تم الإرسال إلى {{channel}}",
-    "delivery_failed": "تعذّر الإرسال إلى {{channel}}",
-    "verdictEmpty": "لا يوجد تقييم بعد",
-    "verdictUnreadable": "تعذر قراءة أحدث تقييم",
-    "verdictNoCalls": "لا إشارات",
-    "verdictDelta": "{{was}} ← {{now}}",
-    "verdictRecorded": "اعتبارًا من {{when}}",
-    "deliveryKnownTargetLabel": "وجهة معروفة",
-    "deliveryKnownTargetPlaceholder": "اختر وجهة معروفة…",
-    "deliverySuggestionKind_private_chat": "محادثتي الخاصة",
-    "deliveryTargetPlaceholder_email_address": "name@example.com",
-    "deliveryTargetPlaceholder_chat": "معرّف المحادثة أو المجموعة أو المستخدم",
-    "deliveryTargetPlaceholder_channel": "معرّف القناة",
-    "deliveryTargetPlaceholder_destination": "معرّف محادثة / مجموعة / مستخدم",
-    "deliveryTargetPlaceholder_slack_destination": "#قناة أو @مستخدم أو معرّف محادثة",
-    "deliveryTargetKind_slack_destination": "الوجهة",
-    "deliveryProtectPdf": "حماية ملف PDF بكلمة مرور",
-    "deliveryProtectPdfUnavailable": "لم تُضبط كلمة مرور PDF. اضبطها في الإعدادات > القنوات > البريد الإلكتروني لتفعيل الحماية."
+    "sessionsLoadFailed": "تعذر تحميل المحادثات.",
+    "workbench": "Research workbench",
+    "compare": "Compare experiments"
   },
   "reports": {
     "badge": "التقارير",
@@ -297,7 +87,8 @@
     "sharpe": "Sharpe",
     "fullReport": "التقرير الكامل",
     "compare": "مقارنة",
-    "unknown": "غير معروف"
+    "unknown": "غير معروف",
+    "status": "الحالة"
   },
   "connection": {
     "reconnecting": "جارٍ إعادة الاتصال…",
@@ -306,923 +97,8 @@
     "retry": "إعادة محاولة الاتصال",
     "requestFailed": "تعذر الاتصال بخادم API. تأكد من تشغيله ومن توفر اتصال الشبكة.",
     "requestTimeout": "انتهت مهلة الطلب. تحقق من الاتصال بالخادم ثم حاول مجددًا.",
-    "requestTimeoutMutation": "انتهت مهلة الطلب. قد يظل الخادم يعالجه؛ تحقق من الحالة الحالية قبل إعادة المحاولة."
-  },
-  "welcome": {
-    "tasks": {
-      "research": "ابحث عن سهم",
-      "backtest": "اختبر استراتيجية",
-      "portfolio": "راجع مراكزي",
-      "hint": "تملأ الأمثلة مربع الرسالة. عدّل الرمز أو الاستراتيجية قبل الإرسال.",
-      "researchPrompt": "ابحث عن AAPL باستخدام البيانات الحالية المتاحة: لخّص نشاطها وأداءها المالي الأخير والمخاطر الرئيسية. اذكر المصادر والتواريخ والمعلومات الناقصة.",
-      "backtestPrompt": "اختبر تاريخياً استراتيجية المتوسط المتحرك لمدة 20 و60 يوماً لسهم AAPL خلال السنة الماضية. قارن العائد والتراجع مع الشراء والاحتفاظ، وأدرج تكاليف التداول. للبحث فقط.",
-      "portfolioPrompt": "لخّص مراكز حساباتي المتصلة والتركيز ومخاطر المحفظة. إذا لم يوجد حساب متصل، اشرح كيفية إعداده أولاً. لا ترسل أو تعدّل أوامر."
-    },
-    "categories": {
-      "multiMarketBacktest": "اختبار عكسي لأسهم A",
-      "researchAnalysis": "البحث والتحليل",
-      "swarmTeams": "فرق محللي الذكاء الاصطناعي",
-      "docWebResearch": "بحث المستندات والويب",
-      "tradeJournal": "يومية التداول",
-      "tradingConnectors": "موصلات التداول",
-      "shadowAccount": "الحساب الظلّي",
-      "valueInvesting": "استثمار القيمة"
-    },
-    "examples": {
-      "crossMarketPortfolio": "موازنة محفظة من ثلاثة أسهم",
-      "crossMarketPortfolioDesc": "وزّع الأموال على ثلاثة أسهم A بحيث يتحمل كل سهم المخاطر نفسها، ثم قارنها بالأوزان المتساوية",
-      "btcMacd": "استراتيجية MACD لأسهم A",
-      "btcMacdDesc": "اختبار عكسي لاستراتيجية MACD لأسهم A على مستوى الدقيقة",
-      "usTechMaxDiv": "توزيع المخاطر بين الأسهم القيادية",
-      "usTechMaxDivDesc": "وزّع أوزان خمسة أسهم قيادية بحيث لا يهيمن سهم واحد على المخاطر، باستخدام تحسين أقصى تنويع",
-      "multiFactorAlpha": "نموذج ألفا متعدد العوامل",
-      "multiFactorAlphaDesc": "ادمج أربع إشارات لاختيار الأسهم عبر 300 سهم، مع ترجيح كل إشارة وفق قدرتها السابقة على توقع العوائد (IC)",
-      "optionsGreeks": "فحص مخاطر الخيارات (Greeks)",
-      "optionsGreeksDesc": "سعّر الخيار، ثم افحص مدى تأثره بسعر السهم والوقت والتقلب عبر مؤشرات Greeks",
-      "valueCommittee": "لجنة استثمار القيمة",
-      "valueCommitteeDesc": "نقاش أربعة أساتذة حول سهم واحد: Buffett / Munger / Duan Yongping / Li Lu",
-      "valueCommitteePrompt": "استخدم run_swarm مع الإعداد المسبق value_investing_committee لتحليل Tencent (00700.HK): Buffett حول الخندق والسعر، Munger حول التفكير العكسي، Duan Yongping حول العمل والإدارة، Li Lu حول يقين 10 سنوات، ثم يلخّص الرئيس نقاط الاتفاق والتعارض",
-      "bottleneckHunter": "صياد اختناقات سلسلة الإمداد",
-      "bottleneckHunterDesc": "اعثر على الموردين الصغار الذين لا يستغني عنهم اتجاه كبير، ثم تحقق مما إذا كانت أسعارهم ما تزال جذابة",
-      "bottleneckHunterPrompt": "استخدم مهارة bottleneck-hunter للعثور على فرص اختناق Layer 2/3 في بنية الذكاء الاصطناعي (البصريات / الليزر / ركائز InP)، قيّم كل اختناق واسرد الشركات المرشحة التي تجتاز بوابة التقييم",
-      "thesisTracker": "متتبع أطروحة الاستثمار",
-      "thesisTrackerDesc": "دوّن سبب امتلاك السهم في خمس جمل، وحدد الخطوط الحمراء التي تستدعي البيع",
-      "thesisTrackerPrompt": "استخدم مهارة thesis-tracker لبناء أطروحة استثمارية لـ Kweichow Moutai (600519.SH): أطروحة أساسية من 5 جمل، افتراضات قابلة للدحض، خطوط حمراء، ومراسي تقييم، مع التحقق عبر financial_rigor",
-      "valuationCheck": "هل السهم مُقيَّم بأكثر من قيمته؟",
-      "valuationCheckDesc": "أعد حساب PE وPB وROE والقيمة السوقية بدقة، ثم اختبرها تحت ثلاثة سيناريوهات للنمو",
-      "valuationCheckPrompt": "استخدم أداة financial_rigor للتحقق من تقييم Kweichow Moutai: السعر 1500، EPS 68.6، القيمة الدفترية للسهم 180 — احسب PE وPB وROE بدقة، ثم تقييمًا بثلاثة سيناريوهات (نمو 12%/8%/0%، PE 22/18/14، 3 سنوات)",
-      "investmentCommittee": "شراء أم بيع؟ دع اللجنة تتناقش",
-      "investmentCommitteeDesc": "نقاش متعدد الوكلاء: شراء مقابل بيع، مراجعة المخاطر، قرار مدير المحفظة",
-      "quantStrategyDesk": "مكتب استراتيجية الكمّ",
-      "quantStrategyDeskDesc": "خط أنابيب: فرز → بحث عوامل → اختبار عكسي → تدقيق المخاطر",
-      "earningsReport": "تحليل ملف PDF لتقرير الأرباح",
-      "earningsReportDesc": "حمّل ملف PDF واسأل عن الأمور المالية",
-      "macroResearch": "بحث ويب: النظرة الكلية",
-      "macroResearchDesc": "تحليل الاقتصاد الكلي وتوقعات سوق أسهم A",
-      "analyzeBrokerExport": "تحليل تصدير الوسيط الخاص بي",
-      "analyzeBrokerExportDesc": "اقرأ ملفات Tonghuashun وEastmoney وFutu أو أي ملف CSV، وحلّل مدة الاحتفاظ ومعدل الربح ونسبة الربح إلى الخسارة ونمط أوقات التداول",
-      "diagnoseBehavior": "تشخيص تحيّزات سلوكي",
-      "diagnoseBehaviorDesc": "تأثير التصرّف، فرط التداول، مطاردة الزخم، التثبيت — الشدة + أدلة رقمية",
-      "checkConnector": "فحص الموصل المحدد",
-      "checkConnectorDesc": "سرد ملفات تعريف الموصل والتحقق من المحدد",
-      "analyzePortfolio": "تحليل محفظة الموصل",
-      "analyzePortfolioDesc": "قراءة ملخص الحساب والمراكز من الموصل المحدد",
-      "quoteTrend": "السعر والاتجاه",
-      "quoteTrendDesc": "جلب السعر بالإضافة إلى أحدث الأعمدة اليومية عبر الموصل المحدد",
-      "trainShadow": "تدريب الظلّ من اليوميات",
-      "trainShadowDesc": "استخراج قواعد استراتيجيتك من CSV الوسيط وحفظها كملف تعريف ظلّي",
-      "shadowDelta": "كم أترك على الطاولة؟",
-      "shadowDeltaDesc": "اختبار عكسي لاستراتيجية الظلّ وإرجاع الفرق مقابل الأرباح الفعلية",
-      "shadowReport": "إنشاء تقرير الظلّ",
-      "shadowReportDesc": "تقرير قابل للمشاركة من ثمانية أقسام يعرض منحنى قيمة الحساب والعائد المعدّل حسب المخاطر ومصادر كل ربح",
-      "crossMarketPortfolioPrompt": "ابنِ محفظة تكافؤ مخاطر مع 000001.SZ و600519.SH و000858.SZ، اختبر عكسيًا لعام 2024 كاملاً، وقارن بمؤشر الأوزان المتساوية",
-      "btcMacdPrompt": "اختبر استراتيجية MACD عكسيًا على أعمدة 5 دقائق لـ 000001.SZ: سريع=12، بطيء=26، إشارة=9، آخر 30 يومًا",
-      "usTechMaxDivPrompt": "اختبر عكسيًا محفظة التنويع الأقصى لـ 600519.SH و000858.SZ و601318.SH و000001.SZ و600036.SH لعام 2024 كاملاً",
-      "multiFactorAlphaPrompt": "ابنِ نموذج ألفا متعدد العوامل باستخدام الزخم والانعكاس والحجم والتذبذب على مكونات CSI 300 مع تركيب عوامل مرجّحة بـ IC، واختبر عكسيًا 2023-2024",
-      "optionsGreeksPrompt": "احسب Greeks للخيارات باستخدام Black-Scholes: فوري=100، سعر التنفيذ=105، معدل خالي من المخاطر=3%، تقلب=25%، انتهاء=90 يومًا، حلل Delta/Gamma/Theta/Vega",
-      "investmentCommitteePrompt": "[وضع فريق السرب] استخدم الإعداد المسبق investment_committee لتقييم ما إذا كنت ستشتري أو تبيع 600519.SH في ظل ظروف السوق الحالية",
-      "quantStrategyDeskPrompt": "[وضع فريق السرب] استخدم الإعداد المسبق quant_strategy_desk للعثور على أفضل استراتيجية زخم واختبارها عكسيًا على مكونات CSI 300",
-      "earningsReportPrompt": "لخّص المقاييس المالية الرئيسية والمخاطر والتوقعات من تقرير الأرباح المرفوع",
-      "macroResearchPrompt": "اقرأ أحدث تقرير للسياسة النقدية من البنك المركزي ولخّص تأثيره على سوق أسهم A",
-      "analyzeBrokerExportPrompt": "حلّل يومية التداول التي رفعتها للتو — ملف تعريف كامل مع إحصائيات الاحتفاظ ومعدل الفوز وأهم الرموز والتوزيع الساعي",
-      "diagnoseBehaviorPrompt": "شغّل 4 تشخيصات سلوكية على يومية التداول (التصرف، فرط التداول، المطاردة، التثبيت) وأخبرني أي تحيّز يضر بأرباحي أكثر",
-      "checkConnectorPrompt": "اعرض ملفات تعريف موصلات التداول الخاصة بي، وأظهر المحدّد، ثم افحص ذلك الموصل. إذا لم يكن جاهزًا، أخبرني بالضبط ما الخطوة المفقودة. لا تضع أو تعدّل أوامر.",
-      "analyzePortfolioPrompt": "استخدم ملف تعريف موصل التداول المحدد لتلخيص حسابي ومراكزى والتركيز والنقد ومخاطر المحفظة. لا تضع أو تعدّل أوامر.",
-      "quoteTrendPrompt": "استخدم موصل التداول المحدد لجلب سعر 600519.SH و30 عمودًا يوميًا، ثم لخّص السعر الحالي مقابل الاتجاه الأخير. اجعله للقراءة فقط.",
-      "trainShadowPrompt": "درّب حسابي الظلّي من يومية التداول التي رفعتها — اعرض القواعد المستخرجة وأكّد أنها تشبه سلوكي",
-      "shadowDeltaPrompt": "شغّل اختبارًا عكسيًا ظليًا لآخر 90 يومًا وحلّل أين انحرفت أرباحي عن الظلّ (انتهاكات القواعد، الخروج المبكر، إشارات مفقودة)",
-      "shadowReportPrompt": "اعرض تقرير الظلّ وأعطِني الرابط — ابدأ بفرق أرباحك مقابل الظلّ"
-    },
-    "taskSubtitle": "اسأل عن سهم أو استراتيجية أو محفظتك — سأجلب البيانات وأجري الحسابات وأعرض كل خطوة.",
-    "quickActions": "إجراءات سريعة",
-    "browseAllExamples": "تصفح جميع الأمثلة",
-    "greetings": {
-      "morning1": "صباح الخير.",
-      "morning2": "صباح الخير — جاهزون متى شئت.",
-      "morning3": "صباح الخير. لنبدأ.",
-      "afternoon1": "نهارك سعيد.",
-      "afternoon2": "هل أنت مستعد للسؤال التالي؟",
-      "afternoon3": "ماذا نستكشف بعد الظهر؟",
-      "evening1": "مساء الخير.",
-      "evening2": "لنفهم السوق معًا.",
-      "evening3": "هل نبدأ بحثًا مركزًا؟",
-      "night1": "ما زلت تفكر؟",
-      "night2": "لنرتب الأفكار معًا.",
-      "night3": "فكرة أخيرة قبل أن تختم يومك؟"
-    }
-  },
-  "settings": {
-    "title": "الإعدادات",
-    "authRequired": "المصادقة مطلوبة",
-    "authDesc": "أدخل مفتاح مصادقة API لفتح الإعدادات.",
-    "dataSources": "مصادر البيانات",
-    "llmBackend": "واجهة LLM الخلفية",
-    "save": "حفظ",
-    "saving": "جارٍ الحفظ…",
-    "saved": "تم حفظ الإعدادات",
-    "saveFailed": "فشل الحفظ",
-    "provider": "المزوّد",
-    "refresh": "تحديث",
-    "modelName": "اسم النموذج",
-    "baseUrl": "عنوان URL الأساسي",
-    "apiAuthKey": "مفتاح مصادقة API",
-    "loading": "جارٍ التحميل…",
-    "temperature": "درجة الحرارة",
-    "temperatureDesc": "يتحكم في عشوائية الإجابة. القيم المنخفضة أكثر ثباتًا، ويُفضّل 0–0.2 للتحليل المالي.",
-    "timeoutSeconds": "المهلة (ثوانٍ)",
-    "maxRetries": "الحد الأقصى للمحاولات",
-    "reasoningEffort": "جهد الاستدلال",
-    "providerDefault": "إعداد المزوّد الافتراضي",
-    "useDefaultModel": "استخدام النموذج الافتراضي",
-    "useDefaultUrl": "استخدام URL الافتراضي",
-    "dataSourcesDesc": "اضبط مصادر البيانات الخارجية لمحرك الاختبار العكسي.",
-    "tushareDesc": "بيانات تاريخية لأسهم A الصينية (يتطلب متغير بيئة TUSHARE_TOKEN).",
-    "baostockDesc": "بيانات أسهم A بديلة عبر بروتوكول TCP (لا حاجة لمفتاح API).",
-    "status": "الحالة",
-    "installed": "مُثبَّت",
-    "notInstalled": "غير مُثبَّت",
-    "token": "الرمز",
-    "tokenConfigured": "تم ضبط الرمز",
-    "tokenNotSet": "متغير بيئة TUSHARE_TOKEN غير مضبوط",
-    "apiTimeout": "مهلة طلب API",
-    "loaderAvailable": "المُحمِّل متاح",
-    "noProjectLoader": "لا يوجد محمِّل مشروع",
-    "pythonPackageInstalled": "حزمة Python مُثبَّتة",
-    "pythonPackageNotInstalled": "حزمة Python غير مُثبَّتة",
-    "off": "معطّل",
-    "reasoningEffortNone": "بدون (صريح)",
-    "reasoningEffortLow": "منخفض",
-    "reasoningEffortMedium": "متوسط",
-    "reasoningEffortHigh": "مرتفع",
-    "reasoningEffortXhigh": "مرتفع جدًا",
-    "reasoningEffortMax": "أقصى",
-    "reasoningEffortDesc": "يتحكم في عمق الاستدلال للنماذج المدعومة. قد تحسن القيم الأعلى التحليل المعقد لكنها تستغرق وقتًا أطول، وقد يتجاهلها المزوّد غير المدعوم. يرسل «بدون (صريح)» الحقل مع تعطيل الاستدلال، وبعض طرازات OpenAI تحتاج ذلك لاستخدام الأدوات.",
-    "reasoningEffortReset": "النموذج المحدد لا يدعم {{level}}؛ تمت إعادته إلى الإعداد الافتراضي للمزوّد.",
-    "localApiAccess": "الوصول إلى API المحلي",
-    "localApiAccessDesc": "لعمليات نشر واجهة الويب عن بُعد أو الخاصة، أدخل مفتاح API الخادم مرة واحدة في هذا المتصفح. يمكن ترك الاستخدام المحلي فارغًا.",
-    "serverApiKey": "مفتاح API الخادم",
-    "storedInBrowser": "يُخزَّن في هذا المتصفح فقط. اتركه فارغًا لمسحه.",
-    "localApiKeySaved": "تم حفظ مفتاح API المحلي",
-    "subtitle": "اضبط بيانات اعتماد النموذج ورموز مصادر بيانات السوق لهذا المشروع المحلي.",
-    "unavailable": "الإعدادات غير متاحة",
-    "llmSettings": "إعدادات LLM",
-    "llmSettingsDesc": "اختر النموذج الذي يستخدمه الوكيل واحفظه في ملف agent/.env المحلي للمشروع.",
-    "connection": "الاتصال",
-    "model": "النموذج",
-    "useProviderDefaults": "استخدام الإعدادات الافتراضية للمزوّد",
-    "modelIdHint": "استخدم معرّف النموذج الدقيق المطلوب من قِبل المزوّد.",
-    "loadModels": "تحميل النماذج",
-    "modelsLoaded": "تم تحميل {{count}} نموذجًا متاحًا.",
-    "modelsLoadFailed": "تعذر تحميل قائمة نماذج المزوّد.",
-    "modelOptions": "النماذج المتاحة",
-    "modelDiscoveryOauthUnsupported": "لا يدعم طرف OAuth لهذا المزوّد اكتشاف النماذج.",
-    "modelDiscoveryApiKeyRequired": "أدخل مفتاح API لهذا المزوّد أو احفظه لتحميل النماذج المتاحة.",
-    "modelDiscoveryUnavailable": "لم يُرجع المزوّد قائمة نماذج. لا يزال بإمكانك إدخال معرّف نموذج دقيق.",
-    "modelPickerHint": "حمّل خيارات المزوّد أو اكتب معرّف نموذج مخصصًا بدقة.",
-    "clearApiKey": "مسح مفتاح API المحفوظ",
-    "channels": {
-      "title": "قنوات IM",
-      "description": "صل محولات الدردشة بنفس وقت تشغيل جلسات Vibe-Trading المستخدم في Web UI و CLI.",
-      "runtime": "وقت التشغيل",
-      "running": "قيد التشغيل",
-      "stopped": "متوقف",
-      "enabled": "مفعّل",
-      "disabled": "معطّل",
-      "loaded": "محمّل",
-      "notLoaded": "غير محمّل",
-      "unavailable": "غير متاح",
-      "channel": "القناة",
-      "state": "الحالة",
-      "recovery": "الاسترداد",
-      "noRecovery": "جاهز",
-      "refresh": "تحديث",
-      "start": "بدء القنوات",
-      "stop": "إيقاف القنوات",
-      "started": "تم بدء قنوات IM",
-      "stoppedToast": "تم إيقاف قنوات IM",
-      "refreshFailed": "فشل تحديث قنوات IM",
-      "startFailed": "فشل بدء قنوات IM",
-      "stopFailed": "فشل إيقاف قنوات IM",
-      "config": {
-        "toggleConfig": "تهيئة {{name}}",
-        "keepCurrent": "الإبقاء على القيمة الحالية ({{masked}})",
-        "secretNotSet": "غير مُعيّن",
-        "clearSecret": "مسح",
-        "required": "مطلوب",
-        "listPlaceholder": "اكتب قيمة واضغط Enter للإضافة",
-        "removeValue": "إزالة {{value}}",
-        "save": "حفظ الإعدادات",
-        "hotApply": "يُطبَّق الحفظ فورًا — دون حاجة إلى إعادة التشغيل.",
-        "saved": "تم حفظ إعدادات القناة",
-        "appliedInPlace": "تم حفظ الإعدادات دون إعادة توصيل القناة.",
-        "appliedReset": "تم حفظ الإعدادات وإعادة تشغيل اتصالات القنوات.",
-        "appliedOnStart": "تم حفظ الإعدادات. ستُطبّق التغييرات عند بدء القنوات.",
-        "appliedReconnect": "تم حفظ الإعدادات وإعادة توصيل هذه القناة.",
-        "saveFailed": "تعذّر حفظ إعدادات القناة: {{message}}",
-        "test": "اختبار الاتصال",
-        "testing": "جارٍ الاختبار…",
-        "testOk": "تم التحقق من الاتصال",
-        "testFailed": "فشل اختبار الاتصال: {{message}}",
-        "testCodeOk": "قبل المزوّد بيانات الاعتماد هذه.",
-        "testCodeInvalidCredentials": "رفض المزوّد بيانات الاعتماد هذه.",
-        "testCodeNetwork": "تعذّر الوصول إلى المزوّد.",
-        "testCodeUnsupported": "هذه القناة لا تدعم اختبار الاتصال.",
-        "testedSavedConfig": "تم اختبار الإعدادات المحفوظة.",
-        "testedDraftConfig": "تم اختبار القيم الموجودة في النموذج (غير المحفوظة بعد).",
-        "enable": "تفعيل القناة",
-        "enableHint": "تعطيلها يحتفظ ببيانات الاعتماد المحفوظة — يمكنك إعادة التفعيل في أي وقت.",
-        "enabledToast": "تم تفعيل القناة",
-        "disabledToast": "تم تعطيل القناة",
-        "enableFailed": "تعذّر تفعيل القناة: {{message}}",
-        "disableFailed": "تعذّر تعطيل القناة: {{message}}",
-        "enableRejected": "رفض المزوّد بيانات الاعتماد هذه، لذا لم يتم تفعيل القناة.",
-        "enableRejectedDetail": "استجابة المزوّد: {{detail}}",
-        "enableAnyway": "التفعيل على أي حال",
-        "enableAnywayHint": "التفعيل على أي حال يتخطى التحقق من بيانات الاعتماد — قد لا تتمكن القناة من الاتصال.",
-        "notWritable": "إعدادات القناة محفوظة في ملف YAML ‏({{path}})، ولا يمكن تعديلها من واجهة الويب. حرّر الملف مباشرةً لتغيير بيانات الاعتماد.",
-        "notWritableChip": "للقراءة فقط (YAML)",
-        "sdkMissing": "حزمة التشغيل SDK غير مثبّتة — {{hint}}",
-        "sdkMissingNoHint": "حزمة التشغيل SDK غير مثبّتة؛ يمكن تهيئة القناة لكنها قد لا تبدأ.",
-        "noFields": "لا توجد حقول قابلة للتهيئة في هذه القناة.",
-        "loadFailed": "تعذّر تحميل إعدادات القناة."
-      },
-      "fields": {
-        "dingtalk": {
-          "client_id": {
-            "label": "Client ID (AppKey)",
-            "help": "مفتاح AppKey الخاص بالتطبيق من صفحة بيانات الاعتماد في وحدة تحكم مطوّري DingTalk."
-          },
-          "client_secret": {
-            "label": "Client Secret (AppSecret)",
-            "help": "سرّ التطبيق AppSecret. يُحفظ على الخادم ولا يُعاد إرساله إلى المتصفح."
-          },
-          "allow_from": {
-            "label": "المرسلون المسموحون",
-            "help": "قائمة اختيارية بمعرّفات مرسلي DingTalk المسموح لهم بالتفاعل مع الوكيل (\"*\" تسمح للجميع). المرسلون غير المقترنين يتلقون رمز اقتران في رسالة خاصة."
-          },
-          "allow_remote_media_redirects": {
-            "label": "السماح بإعادة توجيه الوسائط",
-            "help": "اتّباع إعادة توجيه المزوّد عند تنزيل وسائط الرسائل. معطّل افتراضيًا."
-          },
-          "remote_media_redirect_allowed_hosts": {
-            "label": "المضيفون المسموح بإعادة التوجيه إليهم",
-            "help": "المضيفون المسموح بها عند تفعيل إعادة توجيه الوسائط. القائمة الفارغة تحجب كل إعادة توجيه بين المضيفين."
-          },
-          "group_user_isolation": {
-            "label": "جلسة منفصلة لكل مستخدم في المجموعة",
-            "help": "منح كل عضو في محادثة المجموعة جلسة وكيل خاصة به بدلًا من جلسة مشتركة."
-          },
-          "force_ipv4": {
-            "label": "فرض IPv4",
-            "help": "يربط استدعاءات واجهة DingTalk بعنوان IPv4. مفيد عندما تحتوي قائمة عناوين IP المسموحة على عنوان IPv4 ثابت بينما تتغير بادئة IPv6 باستمرار."
-          }
-        },
-        "qq": {
-          "app_id": {
-            "label": "AppID",
-            "help": "معرّف AppID الخاص بالروبوت من إعدادات التطبيق في منصة QQ المفتوحة (q.qq.com)."
-          },
-          "secret": {
-            "label": "AppSecret",
-            "help": "سرّ الروبوت AppSecret. يُحفظ على الخادم ولا يُعاد إرساله إلى المتصفح."
-          },
-          "allow_from": {
-            "label": "المرسلون المسموحون",
-            "help": "قائمة اختيارية بمعرّفات openid لمرسلي QQ المسموح لهم بالتفاعل مع الوكيل (\"*\" تسمح للجميع). المرسلون غير المقترنين يتلقون رمز اقتران في رسالة خاصة."
-          },
-          "msg_format": {
-            "label": "تنسيق الرسالة",
-            "help": "تنسيق الرد: plain أو markdown."
-          },
-          "ack_message": {
-            "label": "رسالة الإقرار",
-            "help": "إقرار فوري يُرسل عند وصول رسالة. اتركه فارغًا لتعطيله."
-          },
-          "media_dir": {
-            "label": "دليل الوسائط",
-            "help": "مكان حفظ المرفقات الواردة. القيمة الفارغة تستخدم ~/.vibe-trading/media/qq."
-          },
-          "download_chunk_size": {
-            "label": "حجم كتلة التنزيل",
-            "help": "عدد البايتات لكل كتلة عند تنزيل المرفقات (الافتراضي 262144)."
-          },
-          "download_max_bytes": {
-            "label": "الحد الأقصى لحجم التنزيل (بايت)",
-            "help": "حدّ أمان لتنزيل مرفق واحد (الافتراضي 209715200 = 200 ميغابايت)."
-          }
-        },
-        "email": {
-          "consent_granted": {
-            "label": "الموافقة ممنوحة",
-            "help": "مفتاح الإذن الرئيسي. لا تقرأ القناة البريد أو ترسله إلا بعد منح الموافقة صراحةً هنا."
-          },
-          "imap_host": {
-            "label": "مضيف IMAP",
-            "help": "مضيف خادم البريد الوارد، مثل imap.gmail.com. يُستعلم عن البريد الوارد من هذا الخادم عبر IMAP."
-          },
-          "imap_port": {
-            "label": "منفذ IMAP",
-            "help": "منفذ البريد الوارد (الافتراضي 993 مع SSL)."
-          },
-          "imap_username": {
-            "label": "اسم مستخدم IMAP",
-            "help": "حساب صندوق البريد المستخدم لتسجيل الدخول عبر IMAP، وعادةً ما يكون عنوان البريد الكامل."
-          },
-          "imap_password": {
-            "label": "كلمة مرور IMAP",
-            "help": "كلمة مرور صندوق البريد أو كلمة مرور التطبيق لـ IMAP. تُحفظ على الخادم فقط ولا تُعاد إلى المتصفح أبدًا."
-          },
-          "imap_mailbox": {
-            "label": "مجلد IMAP",
-            "help": "المجلد الذي يُستعلم عنه بحثًا عن رسائل جديدة (الافتراضي INBOX)."
-          },
-          "imap_use_ssl": {
-            "label": "IMAP عبر SSL",
-            "help": "الاتصال بـ IMAP عبر SSL (مفعّل افتراضيًا، ومطلوب للمنفذ 993)."
-          },
-          "imap_use_tls": {
-            "label": "STARTTLS لـ IMAP",
-            "help": "عند إيقاف IMAP عبر SSL، تتم ترقية الاتصال عبر STARTTLS قبل تسجيل الدخول (مفعّل افتراضيًا، وهو المعتاد للمنفذ 143). لا توقفه إلا لخادم لا يدعم TLS على شبكة موثوقة، إذ تُرسل كلمة المرور حينها نصًا صريحًا."
-          },
-          "smtp_host": {
-            "label": "مضيف SMTP",
-            "help": "مضيف خادم البريد الصادر، مثل smtp.gmail.com. تُرسل الردود عبر هذا الخادم."
-          },
-          "smtp_port": {
-            "label": "منفذ SMTP",
-            "help": "منفذ البريد الصادر (الافتراضي 587 مع STARTTLS، و465 لـ SSL الضمني)."
-          },
-          "smtp_username": {
-            "label": "اسم مستخدم SMTP",
-            "help": "الحساب المستخدم للمصادقة مع خادم SMTP، وعادةً ما يكون عنوان البريد الكامل."
-          },
-          "smtp_password": {
-            "label": "كلمة مرور SMTP",
-            "help": "كلمة مرور SMTP أو كلمة مرور التطبيق. تُحفظ على الخادم فقط ولا تُعاد إلى المتصفح أبدًا."
-          },
-          "smtp_use_tls": {
-            "label": "STARTTLS لـ SMTP",
-            "help": "ترقية اتصال SMTP عبر STARTTLS (مفعّل افتراضيًا، وهو المعتاد للمنفذ 587). لا يُستخدم عمليًا مع SMTP SSL في الوقت نفسه."
-          },
-          "smtp_use_ssl": {
-            "label": "SMTP عبر SSL",
-            "help": "الاتصال بـ SMTP عبر TLS الضمني، مثل المنفذ 465 (معطّل افتراضيًا). لا يُستخدم عمليًا مع STARTTLS في الوقت نفسه."
-          },
-          "verify_tls": {
-            "label": "التحقق من شهادة TLS",
-            "help": "التحقق من شهادة TLS الخاصة بخادم البريد واسم المضيف (موصى به). لا تُعطّله إلا مع الخوادم ذاتية التوقيع أو التي تستخدم CA داخلي."
-          },
-          "from_address": {
-            "label": "عنوان المرسل",
-            "help": "العنوان الذي تُرسل منه الردود. إذا تُرك فارغًا يُستخدم اسم مستخدم SMTP."
-          },
-          "auto_reply_enabled": {
-            "label": "الردود التلقائية",
-            "help": "الرد تلقائيًا على البريد الوارد. لا يتأثر الإرسال الذي يبدأه الوكيل."
-          },
-          "poll_interval_seconds": {
-            "label": "فاصل الاستعلام (ثوانٍ)",
-            "help": "معدل فحص صندوق IMAP بحثًا عن بريد جديد (الافتراضي 30، والحد الأدنى 5)."
-          },
-          "mark_seen": {
-            "label": "وضع علامة مقروء",
-            "help": "وضع علامة مقروء على الرسائل المعالجة في صندوق البريد."
-          },
-          "post_action": {
-            "label": "إجراء ما بعد المعالجة",
-            "help": "ما يحدث للرسائل المعالجة: delete للحذف، أو move للنقل إلى مجلد آخر، أو اتركه فارغًا للإبقاء عليها."
-          },
-          "post_action_move_mailbox": {
-            "label": "النقل إلى مجلد",
-            "help": "المجلد الهدف المستخدم عندما يكون إجراء ما بعد المعالجة هو move."
-          },
-          "post_action_expunge": {
-            "label": "حذف نهائي بعد الإزالة",
-            "help": "إزالة الرسائل المحذوفة نهائيًا (expunge) بدل تركها بعلامة الحذف."
-          },
-          "post_action_ignore_skipped": {
-            "label": "تجاهل رسائلك والمرشّحة",
-            "help": "ترك الرسائل المتخطاة (رسائلك ورسائل المرسلين المستبعدين بالقائمة) دون تطبيق إجراء ما بعد المعالجة (مفعّل افتراضيًا)."
-          },
-          "max_body_chars": {
-            "label": "الحد الأقصى لأحرف النص",
-            "help": "اقتطاع نص كل رسالة عند هذا العدد من الأحرف (الافتراضي 12000)."
-          },
-          "subject_prefix": {
-            "label": "بادئة عنوان الرد",
-            "help": "البادئة المضافة إلى عنوان الرد (الافتراضي \"Re: \")."
-          },
-          "allow_from": {
-            "label": "المرسلون المسموحون",
-            "help": "قائمة سماح اختيارية بعناوين البريد التي يمكنها التحدث إلى الوكيل (\"*\" تسمح للجميع). المرسلون غير المقترنين يتلقون رمز اقتران في الرد."
-          },
-          "verify_dkim": {
-            "label": "التحقق من DKIM",
-            "help": "طلب ترويسة Authentication-Results بالقيمة dkim=pass. تعطيل DKIM وSPF معًا يقبل ترويسات From المزوّرة."
-          },
-          "verify_spf": {
-            "label": "التحقق من SPF",
-            "help": "طلب ترويسة Authentication-Results بالقيمة spf=pass. تعطيل DKIM وSPF معًا يقبل ترويسات From المزوّرة."
-          },
-          "allowed_attachment_types": {
-            "label": "أنواع المرفقات المسموح بها",
-            "help": "قائمة سماح MIME لمرفقات البريد الوارد، مثل application/pdf أو image/*. اتركها فارغة لتعطيل المرفقات."
-          },
-          "max_attachment_size": {
-            "label": "الحد الأقصى لحجم المرفق (بايت)",
-            "help": "أكبر حجم مسموح لمرفق واحد بالبايت (الافتراضي 2000000 = 2 ميغابايت)."
-          },
-          "max_attachments_per_email": {
-            "label": "الحد الأقصى للمرفقات لكل رسالة",
-            "help": "عدد المرفقات المقبولة من رسالة واحدة (الافتراضي 5)."
-          },
-          "trusted_authserv_id": {
-            "label": "خادم المصادقة الموثوق",
-            "help": "معرّف authserv-id لخادم الاستلام، مثل mx.google.com. يجب على مزود البريد إزالة ترويسات Authentication-Results الواردة المزوّرة التي تحمل هذا المعرّف. مطلوب عند تفعيل SPF أو DKIM؛ تركه فارغًا يرفض البريد الوارد."
-          },
-          "pdf_password": {
-            "label": "كلمة مرور تقرير PDF",
-            "help": "كلمة مرور اختيارية للتقارير المجدولة بصيغة PDF التي تطلب الحماية صراحةً. تُحفظ على الخادم ولا تُضمّن في المهام المجدولة أو تُعاد إلى المتصفح."
-          }
-        },
-        "websocket": {
-          "host": {
-            "label": "عنوان الربط",
-            "help": "العنوان المحلي الذي يرتبط به خادم WebSocket (الافتراضي 127.0.0.1، محلي فقط). العناوين الشاملة مثل 0.0.0.0 أو :: تكشف الخادم على كل الواجهات وتُرفض ما لم يُضبط رمز أو سرّ إصدار الرموز."
-          },
-          "port": {
-            "label": "منفذ الربط",
-            "help": "المنفذ المحلي الذي يستمع عليه خادم WebSocket (الافتراضي 8765). يُتجاهل عند ضبط مسار Unix socket."
-          },
-          "unix_socket_path": {
-            "label": "مسار Unix socket",
-            "help": "مسار مطلق اختياري. عند ضبطه يستمع الخادم على هذا الـ Unix socket بدل العنوان والمنفذ."
-          },
-          "path": {
-            "label": "مسار الترقية",
-            "help": "مسار ترقية WebSocket الذي يتصل به العملاء (الافتراضي /). يجب أن يبدأ بـ \"/\"."
-          },
-          "token": {
-            "label": "رمز ثابت",
-            "help": "سرّ مشترك يُتحقق منه عبر وسيط token في الطلب أثناء المصافحة. يُحفظ على الخادم فقط ولا يُعاد إلى المتصفح أبدًا."
-          },
-          "token_issue_path": {
-            "label": "مسار إصدار الرموز",
-            "help": "مسار HTTP GET يعيد رموزًا قصيرة العمر لمرة واحدة بصيغة JSON. يجب أن يختلف عن مسار الترقية."
-          },
-          "token_issue_secret": {
-            "label": "سرّ إصدار الرموز",
-            "help": "السرّ من نوع Bearer الذي يطلبه مسار الإصدار (Authorization: Bearer أو X-Vibe-Trading-Auth). يُحفظ على الخادم فقط ولا يُعاد إلى المتصفح أبدًا."
-          },
-          "token_ttl_s": {
-            "label": "عمر الرمز الصادر (ثوانٍ)",
-            "help": "مدة صلاحية الرمز الذي يصدره مسار الإصدار بالثواني (30–86400، الافتراضي 300)."
-          },
-          "websocket_requires_token": {
-            "label": "طلب رمز إلزامي",
-            "help": "رفض المصافحات التي لا تحمل رمزًا ثابتًا أو صادرًا صالحًا (مفعّل افتراضيًا)."
-          },
-          "allow_from": {
-            "label": "العملاء المسموحون",
-            "help": "قائمة سماح اختيارية بمعرّفات العملاء الذين يمكنهم الاتصال (\"*\" تسمح للجميع، الافتراضي)."
-          },
-          "streaming": {
-            "label": "بث الإخراج",
-            "help": "بث فروقات إخراج النموذج إلى العملاء المتصلين أثناء توليدها."
-          },
-          "max_message_bytes": {
-            "label": "الحد الأقصى للرسالة (بايت)",
-            "help": "أكبر حجم مسموح لإطار وارد بالبايت (الافتراضي 37748736، والنطاق 1024–41943040)."
-          },
-          "ping_interval_s": {
-            "label": "فاصل Ping (ثوانٍ)",
-            "help": "عدد الثواني بين نبضات الإبقاء على الاتصال (5–300، الافتراضي 20)."
-          },
-          "ping_timeout_s": {
-            "label": "مهلة Ping (ثوانٍ)",
-            "help": "عدد الثواني لانتظار ردّ ping قبل قطع الاتصال (5–300، الافتراضي 20)."
-          },
-          "ssl_certfile": {
-            "label": "مسار شهادة TLS",
-            "help": "مسار شهادة PEM على الخادم لـ WSS. اضبط الشهادة والمفتاح معًا أو اتركهما معًا؛ فهذه مسارات ملفات على الخادم وليست مواد مرفوعة."
-          },
-          "ssl_keyfile": {
-            "label": "مسار مفتاح TLS",
-            "help": "مسار المفتاح الخاص PEM على الخادم لـ WSS. اضبط الشهادة والمفتاح معًا أو اتركهما معًا؛ فهذه مسارات ملفات على الخادم وليست مواد مرفوعة."
-          }
-        },
-        "feishu": {
-          "app_id": {
-            "label": "معرّف التطبيق (App ID)",
-            "help": "معرّف التطبيق من وحدة تحكم مطوّري Feishu / Lark (يبدأ بـ cli_)."
-          },
-          "app_secret": {
-            "label": "سر التطبيق (App Secret)",
-            "help": "سر التطبيق. يُحفظ في الخادم ولا يُعاد إلى المتصفح أبدًا."
-          },
-          "encrypt_key": {
-            "label": "مفتاح التشفير (Encrypt Key)",
-            "help": "مفتاح التشفير من إعدادات الاشتراك في الأحداث؛ اختياري في وضع الاتصال الدائم."
-          },
-          "verification_token": {
-            "label": "رمز التحقق (Verification Token)",
-            "help": "رمز التحقق من إعدادات الاشتراك في الأحداث؛ اختياري في وضع الاتصال الدائم."
-          },
-          "allow_from": {
-            "label": "المُرسلون المسموح بهم",
-            "help": "قائمة سماح اختيارية بمعرّفات مرسلين Feishu الذين يمكنهم محادثة الوكيل؛ اتركها فارغة للسماح لكل من يستطيع البوت رؤيته."
-          },
-          "react_emoji": {
-            "label": "تفاعل حالة العمل",
-            "help": "الرمز التعبيري الذي يُضاف إلى الرسالة الواردة أثناء عمل الوكيل (الافتراضي THUMBSUP)."
-          },
-          "done_emoji": {
-            "label": "تفاعل الإنجاز",
-            "help": "الرمز التعبيري الذي يُضاف عند اكتمال المهمة؛ اتركه فارغًا بلا إضافة."
-          },
-          "tool_hint_prefix": {
-            "label": "بادئة تلميحات الأدوات",
-            "help": "البادئة التي تُعرض قبل تلميحات الأدوات المضمّنة في الرد."
-          },
-          "group_policy": {
-            "label": "سياسة المجموعات",
-            "help": "\"mention\" للرد فقط عند الإشارة إلى البوت في المجموعات، و\"open\" للرد على كل رسائل المجموعة."
-          },
-          "reply_to_message": {
-            "label": "اقتباس الرسالة الأصلية",
-            "help": "الرد بالاقتباس على الرسالة الأصلية."
-          },
-          "streaming": {
-            "label": "بث الرد تدريجيًا",
-            "help": "بث الرد عبر التحرير الحي للبطاقات باستخدام CardKit."
-          },
-          "domain": {
-            "label": "النطاق",
-            "help": "استخدم \"feishu\" لنسخة Feishu في الصين (open.feishu.cn) و\"lark\" لنسخة Lark الدولية (open.larksuite.com)."
-          },
-          "topic_isolation": {
-            "label": "جلسات مستقلة لكل موضوع",
-            "help": "تخصيص جلسة وكيل مستقلة لكل موضوع في المجموعة بدل جلسة واحدة مشتركة."
-          }
-        },
-        "slack": {
-          "bot_token": {
-            "label": "رمز البوت (xoxb-)",
-            "help": "رمز OAuth لبوت Slack (يبدأ بـ xoxb-). يُحفظ في الخادم ولا يُعاد إلى المتصفح أبدًا."
-          },
-          "app_token": {
-            "label": "رمز التطبيق (xapp-)",
-            "help": "رمز Slack على مستوى التطبيق (يبدأ بـ xapp-) مع نطاق connections:write، وهو مطلوب لوضع Socket Mode. يُحفظ في الخادم ولا يُعاد إلى المتصفح أبدًا."
-          },
-          "user_token_read_only": {
-            "label": "رمز المستخدم للقراءة فقط",
-            "help": "خيار سلوك وليس بيانات اعتماد: يُبقي الوصول برمز المستخدم للقراءة فقط."
-          },
-          "reply_in_thread": {
-            "label": "الرد ضمن سلسلة",
-            "help": "الرد ضمن سلسلة (thread) تحت الرسالة الأصلية بدلًا من النشر مباشرة في القناة."
-          },
-          "react_emoji": {
-            "label": "تفاعل حالة العمل",
-            "help": "التفاعل الذي يوضع على الرسالة الواردة أثناء عمل الوكيل (الافتراضي eyes)."
-          },
-          "done_emoji": {
-            "label": "تفاعل الاكتمال",
-            "help": "التفاعل الذي يوضع عند اكتمال المهمة (الافتراضي white_check_mark). اتركه فارغًا للتعطيل."
-          },
-          "include_thread_context": {
-            "label": "تضمين سياق السلسلة",
-            "help": "إرفاق الردود السابقة في السلسلة كسياق عند استدعاء البوت إليها لأول مرة."
-          },
-          "thread_context_limit": {
-            "label": "حد سياق السلسلة",
-            "help": "الحد الأقصى لعدد رسائل السلسلة المضمّنة كسياق (الافتراضي 20)."
-          },
-          "allow_from": {
-            "label": "المُرسلون المسموح بهم",
-            "help": "قائمة سماح بمعرّفات مستخدمي Slack المسموح لهم بمحادثة الوكيل. يخضع الوصول في الرسائل المباشرة والقنوات أيضًا لسياسة الرسائل المباشرة وسياسة المجموعات."
-          },
-          "group_policy": {
-            "label": "سياسة المجموعات",
-            "help": "\"mention\" للرد فقط عند الإشارة إلى البوت في القناة، و\"open\" للرد على كل رسائل القناة، و\"allowlist\" للرد فقط في القنوات المدرجة أدناه."
-          },
-          "group_allow_from": {
-            "label": "القنوات المسموح بها",
-            "help": "معرّفات القنوات التي يرد فيها البوت عندما تكون سياسة المجموعات \"allowlist\"."
-          },
-          "group_require_mention": {
-            "label": "اشتراط الإشارة في القنوات المسموح بها",
-            "help": "مع سياسة \"allowlist\"، اشتراط الإشارة إلى البوت أيضًا قبل الرد في القنوات المعتمدة. لا تأثير لها مع \"mention\" أو \"open\"."
-          }
-        },
-        "discord": {
-          "token": {
-            "label": "رمز البوت",
-            "help": "رمز البوت (Bot Token) من بوابة مطوّري Discord، وليس رمز مستخدم أو رمز OAuth. يُحفظ في الخادم ولا يُعاد إلى المتصفح أبدًا."
-          },
-          "allow_from": {
-            "label": "المُرسلون المسموح بهم",
-            "help": "قائمة سماح اختيارية بمعرّفات مستخدمي Discord المسموح لهم بمحادثة الوكيل. اتركها فارغة للسماح للجميع."
-          },
-          "allow_channels": {
-            "label": "القنوات المسموح بها",
-            "help": "قائمة سماح اختيارية بمعرّفات قنوات Discord التي يرد فيها البوت. اتركها فارغة للسماح بكل القنوات."
-          },
-          "intents": {
-            "label": "نوايا البوابة",
-            "help": "حقل بتات لنوايا البوابة (Gateway Intents) بصيغة عدد صحيح (الافتراضي 37377 = GUILDS | GUILD_MESSAGES | DIRECT_MESSAGES | MESSAGE_CONTENT). نية MESSAGE CONTENT مميزة ويجب تفعيلها في بوابة المطوّرين وإلا فشل البوت في الاتصال."
-          },
-          "group_policy": {
-            "label": "سياسة المجموعات",
-            "help": "\"mention\" للرد فقط عند الإشارة إلى البوت في قنوات الخادم، و\"open\" للرد على كل رسائل القنوات (مع الخضوع لقوائم السماح)."
-          },
-          "read_receipt_emoji": {
-            "label": "تفاعل تأكيد الاستلام",
-            "help": "التفاعل الذي يوضع فورًا على الرسالة الواردة تأكيدًا لاستلامها (الافتراضي 👀)، ويُزال بمجرد وصول الرد."
-          },
-          "working_emoji": {
-            "label": "تفاعل حالة العمل",
-            "help": "التفاعل الذي يوضع أثناء عمل الوكيل (الافتراضي 🔧)، ويُضاف بعد تأخير تفاعل حالة العمل."
-          },
-          "working_emoji_delay": {
-            "label": "تأخير تفاعل حالة العمل (ثانية)",
-            "help": "عدد الثواني قبل إضافة تفاعل حالة العمل، حتى لا يظهر في الردود السريعة (الافتراضي 2.0)."
-          },
-          "streaming": {
-            "label": "بث الرد تدريجيًا",
-            "help": "بث الرد عبر التحرير التدريجي لرسالة Discord واحدة بدل إرسال رسالة نهائية واحدة."
-          },
-          "proxy": {
-            "label": "عنوان الوكيل",
-            "help": "وسيط HTTP اختياري يمر عبره اتصال البوابة واستدعاءات الواجهة، مثل http://host:port."
-          },
-          "proxy_username": {
-            "label": "اسم مستخدم الوكيل",
-            "help": "اسم مستخدم الوكيل؛ يجب إدخاله مع كلمة مرور الوكيل أو تركهما معًا — يُتجاهل الزوج الناقص مع تحذير. يُحفظ في الخادم ولا يُعاد إلى المتصفح أبدًا."
-          },
-          "proxy_password": {
-            "label": "كلمة مرور الوكيل",
-            "help": "كلمة مرور الوكيل؛ يجب إدخالها مع اسم مستخدم الوكيل أو تركهما معًا — يُتجاهل الزوج الناقص مع تحذير. يُحفظ في الخادم ولا يُعاد إلى المتصفح أبدًا."
-          }
-        }
-      },
-      "guides": {
-        "dingtalk": {
-          "title": "دليل إعداد DingTalk",
-          "intro": "تستخدم روبوتات DingTalk وضع Stream، لذا لا حاجة إلى عنوان URL عام للاستدعاء.",
-          "step1": "أنشئ تطبيقًا في وحدة تحكم مطوّري DingTalk ‏(open-dev.dingtalk.com).",
-          "step2": "أضف قدرة الروبوت إلى التطبيق وفعّل وضع Stream له.",
-          "step3": "انسخ AppKey الخاص بالتطبيق إلى Client ID وAppSecret إلى Client Secret.",
-          "step4": "انشر التطبيق ليتيح استخدامه داخل مؤسستك.",
-          "step5": "عد إلى هنا، وانقر على «اختبار الاتصال»، ثم فعّل القناة.",
-          "docsLabel": "فتح وحدة تحكم مطوّري DingTalk"
-        },
-        "qq": {
-          "title": "دليل إعداد QQ",
-          "intro": "تتصل روبوتات QQ عبر WebSocket باستخدام SDK الرسمي botpy، لذا لا حاجة إلى عنوان URL عام للاستدعاء.",
-          "step1": "سجّل في منصة QQ المفتوحة (q.qq.com) وأنشئ روبوتًا.",
-          "step2": "انسخ AppID وAppSecret من صفحة إعدادات تطوير الروبوت.",
-          "step3": "الصقهما في حقلي AppID وAppSecret أعلاه.",
-          "step4": "أضف الروبوت إلى مجموعة QQ أو تحدّث معه بشكل خاص، وفقًا لقواعد الصندوق الرملي/النشر الخاصة بالمنصة.",
-          "step5": "عد إلى هنا، وانقر على «اختبار الاتصال»، ثم فعّل القناة.",
-          "docsLabel": "فتح منصة QQ المفتوحة"
-        },
-        "email": {
-          "title": "دليل إعداد البريد الإلكتروني",
-          "intro": "تستعلم قناة البريد عن الوارد عبر IMAP وترد عبر SMTP، لذا لا حاجة إلى عنوان استدعاء عام.",
-          "step1": "احصل على أسماء المضيفين والمنافذ لـ IMAP وSMTP من مزوّد البريد (عادةً imap.<المزوّد> على المنفذ 993 وsmtp.<المزوّد> على المنفذ 587).",
-          "step2": "فعّل IMAP وSMTP في إعدادات صندوق البريد، وأنشئ كلمة مرور تطبيق إذا طلب المزوّد ذلك (في Gmail وبريد QQ وغيرهما مع التحقق بخطوتين).",
-          "step3": "املأ بيانات اعتماد IMAP وSMTP أعلاه، واضبط عنوان المرسل، وأضف عنوانك إلى «المرسلون المسموحون».",
-          "step4": "انقر «اختبار الاتصال»؛ فهو يتحقق من تسجيل الدخول إلى IMAP ومن مجلد البريد ومن تسجيل الدخول إلى SMTP.",
-          "step5": "حدّد «الموافقة ممنوحة» ثم فعّل القناة؛ عندها تصل الردود التلقائية إلى المرسلين الذين يجتازون فحصي DKIM/SPF.",
-          "docsLabel": "افتح وثائق Vibe-Trading"
-        },
-        "websocket": {
-          "title": "دليل إعداد WebSocket",
-          "intro": "تشغّل قناة WebSocket خادمًا محليًا يتصل به العملاء عبر عنوان WebSocket مباشرةً، لذا لا حاجة إلى عنوان استدعاء عام.",
-          "step1": "اختر عنوان الربط: أبقِ 127.0.0.1 للاستخدام المحلي فقط، أو اضبط 0.0.0.0 / :: لكشف الخادم — والعنوان الشامل يتطلب رمزًا أو سرّ إصدار رموز.",
-          "step2": "اضبط رمزًا ثابتًا، أو مسار إصدار رموز مع سرّه من نوع Bearer ليحصل العملاء على رموز قصيرة العمر.",
-          "step3": "يتصل العملاء عبر ws://host:port/path?client_id=...&token=...",
-          "step4": "الحفظ أثناء تشغيل القناة يستبدل الخادم فوريًا: ينقطع العملاء المتصلون (بما في ذلك محادثة واجهة الويب هذه) لحظيًا ثم يعيدون الاتصال تلقائيًا.",
-          "step5": "انقر «اختبار الاتصال»؛ فهو يتحقق محليًا من مادة شهادة/مفتاح SSL ومن توفر العنوان.",
-          "docsLabel": "افتح وثائق Vibe-Trading"
-        },
-        "feishu": {
-          "title": "إعداد بوت Feishu / Lark",
-          "intro": "يستخدم بوت Feishu الاتصال الدائم عبر WebSocket، لذا لا حاجة إلى عنوان IP عام أو رابط ويب هوك.",
-          "step1": "أنشئ تطبيقًا مخصصًا في منصة Feishu للمطورين (open.feishu.cn)، أو أنشئه بالمسح الضوئي من الطرفية عبر الأمر vibe-trading channels login feishu حيث يُحفظ معرّف التطبيق والسر تلقائيًا.",
-          "step2": "أضف ميزة البوت إلى التطبيق.",
-          "step3": "في الاشتراك في الأحداث، اشترك في «استقبال الرسائل im.message.receive_v1» واختر وضع الاتصال الدائم.",
-          "step4": "انسخ معرّف التطبيق (App ID) وسر التطبيق (App Secret) من صفحة «بيانات الاعتماد والمعلومات الأساسية» والصقهما في الحقلين أعلاه.",
-          "step5": "أنشئ إصدارًا وانشر التطبيق (قد تتطلب مؤسستك موافقة المسؤول)، ثم فعّل القناة من هنا فتُطبَّق التغييرات فورًا دون إعادة تشغيل. في بيئات Lark الدولية اضبط النطاق على lark.",
-          "docsLabel": "فتح منصة Feishu للمطورين"
-        },
-        "discord": {
-          "title": "دليل إعداد Discord",
-          "intro": "تتصل بوتات Discord بالبوابة عبر رمز البوت، لذا لا حاجة إلى عنوان IP عام أو رابط ويب هوك.",
-          "step1": "أنشئ تطبيقًا في بوابة مطوّري Discord (discord.com/developers).",
-          "step2": "افتح صفحة Bot، وأعد تعيين الرمز (Reset Token)، وانسخه.",
-          "step3": "ضمن Privileged Gateway Intents، فعّل MESSAGE CONTENT INTENT — فالنوايا الافتراضية تتطلبه.",
-          "step4": "أنشئ رابط دعوة OAuth2 بنطاق bot (وapplications.commands) وأضف البوت إلى خادمك.",
-          "step5": "الصق الرمز هنا، وانقر «اختبار الاتصال»، ثم فعّل القناة.",
-          "docsLabel": "افتح وثائق مطوّري Discord"
-        }
-      }
-    },
-    "generation": "إعدادات التوليد",
-    "dataSourceSettings": "إعدادات مصادر البيانات",
-    "dataSourceSettingsDesc": "اضبط بيانات اعتماد بيانات السوق الاختيارية المستخدمة في الاختبارات العكسية ووكلاء البحث.",
-    "sourcePriority": {
-      "title": "أولوية مصادر البيانات",
-      "description": "تحكّم بترتيب تجربة مصادر البيانات لكل سوق عندما يجلب الوكيل البيانات تلقائيًا. لا تتأثر المصادر المحددة صراحةً.",
-      "marketLabel": "السوق",
-      "badgeDefault": "افتراضي",
-      "badgeCustom": "مخصص",
-      "customMarkets": "مخصص · {{count}}",
-      "moveUp": "نقل لأعلى",
-      "moveDown": "نقل لأسفل",
-      "resetToDefault": "استعادة الافتراضي",
-      "invalidOverrideWarning": "القيمة المحفوظة في {{envVar}} غير صالحة (يجب إعادة ترتيب المصادر نفسها) — الترتيب الافتراضي هو الساري.",
-      "noMarkets": "لا توجد مصادر بيانات أسواق مسجلة.",
-      "howItWorksTitle": "كيف يعمل",
-      "howItWorks": "تُجرَّب المصادر من الأعلى إلى الأسفل للرموز المكتشفة تلقائيًا، وأي مصدر يفشل ينتقل إلى التالي. يُطبَّق الحفظ فورًا دون إعادة تشغيل.",
-      "caliberCaveat": "قد تختلف تسويات الأسعار بين المصادر. راجع معلومات التسوية والمصدر وتحذيرات بطاقة التشغيل؛ فقد يغيّر ترتيب المصادر نتائج الاختبار التاريخي.",
-      "markets": {
-        "a_share": "أسهم الصين (A)",
-        "us_equity": "الأسهم الأمريكية",
-        "hk_equity": "أسهم هونغ كونغ",
-        "india_equity": "الأسهم الهندية",
-        "kr_equity": "الأسهم الكورية",
-        "ca_equity": "الأسهم الكندية",
-        "vietnam_equity": "أسهم فيتنام",
-        "ar_equity": "الأسهم الأرجنتينية",
-        "br_equity": "الأسهم البرازيلية",
-        "uk_equity": "الأسهم البريطانية",
-        "index": "المؤشرات",
-        "crypto": "العملات الرقمية",
-        "futures": "العقود المستقبلية",
-        "fund": "الصناديق",
-        "macro": "الاقتصاد الكلي",
-        "forex": "العملات"
-      }
-    },
-    "tushareToken": "رمز Tushare",
-    "gildataToken": "رمز Gildata",
-    "clearTushareToken": "مسح رمز Tushare المحفوظ",
-    "clearGildataToken": "مسح رمز Gildata المحفوظ",
-    "saveDataSourceSettings": "حفظ إعدادات مصادر البيانات",
-    "baostock": "BaoStock",
-    "loadLlmSettingsFailed": "فشل تحميل إعدادات LLM: {{message}}",
-    "loadDataSourceSettingsFailed": "فشل تحميل إعدادات مصادر البيانات: {{message}}",
-    "llmSettingsSaved": "تم حفظ إعدادات LLM",
-    "saveLlmSettingsFailed": "فشل حفظ إعدادات LLM: {{message}}",
-    "dataSourceSettingsSaved": "تم حفظ إعدادات مصادر البيانات",
-    "desktopCredentialRestarting": "تم تشفير بيانات الاعتماد. جارٍ إعادة تشغيل الخدمة المحلية…",
-    "saveDataSourceSettingsFailed": "فشل حفظ إعدادات مصادر البيانات: {{message}}",
-    "configured": "تم التكوين",
-    "keepCurrentKey": "اتركه فارغًا للاحتفاظ بالمفتاح الحالي",
-    "providerUsesOauth": "يستخدم هذا المزوّد OAuth. شغّل: {{command}}",
-    "providerUsesManagedAuth": "يدير هذا المزوّد المصادقة. شغّل: {{command}}",
-    "noApiKeyRequired": "لا يتطلب هذا المزوّد مفتاح API.",
-    "keepCurrentToken": "اتركه فارغًا للاحتفاظ بالرمز الحالي",
-    "iwencaiApiKey": "مفتاح API لـ iWenCai",
-    "fredApiKey": "مفتاح API لـ FRED",
-    "iwencaiDesc": "يُستخدم للفحص الدلالي للأسهم عبر iWenCai (问财). يتطلب مفتاح وصول مجاني.",
-    "clearSavedKey": "مسح المفتاح المحفوظ",
-    "fredDesc": "يُستخدم لبيانات FRED الاقتصادية الكلية (CPI، GDP، البطالة، إلخ). مفتاح مجاني من fred.stlouisfed.org.",
-    "featureFlags": "أعلام الميزات",
-    "featureFlagsDesc": "أعلام الميزات في وقت التشغيل المكتشفة من متغيرات البيئة.",
-    "shellTools": "أدوات Shell",
-    "scheduler": "المُجدوِل",
-    "sessionRuntime": "وقت تشغيل الجلسة",
-    "flagsReadFrom": "تُقرأ الأعلام من {{env1}} و{{env2}} و{{env3}} في {{env_path}}.",
-    "unknownError": "خطأ غير معروف",
-    "providerChangeHint": "يؤدي تغيير المزوّد إلى تحديث النموذج ونقطة النهاية الموصى بهما.",
-    "oauth": "OAuth",
-    "authentication": "المصادقة",
-    "apiKey": "مفتاح API",
-    "tushareTokenDesc": "يُستخدم لبيانات الأسهم الصينية (فئة A) والعقود الآجلة والصناديق والاقتصاد الكلي. إذا لم يُضبط، يتراجع المشروع إلى AKShare حيثما توفر.",
-    "gildataTokenDesc": "مصدر اختياري من Gildata (هينغشنغ جويوان) للأسهم الصينية فئة A. عند تعيينه، ينضم إلى نهاية سلسلة التراجع للأسهم A ببيانات يومية معدّلة."
-  },
-  "qveris": {
-    "title": "سوق أدوات QVeris",
-    "subtitle": "أبقِ البيانات العامة المجانية كخيار افتراضي، وفعّل تنفيذ QVeris المدفوع عند الحاجة فقط.",
-    "enabled": "تفعيل مسار QVeris المدفوع",
-    "baseUrl": "عنوان URL الأساسي",
-    "apiKey": "مفتاح API",
-    "apiKeyPlaceholder": "اتركه فارغًا للاحتفاظ بالمفتاح الحالي",
-    "mode": "الوضع",
-    "modeFree": "البيانات العامة المجانية فقط",
-    "modePaid": "تفعيل QVeris المدفوع",
-    "budget": "رصيد Credits لكل جلسة",
-    "budgetHint": "يتوقف التنفيذ المدفوع عند بلوغ ميزانية هذه الجلسة.",
-    "balance": "Credits المتبقية",
-    "recentUsage": "الاستخدام الأخير",
-    "noUsage": "لا يوجد استخدام حديث",
-    "signupCta": "فتح التسجيل",
-    "signupHint": "استخدم رمز الدعوة هذا عند إنشاء حساب QVeris.",
-    "inviteCode": "رمز الدعوة",
-    "save": "حفظ إعدادات QVeris",
-    "saved": "تم حفظ إعدادات QVeris",
-    "testFailed": "فشل طلب QVeris",
-    "notConfigured": "غير مكوّن"
-  },
-  "agent": {
-    "reasoningStrength": "جهد الاستدلال",
-    "unknownProvider": "مزوّد غير معروف",
-    "unknownModel": "نموذج غير معروف",
-    "connectionLostReconnect": "فُقد الاتصال، جارٍ إعادة الاتصال…",
-    "connectionRestored": "تمت استعادة الاتصال",
-    "agentWorking": "جارٍ بدء العمل…",
-    "reasoning": "جارٍ التفكير مليًا…",
-    "running": "قيد التشغيل",
-    "newMessages": "رسائل جديدة",
-    "newResearchGoal": "هدف بحث جديد",
-    "goal": "الهدف",
-    "criteria": "المعايير",
-    "evidence": "الأدلة",
-    "recentEvidence": "الأدلة الأخيرة",
-    "continue": "متابعة",
-    "edit": "تعديل",
-    "cancel": "إلغاء",
-    "save": "حفظ",
-    "cancelGoal": "إلغاء الهدف",
-    "describeGoal": "صف هدف البحث لإرفاقه بهذه الجلسة",
-    "placeholder": "مثال: اختبر استراتيجية بسيطة للمتوسط المتحرك على 000001.SZ خلال عام 2024",
-    "send": "إرسال",
-    "messageInputLabel": "رسالة إلى الوكيل",
-    "inputHint": "Enter للإرسال · Shift+Enter لسطر جديد",
-    "editGoalObjectiveLabel": "تعديل هدف البحث",
-    "exportChat": "تصدير المحادثة",
-    "stopGeneration": "إيقاف التوليد",
-    "runSwarmTeam": "تشغيل فريق السرب",
-    "uploadFile": "رفع ملف",
-    "checkConnector": "فحص الموصل",
-    "analyzePortfolio": "تحليل محفظة الموصل",
-    "executionTimedOut": "انتهت مهلة التنفيذ، تم الإيقاف تلقائيًا",
-    "researchGoalAttached": "تم إرفاق هدف البحث",
-    "failedToStartGoal": "فشل بدء الهدف.",
-    "researchGoalCancelled": "تم إلغاء هدف البحث",
-    "failedToCancelGoal": "فشل إلغاء الهدف.",
-    "researchGoalUpdated": "تم تحديث هدف البحث",
-    "failedToUpdateGoal": "فشل تحديث الهدف.",
-    "failedToLoadGoal": "فشل تحميل الهدف.",
-    "cancelRequestSent": "جارٍ الإيقاف…",
-    "cancelFailed": "تعذّر الإيقاف — حاول مرة أخرى.",
-    "connectorHalted": "تم إيقاف وقت تشغيل الموصل",
-    "failedToHaltConnector": "فشل إيقاف وقت تشغيل الموصل.",
-    "cancelledFromUI": "تم الإلغاء من واجهة الويب.",
-    "executablesNotAllowed": "غير مسموح بالملفات التنفيذية والأرشيفات",
-    "fileSizeExceeds": "حجم الملف يتجاوز حد 50 ميغابايت",
-    "uploaded": "تم الرفع: {{filename}}",
-    "attachmentLimit": "يمكنك إرفاق ما يصل إلى {{count}} ملفات",
-    "dropFiles": "أفلت الملفات هنا",
-    "removeAttachment": "إزالة {{filename}}",
-    "uploadFailed": "فشل الرفع: {{error}}",
-    "messageTooLong": "تتجاوز الرسالة {{limit}} حرفًا بما في ذلك معلومات المرفقات وتعليمات الفريق. اختصرها قبل الإرسال.",
-    "failedToSend": "فشل إرسال الرسالة، يُرجى المحاولة مرة أخرى.",
-    "failedToContinue": "فشل متابعة الهدف، يُرجى المحاولة مرة أخرى.",
-    "runtimeBadge": "مراقبة التداول",
-    "activeResearchGoal": "هدف بحث نشط",
-    "evidenceCollectedTitle": "الأدلة المجمّعة نحو هدف البحث هذا",
-    "evidenceCount": "{{count}} دليل",
-    "uploading": "جارٍ الرفع...",
-    "haltConnectorTitle": "إيقاف نشاط وقت تشغيل الموصل فورًا",
-    "haltConnector": "إيقاف وقت تشغيل الموصل",
-    "moreOptions": "خيارات إضافية",
-    "researchGoal": "هدف البحث",
-    "agentSwarm": "سرب الوكلاء",
-    "attachmentChip": "مرفق",
-    "swarmModeChip": "وضع السرب",
-    "goalModeChip": "هدف البحث",
-    "continueGoalMessage": "متابعة هدف البحث: {{goal}}",
-    "loadEarlier": "تحميل الرسائل الأقدم",
-    "authRequired": "يتطلب الوصول إلى API عن بُعد مفتاح API. أضفه في الإعدادات، أو شغّل الخادم على localhost للاستخدام المحلي فقط.",
-    "followUpPlaceholder": "اسأل عن هذا التشغيل — مثلًا: لماذا يبلغ التراجع هذا الحد؟",
-    "continuePrompt": "تابع من حيث توقفت.",
-    "doneMarker": "اكتمل التشغيل",
-    "backgroundRunComplete": "اكتمل تشغيل في جلسة أخرى.",
-    "activity": {
-      "verbs": {
-        "readingMarketData": "جارٍ قراءة بيانات السوق",
-        "writingStrategy": "جارٍ إعداد الاستراتيجية",
-        "runningBacktest": "جارٍ تشغيل الاختبار التاريخي",
-        "validatingNumbers": "جارٍ التحقق من الأرقام",
-        "working": "جارٍ العمل"
-      },
-      "done": "تم",
-      "stopped": "أوقفته أنت",
-      "timeout": "توقف الانتظار بعد {{elapsed}} — ربما لا يزال التشغيل في مراحله النهائية",
-      "failed": "فشل",
-      "steps": "{{count}} خطوات",
-      "continue": "متابعة",
-      "reattach": "إعادة الاتصال",
-      "checkingFigures": "جارٍ التحقق من الأرقام في هذه الإجابة (الجولة {{round}})…"
-    },
-    "resumeConnector": "استئناف الموصل",
-    "resumeConnectorTitle": "مسح مفتاح الإيقاف واستئناف نشاط الموصل",
-    "connectorResumed": "تم استئناف الموصل",
-    "failedToResumeConnector": "فشل استئناف الموصل."
+    "requestTimeoutMutation": "انتهت مهلة الطلب. قد يظل الخادم يعالجه؛ تحقق من الحالة الحالية قبل إعادة المحاولة.",
+    "authRequired": "يتطلب الوصول إلى API عن بُعد مفتاح API. أضفه في الإعدادات، أو شغّل الخادم على localhost للاستخدام المحلي فقط."
   },
   "runDetail": {
     "title": "تفاصيل التشغيل",
@@ -1354,6 +230,16 @@
     "ddTroughToRecovery": "القاع إلى التعافي",
     "ddNotRecovered": "لم يتعافَ",
     "ddDays": "{{count}} يوم",
+    "lossPoints": "Where the loss came from",
+    "lossPointsNote": "Sells whose exit falls between the peak and the trough, with negative PnL.",
+    "lossNoTrades": "This drawdown has no losing trades. An equity curve alone cannot name the stocks.",
+    "lossWorst": "Worst trades",
+    "lossCluster": "Same-day cluster",
+    "lossCode": "Symbol",
+    "lossPnl": "PnL",
+    "lossWhen": "Exit",
+    "lossReason": "Reason",
+    "lossCount": "{{count}}",
     "dashboard": "لوحة البحث",
     "positions": {
       "tab": "المراكز",
@@ -1426,7 +312,12 @@
     "attrCumulativeTitle": "العوائد التراكمية",
     "attrLoading": "جارٍ تحميل الإسناد…",
     "attrError": "فشل تحميل الإسناد.",
-    "attrNoData": "لا تتوفر بيانات إسناد لهذا التشغيل."
+    "attrNoData": "لا تتوفر بيانات إسناد لهذا التشغيل.",
+    "status": {
+      "completed": "مكتمل",
+      "cancelled": "أُلغي",
+      "failed": "فشل"
+    }
   },
   "compare": {
     "title": "مقارنة الاستراتيجيات",
@@ -1765,153 +656,6 @@
     "windowReturns": "عائد كل نافذة",
     "tradeNumber": "رقم الصفقة"
   },
-  "thinking": {
-    "processing": "جارٍ المعالجة",
-    "running": "قيد التشغيل",
-    "done": "تم",
-    "steps": "{{count}} خطوات"
-  },
-  "runnerStatus": {
-    "connectorRuntime": "وقت تشغيل الموصل",
-    "configuredProfiles": "ملفات تعريف وقت تشغيل الموصل المهيأة",
-    "connected": "{{count}} متصل",
-    "noConnector": "لا يوجد موصل متصل",
-    "running": "قيد التشغيل",
-    "halted": "موقوف",
-    "authorized": "مُصادَق",
-    "sdkConnected": "متصل",
-    "sdkReadOnlyNote": "موصل SDK مباشر · ملف قراءة فقط. التداول المباشر يتطلب ملف trade و mandate مُلتزَم.",
-    "sdkCredentialsRequired": "قم بتكوين بيانات اعتماد API لهذا الموصل (راجع Runtime).",
-    "sdkConnectionError": "فشل فحص الاتصال. تحقق من بيانات الاعتماد في Runtime.",
-    "notConnected": "غير متصل",
-    "connectProfile": "وصّل ملف التعريف هذا لتفعيل وقت تشغيل الموصل",
-    "authorizeNote": "تبقى قناة الموصل للقراءة فقط حتى تنجح مصادقة OAuth ويُلتزم التفويض.",
-    "runner": "المُشغّل",
-    "runnerRunning": "قيد التشغيل",
-    "runnerStopped": "متوقف",
-    "lastTick": "آخر تحديث",
-    "activeMandate": "التفويض النشط",
-    "expiresIn": "ينتهي خلال {{time}}",
-    "expired": "منتهي الصلاحية",
-    "limitsUnavailable": "الحدود غير متاحة",
-    "noActiveMandate": "لا يوجد تفويض نشط. اطلب من الوكيل اقتراح واحد، ثم التزم به قبل بدء وقت تشغيل الموصل.",
-    "haltedControlsDisabled": "موقوف — تم تعطيل تحكّمات المُشغّل",
-    "runtimeActive": "قيد التشغيل ضمن التفويض",
-    "idle": "خامل",
-    "stopRunner": "إيقاف المُشغّل",
-    "startRunner": "تشغيل المُشغّل",
-    "never": "أبدًا",
-    "unknown": "غير معروف",
-    "justNow": "الآن",
-    "loadingInstructions": "جارٍ تحميل تعليمات تفويض الموصل...",
-    "fallbackInstruction": "شغّل `vibe-trading connector list` لاختيار ملف تعريف الوسيط، ثم شغّل `vibe-trading connector authorize <الملف>` من جلسة سطح المكتب التي ستحتفظ باتصال الوسيط.",
-    "secondsAgo": "قبل {{n}} ث",
-    "minutesAgo": "قبل {{n}} د",
-    "hoursAgo": "قبل {{n}} س",
-    "daysAgo": "قبل {{n}} يوم",
-    "runnerStartedFor": "تم تشغيل المنفّذ لـ {{broker}}",
-    "runnerStoppedFor": "تم إيقاف المنفّذ لـ {{broker}}",
-    "runnerControlFailed": "فشل التحكم في المنفّذ.",
-    "startRunnerTitle": "تشغيل المنفّذ الدائم",
-    "stopRunnerTitle": "إيقاف المنفّذ الدائم",
-    "expiresAt": "تنتهي في {{time}}"
-  },
-  "swarmStatus": {
-    "agents": "{{done}}/{{total}} وكيل",
-    "layer": "الجولة {{current}} من {{total}}",
-    "agent": "الوكيل",
-    "status": "الحالة",
-    "tool": "الأداة",
-    "time": "الوقت",
-    "iters": "التمريرات",
-    "output": "المخرجات",
-    "waitingForEvents": "بانتظار أحداث الوكيل...",
-    "teamStarting": "الفريق قيد التشغيل — أولى التحديثات خلال ثوانٍ…",
-    "detailsUnavailable": "التفاصيل غير متاحة"
-  },
-  "mandate": {
-    "runtimeMandate": "تفويض وقت تشغيل الموصل",
-    "reauthMandate": "إعادة تفويض موصل التفويض",
-    "universe": "الكون",
-    "maxOrder": "الحد الأقصى للأمر",
-    "dailyCap": "حد يومي",
-    "leverage": "الرافعة",
-    "instruments": "الأدوات",
-    "adjust": "تعديل",
-    "committing": "جارٍ الالتزام…",
-    "commit": "التزام \"{{label}}\"",
-    "cancel": "إلغاء",
-    "sendAdjustment": "إرسال التعديل",
-    "mandateActive": "التفويض {{id}} نشط",
-    "fundedBy": "مموّل من قِبل",
-    "noBroker": "لا يمكن الالتزام بالتفويض: وسيط الموصل مفقود. اطلب من الوكيل إعادة توليد الاقتراح.",
-    "failedToCommit": "فشل الالتزام بالتفويض.",
-    "noLeverage": "بدون رافعة",
-    "leverageValue": "{{value}}× رافعة",
-    "tradesPerDay": "{{count}} صفقة/يوم",
-    "adjustTitle": "تعديل هذا التفويض",
-    "adjustPlaceholder": "مثال: أبقِ هذا لكن ارفع الحد اليومي إلى 10",
-    "adjustInputLabel": "محتوى طلب التعديل",
-    "confirmTitle": "تأكيد الالتزام بالتفويض",
-    "confirmDescription": "سيؤدي الالتزام إلى منح الوكيل صلاحية تداول فورية ضمن الحدود الموضحة أدناه.",
-    "confirmButton": "تأكيد والالتزام",
-    "maxPerOrder": "بحد أقصى {{amount}} لكل أمر",
-    "expiresOn": "ينتهي في {{date}}",
-    "accountSummary": "{{broker}} · حساب {{type}} · ممول من {{fundedBy}}",
-    "adjustRequestMessage": "لطلب تعديل اقتراح التفويض «{{label}}» (الخيار {{ordinal}}): {{text}}",
-    "accountLoading": "جارٍ تحميل حسابات الوسيط…",
-    "accountLoadFailed": "تعذّر تحميل حسابات الوسيط: {{error}}",
-    "accountLabel": "الحساب الذي يمكن لهذا التفويض التداول فيه",
-    "accountChoose": "اختر حسابًا",
-    "accountDefault": " · الافتراضي لدى الوسيط",
-    "accountDeactivated": " · معطّل",
-    "accountNotAgentic": " · لا يُسمح بتداول الوكيل",
-    "accountHint": "يتداول الوكيل في هذا الحساب فقط، ولن يُختار أي حساب نيابةً عنك."
-  },
-  "messageBubble": {
-    "elapsedTime": "إجمالي وقت الاستجابة",
-    "copied": "تم النسخ",
-    "copy": "نسخ",
-    "copyFailed": "فشل النسخ. حدّد النص واضغط Ctrl+C.",
-    "timeoutHint": "انتهت المهلة. بسّط الاستراتيجية أو استخدم عددًا أقل من الأصول.",
-    "apiFailedHint": "فشل طلب API. حاول مرة أخرى بعد قليل.",
-    "executionFailedHint": "فشل التنفيذ. حاول مرة أخرى.",
-    "retry": "إعادة المحاولة"
-  },
-  "pineViewer": {
-    "pineScript": "Pine Script v6",
-    "copied": "تم النسخ",
-    "copy": "نسخ",
-    "docs": "التوثيق",
-    "footer": "محرر TradingView Pine ← مؤشر فارغ جديد ← لصق الشفرة ← إضافة إلى الرسم البياني"
-  },
-  "runComplete": {
-    "fullReport": "التقرير الكامل →",
-    "pineScript": "Pine Script",
-    "shadowReport": "تقرير الظلّ"
-  },
-  "home": {
-    "title": "بحث استراتيجيات الكمّ مدعوم بالذكاء الاصطناعي",
-    "subtitle": "صف استراتيجية تداول بلغة طبيعية. يُولِّد الوكيل الشفرة، ويُجري الاختبارات العكسية، ويُحسّن — كل ذلك في الوقت الفعلي.",
-    "startResearch": "ابدأ البحث",
-    "featureAgent": "وكيل ذكاء اصطناعي",
-    "featureAgentDesc": "توليد استراتيجيات من اللغة الطبيعية باستدلال ReAct",
-    "featureBacktest": "اختبار عكسي مدمج",
-    "featureBacktestDesc": "مصادر بيانات متعددة للتحليل الكمي لأسهم A",
-    "featureStreaming": "بث في الوقت الفعلي",
-    "featureStreamingDesc": "راقب الوكيل وهو يفكّر، ويستدعي الأدوات، ويتكرّر",
-    "featureReplay": "إعادة تشغيل الاستراتيجية",
-    "featureReplayDesc": "محلّل يومية التداول + الحساب الظلّي — استخرج قواعدك، واختبرها عكسيًا، وأرجع فرق الأرباح والخسائر",
-    "howItWorksTitle": "كيف يعمل",
-    "step1Title": "1. صف استراتيجيتك",
-    "step1Desc": "أخبر الوكيل بما تريد اختباره بلغة طبيعية — دون الحاجة لكتابة أي كود.",
-    "step2Title": "2. راقب البحث والاختبار العكسي",
-    "step2Desc": "يخطط الوكيل، ويجلب بيانات السوق، وينفّذ الاختبار العكسي مباشرةً أمامك.",
-    "step3Title": "3. راجع النتائج",
-    "step3Desc": "اطّلع على مقاييس الأداء ومنحنى حقوق الملكية وشيفرة Pine Script القابلة للتصدير.",
-    "step4Title": "4. انتقل للتداول الفعلي عندما تكون جاهزًا",
-    "step4Desc": "يمكنك اختياريًا الموافقة على تفويض تداول بحدود واضحة — لن يُنفَّذ أي أمر دون تأكيدك."
-  },
   "errorBoundary": {
     "somethingWrong": "حدث خطأ ما. أعد تحميل الصفحة للمتابعة."
   },
@@ -1919,40 +663,6 @@
     "noPriceData": "لا توجد بيانات أسعار لهذا الرمز حتى الآن",
     "noCorrelationData": "اختر رمزين على الأقل للمقارنة",
     "noEquityData": "لا يوجد منحنى لقيمة الحساب حتى الآن — شغّل اختبارًا عكسيًا أولًا"
-  },
-  "toolProgress": {
-    "step": "الخطوة {{step}} · {{tool}}",
-    "toolsRunning": "جارٍ العمل على {{count}} مهام في آن واحد",
-    "toolsCompleted": "اكتملت {{count}} خطوات",
-    "more": "… و{{count}} أخرى",
-    "etaSeconds": "متبقٍ نحو {{seconds}} ثانية",
-    "earlier": "+{{count}} سابقة"
-  },
-  "swarm": {
-    "assemblingTeam": "جارٍ تشكيل الفريق…",
-    "preparingLayers": "جارٍ تحديد ترتيب العمل…",
-    "agentProgress": "تقدم وكلاء السرب",
-    "status": {
-      "waiting": "في الانتظار",
-      "running": "قيد التشغيل",
-      "done": "منجز",
-      "failed": "فشل",
-      "blocked": "محجوب",
-      "retry": "إعادة المحاولة",
-      "cancelled": "أُلغي",
-      "pending": "بانتظار البدء",
-      "completed": "مكتمل",
-      "unknown": "غير معروف"
-    },
-    "elapsed": {
-      "seconds": "{{value}} ث",
-      "minutesSeconds": "{{minutes}} د {{seconds}} ث"
-    },
-    "presets": {
-      "investment_committee": "مراجعة لجنة الاستثمار",
-      "quant_strategy_desk": "مكتب الاستراتيجيات الكمية",
-      "value_investing_committee": "لجنة الاستثمار القيمي"
-    }
   },
   "metrics": {
     "good": "جيد",
@@ -1974,93 +684,6 @@
       "final_value": "قيمة المحفظة في نهاية فترة الاختبار.",
       "avg_holding_days": "متوسط عدد الأيام التي ظل فيها كل مركز مفتوحًا."
     }
-  },
-  "tools": {
-    "add_goal_evidence": "إضافة دليل إلى الهدف",
-    "alpha_bench": "قياس عوامل ألفا مرجعيًا",
-    "alpha_compare": "مقارنة عوامل ألفا",
-    "alpha_zoo": "تصفح مكتبة ألفا",
-    "analyze_image": "تحليل الصورة",
-    "analyze_trade_journal": "تحليل يومية التداول",
-    "background_run": "بدء مهمة في الخلفية",
-    "backtest": "تشغيل الاختبار العكسي",
-    "bash": "تشغيل أمر",
-    "cancel_background": "إلغاء مهمة الخلفية",
-    "check_background": "التحقق من مهمة الخلفية",
-    "compact": "تلخيص المحادثة",
-    "create_hypothesis": "إنشاء فرضية بحث",
-    "delete_skill": "حذف مهارة مخصصة",
-    "edit_file": "تعديل الشيفرة",
-    "extract_shadow_strategy": "استخراج استراتيجية الظل",
-    "factor_analysis": "تحليل العوامل",
-    "financial_rigor": "التحقق من التحليل المالي",
-    "generate_backtest_config": "إنشاء إعدادات الاختبار العكسي",
-    "get_block_trades": "جلب الصفقات الضخمة",
-    "get_dragon_tiger": "جلب قائمة التنين والنمر",
-    "get_financial_statements": "جلب القوائم المالية",
-    "get_fund_flow": "جلب تدفقات الأموال",
-    "get_fundamentals": "جلب البيانات الأساسية",
-    "get_lockup_expiry": "جلب مواعيد انتهاء حظر البيع",
-    "get_macro_series": "جلب السلاسل الاقتصادية الكلية",
-    "get_margin_trading": "جلب بيانات التداول بالهامش",
-    "get_market_data": "جلب بيانات السوق",
-    "get_northbound_flow": "جلب تدفقات الاستثمار المتجه شمالًا",
-    "get_options_chain": "جلب سلسلة الخيارات",
-    "get_research_goal": "عرض هدف البحث",
-    "get_research_reports": "جلب تقارير الأبحاث",
-    "get_sec_filings": "جلب إفصاحات SEC",
-    "get_sector_info": "جلب بيانات القطاعات",
-    "get_shareholder_count": "جلب عدد المساهمين",
-    "get_stock_news": "جلب أخبار السهم",
-    "get_stock_profile": "جلب ملف السهم",
-    "iwencai_search": "البحث في iWenCai",
-    "link_autopilot_backtest": "ربط الاختبار العكسي بالبحث التلقائي",
-    "link_backtest": "ربط الاختبار العكسي بالفرضية",
-    "load_skill": "تحميل معرفة الاستراتيجية",
-    "options_payoff": "تحليل عائد الخيارات",
-    "options_pricing": "تسعير الخيارات",
-    "patch_skill": "تحديث مهارة مخصصة",
-    "pattern": "اكتشاف أنماط المخطط",
-    "portfolio_risk_xray": "فحص مخاطر المحفظة بعمق",
-    "propose_mandate_profiles": "اقتراح تفويضات التداول",
-    "qveris_execute": "تنفيذ إجراء QVeris",
-    "qveris_inspect": "فحص إجراء QVeris",
-    "qveris_search": "البحث في QVeris",
-    "read_document": "قراءة مستند",
-    "read_file": "قراءة ملف",
-    "read_url": "قراءة صفحة ويب",
-    "remember": "حفظ في الذاكرة",
-    "render_shadow_report": "إنشاء تقرير الظل",
-    "report_audit": "تدقيق تقرير البحث",
-    "run_research_autopilot": "تشغيل البحث التلقائي",
-    "run_shadow_backtest": "تشغيل الاختبار العكسي للظل",
-    "run_swarm": "جمع الفريق",
-    "save_skill": "حفظ مهارة مخصصة",
-    "scaffold_signal_engine": "بناء محرك الإشارات",
-    "scan_shadow_signals": "مسح إشارات الظل",
-    "screen_market": "فرز السوق",
-    "sdm_decay_scan": "فحص تدهور الاستراتيجية",
-    "sdm_register": "تسجيل الاستراتيجية",
-    "sdm_status": "التحقق من حالة الاستراتيجية",
-    "search_hypotheses": "البحث في الفرضيات",
-    "search_symbol": "البحث عن الرموز",
-    "session_search": "البحث في الجلسات السابقة",
-    "skill_file": "قراءة ملف المهارة",
-    "start_research_goal": "بدء هدف البحث",
-    "trading_account": "عرض حساب الوسيط",
-    "trading_cancel_order": "إلغاء أمر لدى الوسيط",
-    "trading_check": "فحص اتصال الوسيط",
-    "trading_connections": "سرد اتصالات الوسطاء",
-    "trading_history": "عرض سجل التداول",
-    "trading_orders": "عرض أوامر الوسيط",
-    "trading_place_order": "إرسال أمر إلى الوسيط",
-    "trading_positions": "عرض مراكز الوسيط",
-    "trading_quote": "جلب سعر من الوسيط",
-    "trading_select_connection": "اختيار اتصال الوسيط",
-    "update_hypothesis": "تحديث فرضية البحث",
-    "update_research_goal_status": "تحديث حالة الهدف",
-    "web_search": "البحث في الويب",
-    "write_file": "إنشاء الشيفرة"
   },
   "runDashboard": {
     "eyebrow": "بحث كمّي · اختبار رجعي",
@@ -2345,5 +968,52 @@
     "selectedFactor": "العامل المحدد: {{id}}. سيُقيّم هذا العامل فقط.",
     "fundamentalsRequirement": "تحتاج العوامل الأساسية إلى قوائم SEC آمنة زمنيًا ومجموعة أسهم أمريكية (S&P 500).",
     "noEvaluableFactors": "تعذر تقييم أي عامل. جرّب فترة تاريخية أطول وتحقق من حقول البيانات المطلوبة ومجموعة الأسهم."
+  },
+  "workbench": {
+    "title": "Research workbench",
+    "subtitle": "Submit strategies from your code agent. Track experiments, inspect results and compare revisions.",
+    "active": "In progress",
+    "complete": "Completed",
+    "total": "Experiments",
+    "project": "Project",
+    "all": "All projects",
+    "refresh": "Refresh",
+    "loading": "Loading experiments…",
+    "empty": "No experiments yet",
+    "emptyHint": "Start the service, then submit the offline example below from your terminal or code agent.",
+    "error": "Unable to load experiments",
+    "report": "Open report",
+    "logs": "Logs & configuration",
+    "cancel": "Cancel experiment",
+    "compare": "Compare selected",
+    "select": "Select {{name}} for comparison",
+    "schema": "Artifact schema checked · accounting / out-of-sample not checked",
+    "handoff": "Connect your external code agent",
+    "handoffHint": "The service snapshots only the files explicitly listed in your manifest. Run from the repository root; see README for the artifact contract.",
+    "copy": "Copy context",
+    "copied": "Copied",
+    "noLogs": "No log output yet.",
+    "config": "Submitted configuration",
+    "snapshot": "Source & input snapshot",
+    "parent": "Parent experiment",
+    "settings": "Workbench settings",
+    "settingsHint": "Local execution and API connection. No model configuration is required.",
+    "key": "API key (optional for local development)",
+    "save": "Save connection",
+    "saved": "Connection saved",
+    "workspace": "Allowed workspace",
+    "storage": "Experiment storage",
+    "workers": "Concurrent workers",
+    "connection": "Connection",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "cancelling": "Cancelling",
+      "cancelled": "Cancelled",
+      "failed": "Failed",
+      "interrupted": "Interrupted",
+      "success": "Succeeded"
+    },
+    "appName": "Quant Workbench"
   }
 }

@@ -556,6 +556,9 @@ class Runner:
         if current_run_root not in allowed_run_roots:
             allowed_run_roots.append(current_run_root)
         env["VIBE_TRADING_ALLOWED_RUN_ROOTS"] = ",".join(allowed_run_roots)
+        # Custom program mode reads this instead of discovering the run directory
+        # from HOME, which execute() replaces with an ephemeral sandbox.
+        env["RUN_DIR"] = current_run_root
 
         if pythonpath_extra:
             existing = env.get("PYTHONPATH", "")
